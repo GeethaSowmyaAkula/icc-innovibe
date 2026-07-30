@@ -118,13 +118,16 @@ const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: 
         title: 'Telematics & Engineering',
         items: [
           { name: 'Telematics Overview', path: '/dashboard/cto', icon: Zap, color: 'text-purple-600' },
-          { name: 'EV Health Score Engine', path: '/dashboard/cto?module=health', exactQuery: 'health', icon: Activity, color: 'text-emerald-600' },
-          { name: 'AI Pipeline Logs', path: '/dashboard/cto?module=pipeline', exactQuery: 'pipeline', icon: BarChart3, color: 'text-sky-600' },
+          { name: 'Sprint Management', path: '/dashboard/cto?module=sprint-management', exactQuery: 'sprint-management', icon: ClipboardList, color: 'text-emerald-600' },
+          { name: 'Cybersecurity', path: '/dashboard/cto?module=cybersecurity', exactQuery: 'cybersecurity', icon: ShieldCheck, color: 'text-red-500' },
+          { name: 'Integrations', path: '/dashboard/cto?module=integrations', exactQuery: 'integrations', icon: Layers, color: 'text-blue-600' },
         ],
       },
       {
-        title: 'Automation',
+        title: 'Governance & Analytics',
         items: [
+          { name: 'Reports & Analytics', path: '/dashboard/cto?module=reports-analytics', exactQuery: 'reports-analytics', icon: FileText, color: 'text-purple-600' },
+          { name: 'Notifications', path: '/dashboard/cto?module=notifications', exactQuery: 'notifications', icon: Bell, badge: '3', color: 'text-amber-500' },
           { name: 'AI Command Suite', path: '/dashboard/ai-command', icon: Bot, badge: 'n8n', color: 'text-sky-600' },
         ],
       },

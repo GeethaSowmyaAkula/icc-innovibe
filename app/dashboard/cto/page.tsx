@@ -5,9 +5,18 @@ import { useRole } from '../../../components/RoleContext';
 import { mockVehicles } from '../../../lib/mock-data';
 import { Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSearchParams } from 'next/navigation';
+
+import { SprintManagementModule } from '../../../components/cto/SprintManagementModule';
+import { CybersecurityModule } from '../../../components/cto/CybersecurityModule';
+import { IntegrationsModule } from '../../../components/cto/IntegrationsModule';
+import { ReportsAnalyticsModule } from '../../../components/cto/ReportsAnalyticsModule';
+import { NotificationsModule } from '../../../components/cto/NotificationsModule';
 
 export default function CTODashboard() {
   const { currentProfile } = useRole();
+  const searchParams = useSearchParams();
+  const activeModule = searchParams ? searchParams.get('module') : null;
   const [vehicles] = useState(mockVehicles);
 
   const telemetryDistribution = [
@@ -16,6 +25,26 @@ export default function CTODashboard() {
     { range: '50-69 (Attention)', count: 780 },
     { range: '< 50 (Critical)', count: 160 },
   ];
+
+  if (activeModule === 'sprint-management') {
+    return <SprintManagementModule />;
+  }
+
+  if (activeModule === 'cybersecurity') {
+    return <CybersecurityModule />;
+  }
+
+  if (activeModule === 'integrations') {
+    return <IntegrationsModule />;
+  }
+
+  if (activeModule === 'reports-analytics') {
+    return <ReportsAnalyticsModule />;
+  }
+
+  if (activeModule === 'notifications') {
+    return <NotificationsModule />;
+  }
 
   return (
     <div className="space-y-6 text-left">
