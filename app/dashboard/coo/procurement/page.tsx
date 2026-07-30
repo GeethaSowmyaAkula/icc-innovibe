@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import {
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function ProcurementPage() {
+function ProcurementInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'inventory' : 'inventory';
 
@@ -589,3 +589,13 @@ export default function ProcurementPage() {
     </RouteGuard>
   );
 }
+
+export default function ProcurementPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading...</div>}>
+      <ProcurementInner />
+    </Suspense>
+  );
+}
+
+

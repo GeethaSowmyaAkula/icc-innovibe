@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import { Cpu, Sparkles, Activity } from 'lucide-react';
 import Link from 'next/link';
 
-export default function EVIntelligencePage() {
+function EVIntelligenceInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'health' : 'health';
 
@@ -89,3 +89,13 @@ export default function EVIntelligencePage() {
     </RouteGuard>
   );
 }
+
+export default function EVIntelligencePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading...</div>}>
+      <EVIntelligenceInner />
+    </Suspense>
+  );
+}
+
+

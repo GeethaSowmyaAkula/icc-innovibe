@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import { UserCheck, Target, Shield, Store, TrendingUp } from 'lucide-react';
@@ -203,7 +203,7 @@ const Card = ({ title, children, className = '' }: { title: string; children: Re
   </div>
 );
 
-export default function BusinessPage() {
+function BusinessInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'customers' : 'customers';
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -594,3 +594,13 @@ export default function BusinessPage() {
     </RouteGuard>
   );
 }
+
+export default function BusinessPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading...</div>}>
+      <BusinessInner />
+    </Suspense>
+  );
+}
+
+

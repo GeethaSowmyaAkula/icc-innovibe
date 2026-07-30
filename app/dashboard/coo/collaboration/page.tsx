@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import {
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CollaborationPage() {
+function CollaborationInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'projects' : 'projects';
 
@@ -560,5 +560,13 @@ export default function CollaborationPage() {
         )}
       </div>
     </RouteGuard>
+  );
+}
+
+export default function CollaborationPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading Collaboration...</div>}>
+      <CollaborationInner />
+    </Suspense>
   );
 }

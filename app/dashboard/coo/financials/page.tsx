@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import { DollarSign, Receipt, PieChart, Lock, TrendingUp, BarChart3, ShieldCheck, ArrowUpRight } from 'lucide-react';
@@ -18,7 +18,7 @@ import {
   Cell,
 } from 'recharts';
 
-export default function FinancialsPage() {
+function FinancialsInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'revenue' : 'revenue';
 
@@ -381,3 +381,13 @@ export default function FinancialsPage() {
     </RouteGuard>
   );
 }
+
+export default function FinancialsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading...</div>}>
+      <FinancialsInner />
+    </Suspense>
+  );
+}
+
+

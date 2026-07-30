@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
 import {
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function WorkforcePage() {
+function WorkforceInner() {
   const searchParams = useSearchParams();
   const currentTab = searchParams ? searchParams.get('tab') || 'employees' : 'employees';
 
@@ -708,3 +708,13 @@ export default function WorkforcePage() {
     </RouteGuard>
   );
 }
+
+export default function WorkforcePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading...</div>}>
+      <WorkforceInner />
+    </Suspense>
+  );
+}
+
+
