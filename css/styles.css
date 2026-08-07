@@ -1087,45 +1087,87 @@ body {
 .text-bold { font-weight: 700; }
 .text-mono { font-family: var(--font-mono); }
 
-/* GLOBAL FLOATING EXECUTIVE KPI POPOVER SYSTEM */
-#global-exec-popover {
+/* KPI TOP-RIGHT EXECUTIVE INSIGHT INFO BUTTON */
+.kpi-info-btn {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+  border: 1px solid rgba(37, 99, 235, 0.25) !important;
+  color: #2563EB !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.72rem !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  transition: all 0.18s ease !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  outline: none !important;
+}
+
+.kpi-info-btn:hover {
+  background: #2563EB !important;
+  color: #ffffff !important;
+  border-color: #2563EB !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* EXECUTIVE INSIGHT MODAL OVERLAY */
+.exec-modal-overlay {
   position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
   z-index: 2147483647 !important;
-  width: 280px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease, visibility 0.2s ease !important;
+}
+
+.exec-modal-overlay.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.exec-modal-card {
+  width: 380px !important;
   max-width: 90vw !important;
-  max-height: 180px !important;
-  overflow-y: auto !important;
   background-color: var(--bg-surface, #ffffff) !important;
   background: var(--bg-surface, #ffffff) !important;
   border: 1px solid var(--border-color) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22) !important;
-  padding: 12px 14px !important;
-  pointer-events: none !important;
-  opacity: 0 !important;
-  transform: translateY(6px) scale(0.98) !important;
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s ease !important;
-  visibility: hidden !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+  padding: 20px !important;
+  transform: scale(0.95) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-sizing: border-box !important;
-  margin: 0 !important;
 }
 
-body.dark-mode #global-exec-popover {
+body.dark-mode .exec-modal-card {
   background-color: #1c1c1e !important;
   background: #1c1c1e !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
 }
 
-#global-exec-popover.active {
-  opacity: 1 !important;
-  transform: translateY(0) scale(1) !important;
-  visibility: visible !important;
+.exec-modal-overlay.active .exec-modal-card {
+  transform: scale(1) !important;
 }
 
 .has-exec-popover, .tech-micro-item, [class*="kpi-card"] {
   position: relative;
-  cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 

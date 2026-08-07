@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentTheme = localStorage.getItem('portal-theme') || 'light';
   let isSidebarCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
 
-  // --- UNIVERSAL EXECUTIVE KPI POPOVER GENERATOR ---
+  // --- UNIVERSAL EXECUTIVE KPI POPOVER / MODAL GENERATOR ---
   window.createExecPopoverHTML = function(opts = {}) {
     const {
       status = 'Optimal',
@@ -53,10 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
       relatedRoute = ''
     } = opts;
 
-    const escapeAttr = (str) => String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const escapeAttr = (str) => String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/\n/g, ' ');
 
     return `
-      <div class="exec-popover-data" style="display:none !important;"
+      <button type="button" class="kpi-info-btn exec-insight-trigger" title="View Executive Insight"
         data-status="${escapeAttr(status)}"
         data-status-color="${escapeAttr(statusColor)}"
         data-situation="${escapeAttr(situation)}"
@@ -65,151 +65,121 @@ document.addEventListener('DOMContentLoaded', () => {
         data-action="${escapeAttr(recommendedAction)}"
         data-module="${escapeAttr(relatedModule)}"
         data-route="${escapeAttr(relatedRoute)}"
-      ></div>
+      >
+        <i class="fa-solid fa-circle-info"></i>
+      </button>
     `;
   };
 
-  // --- GLOBAL FLOATING EXECUTIVE POPOVER HANDLER ---
-  (function initGlobalExecPopoverHandler() {
-    let popoverEl = document.getElementById('global-exec-popover');
-    if (!popoverEl) {
-      popoverEl = document.createElement('div');
-      popoverEl.id = 'global-exec-popover';
-      popoverEl.className = 'global-exec-popover';
-      document.body.appendChild(popoverEl);
+  // --- EXECUTIVE INSIGHT MODAL HANDLER ---
+  (function initExecInsightModalHandler() {
+    let modalEl = document.getElementById('exec-insight-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'exec-insight-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) {
+        if (e.target === modalEl) window.closeExecInsightModal();
+      };
+      document.body.appendChild(modalEl);
     }
-    popoverEl.style.position = 'fixed';
-    popoverEl.style.zIndex = '2147483647';
-    popoverEl.style.pointerEvents = 'none';
-    popoverEl.style.width = '280px';
-    popoverEl.style.maxHeight = '180px';
-    popoverEl.style.boxSizing = 'border-box';
 
-    let hideTimeout = null;
-    let currentCard = null;
+    window.openExecInsightModal = function(opts = {}) {
+      const {
+        status = 'Optimal',
+        statusColor = 'success',
+        situation = 'Operating within optimal baseline parameters.',
+        businessImpact = 'Sustains 99.98% platform SLA uptime.',
+        aiRecommendation = 'Maintain automated monitoring.',
+        recommendedAction = 'Inspect Domain',
+        relatedModule = 'CTO Portal',
+        relatedRoute = ''
+      } = opts;
 
-    function showPopover(card) {
-      if (currentCard === card && popoverEl.classList.contains('active')) return;
-      currentCard = card;
+      modalEl.innerHTML = `
+        <div class="exec-modal-card" onclick="event.stopPropagation()">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 12px;">
+            <span style="font-weight: 800; color: var(--text-primary); font-size: 0.90rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-chart-line" style="color: #2563EB; font-size: 1.0rem;"></i> Executive Insight
+            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge badge-${statusColor}" style="font-size: 0.65rem; padding: 2px 8px;">${status}</span>
+              <button type="button" onclick="window.closeExecInsightModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted); padding: 0 4px; line-height: 1;">&times;</button>
+            </div>
+          </div>
 
-      if (hideTimeout) {
-        clearTimeout(hideTimeout);
-        hideTimeout = null;
-      }
+          <div style="margin-bottom: 10px;">
+            <span style="font-weight: 700; color: var(--text-muted); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;">Situation</span>
+            <div style="color: var(--text-primary); font-size: 0.78rem; font-weight: 500; line-height: 1.4; margin-top: 2px;">${situation}</div>
+          </div>
 
-      const dataEl = card.querySelector('.exec-popover-data');
-      
-      const status = (dataEl && dataEl.getAttribute('data-status')) || card.getAttribute('data-popover-status') || 'Optimal';
-      const statusColor = (dataEl && dataEl.getAttribute('data-status-color')) || card.getAttribute('data-popover-status-color') || (status.includes('Attention') || status.includes('Warning') ? 'warning' : 'success');
-      const situation = (dataEl && dataEl.getAttribute('data-situation')) || card.getAttribute('data-popover-situation') || 'Operating within optimal executive baseline parameters.';
-      const businessImpact = (dataEl && dataEl.getAttribute('data-impact')) || card.getAttribute('data-popover-impact') || 'Sustains 99.98% platform SLA uptime and zero customer impact.';
-      const aiRecommendation = (dataEl && dataEl.getAttribute('data-recommendation')) || card.getAttribute('data-popover-recommendation') || 'Maintain current automated monitoring and health protocol.';
-      const recommendedAction = (dataEl && dataEl.getAttribute('data-action')) || card.getAttribute('data-popover-action') || 'Inspect Domain';
-      const relatedModule = (dataEl && dataEl.getAttribute('data-module')) || card.getAttribute('data-popover-module') || 'CTO Portal';
-      const relatedRoute = (dataEl && dataEl.getAttribute('data-route')) || card.getAttribute('data-popover-route') || '';
+          <div style="margin-bottom: 10px;">
+            <span style="font-weight: 700; color: #2563EB; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;">Business Impact</span>
+            <div style="color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4; margin-top: 2px;">${businessImpact}</div>
+          </div>
 
-      popoverEl.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 6px;">
-          <span style="font-weight: 800; color: var(--text-primary); font-size: 0.70rem; display: flex; align-items: center; gap: 5px;">
-            <i class="fa-solid fa-chart-line" style="color: #2563EB; font-size: 0.75rem;"></i> Executive Insight
-          </span>
-          <span class="badge badge-${statusColor}" style="font-size: 0.54rem; padding: 1px 6px;">${status}</span>
-        </div>
+          <div style="margin-bottom: 10px;">
+            <span style="font-weight: 700; color: #10B981; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;">AI Recommendation</span>
+            <div style="color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4; margin-top: 2px;">${aiRecommendation}</div>
+          </div>
 
-        <div style="margin-bottom: 4px;">
-          <span style="font-weight: 700; color: var(--text-muted); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.03em;">Situation</span>
-          <div style="color: var(--text-primary); font-size: 0.65rem; font-weight: 500; line-height: 1.3;">${situation}</div>
-        </div>
+          <div style="margin-bottom: 12px;">
+            <span style="font-weight: 700; color: #8B5CF6; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;">CTO Action</span>
+            <div style="color: var(--text-primary); font-size: 0.78rem; font-weight: 600; line-height: 1.4; margin-top: 2px;">${recommendedAction}</div>
+          </div>
 
-        <div style="margin-bottom: 4px;">
-          <span style="font-weight: 700; color: #2563EB; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.03em;">Business Impact</span>
-          <div style="color: var(--text-secondary); font-size: 0.65rem; line-height: 1.3;">${businessImpact}</div>
-        </div>
-
-        <div style="margin-bottom: 4px;">
-          <span style="font-weight: 700; color: #10B981; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.03em;">AI Recommendation</span>
-          <div style="color: var(--text-secondary); font-size: 0.65rem; line-height: 1.3;">${aiRecommendation}</div>
-        </div>
-
-        <div style="margin-bottom: 5px;">
-          <span style="font-weight: 700; color: #8B5CF6; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.03em;">CTO Action</span>
-          <div style="color: var(--text-primary); font-size: 0.65rem; font-weight: 600; line-height: 1.3;">${recommendedAction}</div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px; font-size: 0.62rem; color: var(--text-muted);">
-          <span>Related Module: <strong style="color: var(--text-primary);">${relatedModule}</strong></span>
-          ${relatedRoute ? `<span style="color: #2563EB; font-weight: 700; cursor: pointer;" onclick="window.switchRoute('${relatedRoute}')">Open &rarr;</span>` : ''}
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
+            <span>Related Module: <strong style="color: var(--text-primary);">${relatedModule}</strong></span>
+            ${relatedRoute ? `<button class="btn btn-primary btn-sm" onclick="window.closeExecInsightModal(); window.switchRoute('${relatedRoute}')" style="padding: 3px 10px; font-size: 0.70rem;">Open Module &rarr;</button>` : ''}
+          </div>
         </div>
       `;
 
-      popoverEl.style.backgroundColor = 'var(--bg-surface, #ffffff)';
-      popoverEl.style.background = 'var(--bg-surface, #ffffff)';
-      popoverEl.classList.add('active');
+      modalEl.classList.add('active');
+    };
 
-      const rect = card.getBoundingClientRect();
-      const popoverWidth = popoverEl.offsetWidth || 280;
-      const popoverHeight = popoverEl.offsetHeight || 170;
+    window.closeExecInsightModal = function(e) {
+      if (e) e.stopPropagation();
+      modalEl.classList.remove('active');
+    };
 
-      // Smart vertical positioning floating directly above or below card
-      let top;
-      if (rect.top >= popoverHeight + 12) {
-        // Place floating directly ABOVE card top edge
-        top = rect.top - popoverHeight - 8;
-      } else if (rect.bottom + popoverHeight + 12 <= window.innerHeight) {
-        // Place floating directly BELOW card bottom edge
-        top = rect.bottom + 8;
-      } else {
-        top = Math.max(12, rect.top + 8);
-      }
+    // Global Event Delegation for clicking any info button or trigger element
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.kpi-info-btn, .exec-insight-trigger');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      // Horizontal positioning centered or aligned left with card, bounded by viewport
-      let left = rect.left + (rect.width / 2) - (popoverWidth / 2);
-      if (left + popoverWidth > window.innerWidth - 12) {
-        left = window.innerWidth - popoverWidth - 12;
-      }
-      if (left < 12) left = 12;
+        const card = btn.closest('.has-exec-popover') || btn.parentElement;
+        const dataEl = card ? card.querySelector('.exec-popover-data') : null;
 
-      popoverEl.style.top = `${Math.round(top)}px`;
-      popoverEl.style.left = `${Math.round(left)}px`;
-    }
+        const status = btn.getAttribute('data-status') || (dataEl && dataEl.getAttribute('data-status')) || (card && card.getAttribute('data-popover-status')) || 'Optimal';
+        const statusColor = btn.getAttribute('data-status-color') || (dataEl && dataEl.getAttribute('data-status-color')) || (card && card.getAttribute('data-popover-status-color')) || (status.includes('Attention') || status.includes('Warning') ? 'warning' : 'success');
+        const situation = btn.getAttribute('data-situation') || (dataEl && dataEl.getAttribute('data-situation')) || (card && card.getAttribute('data-popover-situation')) || 'Operating within optimal executive baseline parameters.';
+        const businessImpact = btn.getAttribute('data-impact') || (dataEl && dataEl.getAttribute('data-impact')) || (card && card.getAttribute('data-popover-impact')) || 'Sustains 99.98% platform SLA uptime and zero customer impact.';
+        const aiRecommendation = btn.getAttribute('data-recommendation') || (dataEl && dataEl.getAttribute('data-recommendation')) || (card && card.getAttribute('data-popover-recommendation')) || 'Maintain current automated monitoring and health protocol.';
+        const recommendedAction = btn.getAttribute('data-action') || (dataEl && dataEl.getAttribute('data-action')) || (card && card.getAttribute('data-popover-action')) || 'Inspect Domain';
+        const relatedModule = btn.getAttribute('data-module') || (dataEl && dataEl.getAttribute('data-module')) || (card && card.getAttribute('data-popover-module')) || 'CTO Portal';
+        const relatedRoute = btn.getAttribute('data-route') || (dataEl && dataEl.getAttribute('data-route')) || (card && card.getAttribute('data-popover-route')) || '';
 
-    function hidePopover() {
-      hideTimeout = setTimeout(() => {
-        popoverEl.classList.remove('active');
-        currentCard = null;
-      }, 50);
-    }
-
-    document.addEventListener('mouseover', (e) => {
-      const card = e.target.closest('.has-exec-popover, .tech-micro-item, [class*="kpi-card"]');
-      if (card) {
-        showPopover(card);
+        window.openExecInsightModal({
+          status,
+          statusColor,
+          situation,
+          businessImpact,
+          aiRecommendation,
+          recommendedAction,
+          relatedModule,
+          relatedRoute
+        });
       }
     });
 
-    document.addEventListener('mouseout', (e) => {
-      const card = e.target.closest('.has-exec-popover, .tech-micro-item, [class*="kpi-card"]');
-      if (card) {
-        const relatedTarget = e.relatedTarget;
-        if (!relatedTarget || !card.contains(relatedTarget)) {
-          hidePopover();
-        }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalEl.classList.contains('active')) {
+        window.closeExecInsightModal();
       }
     });
-
-    window.addEventListener('scroll', () => {
-      if (popoverEl.classList.contains('active')) {
-        popoverEl.classList.remove('active');
-        currentCard = null;
-      }
-    }, { passive: true });
-
-    window.addEventListener('resize', () => {
-      if (popoverEl.classList.contains('active')) {
-        popoverEl.classList.remove('active');
-        currentCard = null;
-      }
-    }, { passive: true });
   })();
 
 
@@ -9325,8 +9295,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>${k.action}</span>
               <i class="fa-solid fa-chevron-right" style="font-size: 0.65rem;"></i>
             </div>
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `${k.title} operating at ${k.value} with ${k.trend} variance.`, businessImpact: k.businessImpact || "Guarantees reliable CAN bus telemetry across fleet nodes.", aiRecommendation: k.aiRecommendation || "Continue CAN bus health check protocol.", recommendedAction: "Open IoT Management", relatedModule: "IoT Device Management"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `${k.title} operating at ${k.value} with ${k.trend} variance.`, businessImpact: k.businessImpact || "Guarantees reliable CAN bus telemetry across fleet nodes.", aiRecommendation: k.aiRecommendation || "Continue CAN bus health check protocol.", recommendedAction: "Open IoT Management", relatedModule: "IoT Device Management"})}
           </div>
         `).join('')}
       </div>
@@ -10071,8 +10040,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Real-time telematics stream throughput at ${k.value}.`, businessImpact: k.businessImpact || "Supports sub-millisecond driver app & MLOps sync.", aiRecommendation: k.aiRecommendation || "Optimize Kinesis partition stream shards.", recommendedAction: "Inspect Telemetry Stream", relatedModule: "Telemetry Platform"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Real-time telematics stream throughput at ${k.value}.`, businessImpact: k.businessImpact || "Supports sub-millisecond driver app & MLOps sync.", aiRecommendation: k.aiRecommendation || "Optimize Kinesis partition stream shards.", recommendedAction: "Inspect Telemetry Stream", relatedModule: "Telemetry Platform"})}
           </div>
         `).join('')}
       </div>
@@ -10729,8 +10697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Fleet intelligence operating at ${k.value} baseline score.`, businessImpact: k.businessImpact || "Reduces fleet downtime by 28% via predictive alerts.", aiRecommendation: k.aiRecommendation || "Promote predictive battery maintenance model.", recommendedAction: "Review EVcare.AI", relatedModule: "EVcare.AI Dashboard"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Fleet intelligence operating at ${k.value} baseline score.`, businessImpact: k.businessImpact || "Reduces fleet downtime by 28% via predictive alerts.", aiRecommendation: k.aiRecommendation || "Promote predictive battery maintenance model.", recommendedAction: "Review EVcare.AI", relatedModule: "EVcare.AI Dashboard"})}
           </div>
         `).join('')}
       </div>
@@ -11318,8 +11285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Diagnostic model accuracy maintained at ${k.value}.`, businessImpact: k.businessImpact || "Prevented 14 cell thermal runaway risks this week.", aiRecommendation: k.aiRecommendation || "Retrain model on new winter fleet dataset.", recommendedAction: "Open AI Diagnostics", relatedModule: "AI Diagnostics"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Diagnostic model accuracy maintained at ${k.value}.`, businessImpact: k.businessImpact || "Prevented 14 cell thermal runaway risks this week.", aiRecommendation: k.aiRecommendation || "Retrain model on new winter fleet dataset.", recommendedAction: "Open AI Diagnostics", relatedModule: "AI Diagnostics"})}
           </div>
         `).join('')}
       </div>
@@ -11928,8 +11894,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Mobile driver app build v4.2 operating at ${k.value}.`, businessImpact: k.businessImpact || "High crash-free rate maintains 4.8 driver rating.", aiRecommendation: k.aiRecommendation || "Roll out patch v4.2.1 to remaining 15% users.", recommendedAction: "Inspect Mobile App", relatedModule: "Mobile App Management"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Mobile driver app build v4.2 operating at ${k.value}.`, businessImpact: k.businessImpact || "High crash-free rate maintains 4.8 driver rating.", aiRecommendation: k.aiRecommendation || "Roll out patch v4.2.1 to remaining 15% users.", recommendedAction: "Inspect Mobile App", relatedModule: "Mobile App Management"})}
           </div>
         `).join('')}
       </div>
@@ -12491,8 +12456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Executive portal CMS operating at ${k.value}.`, businessImpact: k.businessImpact || "Delivers real-time executive intelligence to CTO.", aiRecommendation: k.aiRecommendation || "Enable CDN caching for analytics reports.", recommendedAction: "Manage Web Portal", relatedModule: "Web Portal Management"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Executive portal CMS operating at ${k.value}.`, businessImpact: k.businessImpact || "Delivers real-time executive intelligence to CTO.", aiRecommendation: k.aiRecommendation || "Enable CDN caching for analytics reports.", recommendedAction: "Manage Web Portal", relatedModule: "Web Portal Management"})}
           </div>
         `).join('')}
       </div>
@@ -13078,8 +13042,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Model registry checkpoint running at ${k.value}.`, businessImpact: k.businessImpact || "Ensures high prediction confidence across fleet APIs.", aiRecommendation: k.aiRecommendation || "Promote XGBoost v109.2 to production.", recommendedAction: "Manage AI Models", relatedModule: "AI Models"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Model registry checkpoint running at ${k.value}.`, businessImpact: k.businessImpact || "Ensures high prediction confidence across fleet APIs.", aiRecommendation: k.aiRecommendation || "Promote XGBoost v109.2 to production.", recommendedAction: "Manage AI Models", relatedModule: "AI Models"})}
           </div>
         `).join('')}
       </div>
@@ -13587,8 +13550,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `MLOps inference pipeline running at ${k.value}.`, businessImpact: k.businessImpact || "Sustains enterprise model inference volume.", aiRecommendation: k.aiRecommendation || "Scale GPU cluster for peak afternoon load.", recommendedAction: "Inspect ML Platform", relatedModule: "Machine Learning Platform"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `MLOps inference pipeline running at ${k.value}.`, businessImpact: k.businessImpact || "Sustains enterprise model inference volume.", aiRecommendation: k.aiRecommendation || "Scale GPU cluster for peak afternoon load.", recommendedAction: "Inspect ML Platform", relatedModule: "Machine Learning Platform"})}
           </div>
         `).join('')}
       </div>
@@ -14134,8 +14096,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- Hover Insight Overlay -->
-            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Notification dispatch gateway operating at ${k.value}.`, businessImpact: k.businessImpact || "Guarantees sub-second emergency fleet alert delivery.", aiRecommendation: k.aiRecommendation || "Optimize SMS gateway failover route.", recommendedAction: "View Notifications", relatedModule: "Notifications"})}</div>
-            </div>
+            ${window.createExecPopoverHTML({status: k.status || "Optimal", statusColor: "success", situation: k.situation || `Notification dispatch gateway operating at ${k.value}.`, businessImpact: k.businessImpact || "Guarantees sub-second emergency fleet alert delivery.", aiRecommendation: k.aiRecommendation || "Optimize SMS gateway failover route.", recommendedAction: "View Notifications", relatedModule: "Notifications"})}
           </div>
         `).join('')}
       </div>

@@ -1644,3 +1644,86 @@ a {
   border-color: var(--color-red);
 }
 
+/* KPI TOP-RIGHT EXECUTIVE INSIGHT INFO BUTTON */
+.has-exec-popover, .tech-micro-item, [class*="kpi-card"] {
+  position: relative !important;
+}
+
+.kpi-info-btn {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  background: rgba(37, 99, 235, 0.12) !important;
+  border: 1px solid rgba(37, 99, 235, 0.3) !important;
+  color: #2563EB !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.68rem !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  transition: all 0.18s ease !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  outline: none !important;
+}
+
+.kpi-info-btn:hover {
+  background: #2563EB !important;
+  color: #ffffff !important;
+  border-color: #2563EB !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* EXECUTIVE INSIGHT MODAL OVERLAY */
+.exec-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease, visibility 0.2s ease !important;
+}
+
+.exec-modal-overlay.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.exec-modal-card {
+  width: 380px !important;
+  max-width: 90vw !important;
+  background-color: var(--bg-surface, #ffffff) !important;
+  background: var(--bg-surface, #ffffff) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+  padding: 20px !important;
+  transform: scale(0.95) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+}
+
+body.dark-mode .exec-modal-card {
+  background-color: #1c1c1e !important;
+  background: #1c1c1e !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+.exec-modal-overlay.active .exec-modal-card {
+  transform: scale(1) !important;
+}
+
