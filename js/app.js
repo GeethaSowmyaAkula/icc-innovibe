@@ -187,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initSidebar();
   initNotifications();
+  window.switchRoute = switchRoute;
+  window.renderModuleSubpage = renderModuleSubpage;
   setupEventListeners();
   
   // Default load: Dashboard
@@ -441,10 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- EVENT LISTENERS BINDING ---
   function setupEventListeners() {
     // Sidebar collapse
-    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+    if (sidebarToggleBtn) sidebarToggleBtn.addEventListener('click', toggleSidebar);
     
     // Mobile toggle
-    mobileMenuBtn.addEventListener('click', () => {
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => {
       sidebar.classList.toggle('mobile-active');
     });
 
@@ -456,10 +458,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Theme toggle
-    themeToggleBtn.addEventListener('click', toggleTheme);
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
 
     // Dropdown notification toggle
-    headerNotificationBtn.addEventListener('click', (e) => {
+    if (headerNotificationBtn) headerNotificationBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       notificationDropdown.classList.toggle('active');
     });
@@ -468,21 +470,21 @@ document.addEventListener('DOMContentLoaded', () => {
       notificationDropdown.classList.remove('active');
     });
 
-    notificationDropdown.addEventListener('click', (e) => {
+    if (notificationDropdown) notificationDropdown.addEventListener('click', (e) => {
       e.stopPropagation();
     });
 
-    clearAllNotificationsBtn.addEventListener('click', clearAllNotifications);
+    if (clearAllNotificationsBtn) clearAllNotificationsBtn.addEventListener('click', clearAllNotifications);
 
     // Search command modal toggles
-    globalSearchBar.addEventListener('click', openSearchModal);
-    sidebarSearchBtn.addEventListener('click', openSearchModal);
+    if (globalSearchBar) globalSearchBar.addEventListener('click', openSearchModal);
+    if (sidebarSearchBtn) sidebarSearchBtn.addEventListener('click', openSearchModal);
     
-    searchModalOverlay.addEventListener('click', (e) => {
+    if (searchModalOverlay) searchModalOverlay.addEventListener('click', (e) => {
       if (e.target === searchModalOverlay) closeSearchModal();
     });
 
-    paletteInput.addEventListener('input', (e) => {
+    if (paletteInput) paletteInput.addEventListener('input', (e) => {
       renderSearchResults(e.target.value);
     });
 
@@ -499,8 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Details drawer closure
-    drawerCloseBtn.addEventListener('click', closeDrawer);
-    drawerOverlay.addEventListener('click', (e) => {
+    if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+    if (drawerOverlay) drawerOverlay.addEventListener('click', (e) => {
       if (e.target === drawerOverlay) closeDrawer();
     });
 
@@ -518,6 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- ROUTING ENGINE / VIEW SWITCHER ---
   function switchRoute(viewId) {
+    window.switchRoute = switchRoute;
     // Set active class in sidebar
     document.querySelectorAll('.nav-item').forEach(item => {
       if (item.getAttribute('data-view') === viewId) {
@@ -2075,7 +2078,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search listener
     const searchInput = document.getElementById('systemSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -2538,7 +2541,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search input trigger
     const searchInput = document.getElementById('userSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawDirectory();
       });
@@ -2884,7 +2887,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search input trigger
     const searchInput = document.getElementById('docSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawExplorer();
       });
@@ -3740,7 +3743,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search input trigger
     const searchInput = document.getElementById('intSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawEcosystemGrid();
       });
@@ -4182,7 +4185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search input trigger
     const searchInput = document.getElementById('secSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawPostureGrid();
       });
@@ -4565,7 +4568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search input listener
     const searchInput = document.getElementById('devopsSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscapeGrid();
       });
@@ -4574,7 +4577,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach change listeners to select elements
     const envSel = document.getElementById('devopsEnvFilter');
     if (envSel) {
-      envSel.addEventListener('change', (e) => {
+      if (envSel) envSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawLandscapeGrid();
       });
@@ -4582,7 +4585,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statusSel = document.getElementById('devopsStatusFilter');
     if (statusSel) {
-      statusSel.addEventListener('change', (e) => {
+      if (statusSel) statusSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscapeGrid();
       });
@@ -4590,7 +4593,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const typeSel = document.getElementById('devopsTypeFilter');
     if (typeSel) {
-      typeSel.addEventListener('change', (e) => {
+      if (typeSel) typeSel.addEventListener('change', (e) => {
         typeFilter = e.target.value;
         drawLandscapeGrid();
       });
@@ -4598,7 +4601,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const appSel = document.getElementById('devopsAppFilter');
     if (appSel) {
-      appSel.addEventListener('change', (e) => {
+      if (appSel) appSel.addEventListener('change', (e) => {
         appFilter = e.target.value;
         drawLandscapeGrid();
       });
@@ -5029,7 +5032,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach search and select filter triggers
     const searchInput = document.getElementById('logSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawTimeline();
       });
@@ -5037,7 +5040,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sevFilter = document.getElementById('logSeverityFilter');
     if (sevFilter) {
-      sevFilter.addEventListener('change', (e) => {
+      if (sevFilter) sevFilter.addEventListener('change', (e) => {
         severityFilter = e.target.value;
         drawTimeline();
       });
@@ -5045,7 +5048,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const envFilterSel = document.getElementById('logEnvFilter');
     if (envFilterSel) {
-      envFilterSel.addEventListener('change', (e) => {
+      if (envFilterSel) envFilterSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawTimeline();
       });
@@ -5053,7 +5056,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sourceFilterSel = document.getElementById('logSourceFilter');
     if (sourceFilterSel) {
-      sourceFilterSel.addEventListener('change', (e) => {
+      if (sourceFilterSel) sourceFilterSel.addEventListener('change', (e) => {
         sourceFilter = e.target.value;
         drawTimeline();
       });
@@ -5481,7 +5484,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('cloudSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawResources();
       });
@@ -5489,7 +5492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const providerSel = document.getElementById('cloudProviderFilter');
     if (providerSel) {
-      providerSel.addEventListener('change', (e) => {
+      if (providerSel) providerSel.addEventListener('change', (e) => {
         providerFilter = e.target.value;
         drawResources();
       });
@@ -5497,7 +5500,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const envSel = document.getElementById('cloudEnvFilter');
     if (envSel) {
-      envSel.addEventListener('change', (e) => {
+      if (envSel) envSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawResources();
       });
@@ -5505,7 +5508,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const regionSel = document.getElementById('cloudRegionFilter');
     if (regionSel) {
-      regionSel.addEventListener('change', (e) => {
+      if (regionSel) regionSel.addEventListener('change', (e) => {
         regionFilter = e.target.value;
         drawResources();
       });
@@ -5513,7 +5516,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const serviceSel = document.getElementById('cloudServiceFilter');
     if (serviceSel) {
-      serviceSel.addEventListener('change', (e) => {
+      if (serviceSel) serviceSel.addEventListener('change', (e) => {
         serviceFilter = e.target.value;
         drawResources();
       });
@@ -5913,7 +5916,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('dbSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -5921,7 +5924,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const typeSel = document.getElementById('dbTypeFilter');
     if (typeSel) {
-      typeSel.addEventListener('change', (e) => {
+      if (typeSel) typeSel.addEventListener('change', (e) => {
         typeFilter = e.target.value;
         drawLandscape();
       });
@@ -5929,7 +5932,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const appSel = document.getElementById('dbAppFilter');
     if (appSel) {
-      appSel.addEventListener('change', (e) => {
+      if (appSel) appSel.addEventListener('change', (e) => {
         appFilter = e.target.value;
         drawLandscape();
       });
@@ -5937,7 +5940,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const envSel = document.getElementById('dbEnvFilter');
     if (envSel) {
-      envSel.addEventListener('change', (e) => {
+      if (envSel) envSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawLandscape();
       });
@@ -5945,7 +5948,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statusSel = document.getElementById('dbStatusFilter');
     if (statusSel) {
-      statusSel.addEventListener('change', (e) => {
+      if (statusSel) statusSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscape();
       });
@@ -6379,7 +6382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('apiSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -6387,7 +6390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const envSel = document.getElementById('apiEnvFilter');
     if (envSel) {
-      envSel.addEventListener('change', (e) => {
+      if (envSel) envSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawLandscape();
       });
@@ -6395,7 +6398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statusSel = document.getElementById('apiStatusFilter');
     if (statusSel) {
-      statusSel.addEventListener('change', (e) => {
+      if (statusSel) statusSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscape();
       });
@@ -6403,7 +6406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const verSel = document.getElementById('apiVersionFilter');
     if (verSel) {
-      verSel.addEventListener('change', (e) => {
+      if (verSel) verSel.addEventListener('change', (e) => {
         versionFilter = e.target.value;
         drawLandscape();
       });
@@ -6411,7 +6414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const teamSel = document.getElementById('apiTeamFilter');
     if (teamSel) {
-      teamSel.addEventListener('change', (e) => {
+      if (teamSel) teamSel.addEventListener('change', (e) => {
         teamFilter = e.target.value;
         drawLandscape();
       });
@@ -6668,7 +6671,6 @@ document.addEventListener('DOMContentLoaded', () => {
               
               <!-- Hover Insight Panel -->
               ${window.createExecPopoverHTML({status: kpi.status === "Zero Critical" ? "Optimal" : "Attention", statusColor: kpi.status === "Zero Critical" ? "success" : "warning", situation: `${kpi.title}: ${kpi.value} open across active release branches.`, businessImpact: "Zero high-severity blockers impacting production SLAs.", aiRecommendation: "Schedule triage for remaining non-critical items.", recommendedAction: "Review Bug Queue", relatedModule: "Bug Tracking"})}</div>
-            </div>
           `).join('')}
         </div>
       </section>
@@ -6955,7 +6957,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('bugSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -6963,7 +6965,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const prodSel = document.getElementById('bugProductFilter');
     if (prodSel) {
-      prodSel.addEventListener('change', (e) => {
+      if (prodSel) prodSel.addEventListener('change', (e) => {
         prodFilter = e.target.value;
         drawLandscape();
       });
@@ -6971,7 +6973,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sevSel = document.getElementById('bugSeverityFilter');
     if (sevSel) {
-      sevSel.addEventListener('change', (e) => {
+      if (sevSel) sevSel.addEventListener('change', (e) => {
         severityFilter = e.target.value;
         drawLandscape();
       });
@@ -6979,7 +6981,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statSel = document.getElementById('bugStatusFilter');
     if (statSel) {
-      statSel.addEventListener('change', (e) => {
+      if (statSel) statSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscape();
       });
@@ -6987,7 +6989,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const teamSel = document.getElementById('bugTeamFilter');
     if (teamSel) {
-      teamSel.addEventListener('change', (e) => {
+      if (teamSel) teamSel.addEventListener('change', (e) => {
         teamFilter = e.target.value;
         drawLandscape();
       });
@@ -6995,7 +6997,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const envSel = document.getElementById('bugEnvFilter');
     if (envSel) {
-      envSel.addEventListener('change', (e) => {
+      if (envSel) envSel.addEventListener('change', (e) => {
         envFilter = e.target.value;
         drawLandscape();
       });
@@ -7255,7 +7257,6 @@ document.addEventListener('DOMContentLoaded', () => {
               
               <!-- Hover Insight Panel -->
               ${window.createExecPopoverHTML({status: "Optimal", statusColor: "success", situation: `${kpi.title} currently at ${kpi.value} across customer portals.`, businessImpact: "Directly drives enterprise customer satisfaction score.", aiRecommendation: "Prioritize top 3 voted telemetry features for Sprint 43.", recommendedAction: "Review Feature Backlog", relatedModule: "Feature Requests"})}</div>
-            </div>
           `).join('')}
         </div>
       </section>
@@ -7557,7 +7558,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('featSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -7565,7 +7566,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const prodSel = document.getElementById('featProductFilter');
     if (prodSel) {
-      prodSel.addEventListener('change', (e) => {
+      if (prodSel) prodSel.addEventListener('change', (e) => {
         prodFilter = e.target.value;
         drawLandscape();
       });
@@ -7573,7 +7574,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const priSel = document.getElementById('featPriorityFilter');
     if (priSel) {
-      priSel.addEventListener('change', (e) => {
+      if (priSel) priSel.addEventListener('change', (e) => {
         priorityFilter = e.target.value;
         drawLandscape();
       });
@@ -7581,7 +7582,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statSel = document.getElementById('featStatusFilter');
     if (statSel) {
-      statSel.addEventListener('change', (e) => {
+      if (statSel) statSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscape();
       });
@@ -7589,7 +7590,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const srcSel = document.getElementById('featSourceFilter');
     if (srcSel) {
-      srcSel.addEventListener('change', (e) => {
+      if (srcSel) srcSel.addEventListener('change', (e) => {
         sourceFilter = e.target.value;
         drawLandscape();
       });
@@ -7889,7 +7890,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   
                   <!-- Insight Overlay -->
                   ${window.createExecPopoverHTML({status: met.status || "Optimal", statusColor: "success", situation: met.situation || `${met.name} reached ${met.value} in Sprint 42.`, businessImpact: met.businessImpact || "On track for Q3 enterprise milestone release.", aiRecommendation: met.aiRecommendation || "Maintain current sprint velocity.", recommendedAction: "Triage Backlog", relatedModule: "Sprint Management"})}</div>
-                </div>
               `).join('')}
             </div>
           </div>
@@ -8250,7 +8250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('sprSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -8258,7 +8258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const teamSel = document.getElementById('sprTeamFilter');
     if (teamSel) {
-      teamSel.addEventListener('change', (e) => {
+      if (teamSel) teamSel.addEventListener('change', (e) => {
         teamFilter = e.target.value;
         drawLandscape();
       });
@@ -8547,12 +8547,9 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               
               <!-- Hover Insight Panel -->
-              ${kpi.insight ? `
-                ${window.createExecPopoverHTML({status: "Optimal", statusColor: "success", situation: `${kpi.title} achieved ${kpi.value} completion across product tracks.`, businessImpact: "High alignment with strategic enterprise roadmap goals.", aiRecommendation: "Accelerate Fleet OS v4.2 feature release.", recommendedAction: "View Roadmap", relatedModule: "Product Roadmap"})}</div>
-              ` : ''}
+              ${window.createExecPopoverHTML({status: kpi.title === "At-Risk Initiatives" ? "Attention" : "Optimal", statusColor: kpi.title === "At-Risk Initiatives" ? "warning" : "success", situation: `${kpi.title} achieved ${kpi.value} completion across product tracks.`, businessImpact: "High alignment with strategic enterprise roadmap goals.", aiRecommendation: "Accelerate Fleet OS v4.2 feature release.", recommendedAction: "View Roadmap", relatedModule: "Product Roadmap"})}
             </div>
-          `).join('')}
-        </div>
+          `).join('')}       </div>
       </section>
 
       <!-- SECTION 2: STRATEGIC ROADMAP VISUALIZATION -->
@@ -8735,9 +8732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-outline btn-sm" style="font-size: 0.65rem; padding: 2px 4px; justify-content: center;" onclick="alert('CTO DECISION: Dispatched roadmap action - ${dec.secondaryAction}')">${dec.secondaryAction}</button>
                   </div>
                 </div>
-              `).join('')}
-            </div>
-          </div>
+              `).join('')}</div>
         </div>
 
         <!-- AI ROADMAP COPILOT -->
@@ -8841,7 +8836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners
     const searchInput = document.getElementById('rdmSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) searchInput.addEventListener('input', (e) => {
         searchVal = e.target.value;
         drawLandscape();
       });
@@ -8849,7 +8844,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const prodSel = document.getElementById('rdmProductFilter');
     if (prodSel) {
-      prodSel.addEventListener('change', (e) => {
+      if (prodSel) prodSel.addEventListener('change', (e) => {
         prodFilter = e.target.value;
         drawLandscape();
       });
@@ -8857,7 +8852,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const priSel = document.getElementById('rdmPriorityFilter');
     if (priSel) {
-      priSel.addEventListener('change', (e) => {
+      if (priSel) priSel.addEventListener('change', (e) => {
         priorityFilter = e.target.value;
         drawLandscape();
       });
@@ -8865,7 +8860,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const timeSel = document.getElementById('rdmTimelineFilter');
     if (timeSel) {
-      timeSel.addEventListener('change', (e) => {
+      if (timeSel) timeSel.addEventListener('change', (e) => {
         timelineFilter = e.target.value;
         drawLandscape();
       });
@@ -8873,7 +8868,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statSel = document.getElementById('rdmStatusFilter');
     if (statSel) {
-      statSel.addEventListener('change', (e) => {
+      if (statSel) statSel.addEventListener('change', (e) => {
         statusFilter = e.target.value;
         drawLandscape();
       });
