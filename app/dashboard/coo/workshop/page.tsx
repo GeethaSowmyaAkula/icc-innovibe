@@ -30,14 +30,14 @@ export default function WorkshopPage() {
     try {
       const res = await fetch('http://localhost:8000/api/coo/workshop').catch(() => null);
       if (res && res.ok) {
-        const data = await res.json();
-        if (data.workshops && data.workshops.length > 0) {
+        const data = await res.json().catch(() => null);
+        if (data && data.workshops && data.workshops.length > 0) {
           setWorkshops(data.workshops);
         }
-        if (data.bay_capacity_summary) setSummary(data.bay_capacity_summary);
+        if (data && data.bay_capacity_summary) setSummary(data.bay_capacity_summary);
       }
     } catch (e) {
-      console.warn('Backend API connection warning (Using local cache):', e);
+      // Quiet local fallback when offline
     }
   };
 
@@ -76,7 +76,7 @@ export default function WorkshopPage() {
         }),
       }).catch(() => null);
     } catch (e) {
-      console.warn('Workshop creation posted to local state');
+      // quiet fallback
     }
 
     setShowModal(false);

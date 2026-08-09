@@ -1,36 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e8edf4;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
 }
 
 body {
   background-color: #f8fafc;
-  color: #0f172a;
+  color: #1f2937;
   font-family: var(--font-sans);
+  letter-spacing: -0.012em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Light Theme Card Utilities */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+/* Global Typography: Body text in Italic SF Pro Display, Headings & Bold Titles in Geist (Normal) */
+p,
+span,
+td,
+li,
+label,
+.italic-body {
+  font-style: italic;
 }
 
-.glass-card {
+h1, h2, h3, h4, h5, h6,
+th,
+button,
+.font-bold,
+.font-extrabold,
+.font-black,
+.font-semibold,
+.not-italic,
+.font-heading {
+  font-family: var(--font-heading);
+  font-style: normal;
+  letter-spacing: -0.02em;
+}
+
+/* Premium Universal Interactive Card System */
+.glass-panel,
+.glass-card,
+div.bg-white.rounded-2xl,
+div.bg-white.rounded-xl {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e8edf4;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-card:hover {
+.glass-panel:hover,
+.glass-card:hover,
+div.bg-white.rounded-2xl:hover,
+div.bg-white.rounded-xl:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 10px 25px -5px rgba(2, 128, 210, 0.1), 0 8px 10px -6px rgba(2, 128, 210, 0.05);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(37, 99, 235, 0.04);
   transform: translateY(-2px);
+}
+
+.glass-panel:active,
+.glass-card:active,
+div.bg-white.rounded-2xl:active,
+div.bg-white.rounded-xl:active {
+  transform: translateY(0px) scale(0.996);
+}
+
+/* Modern Input & Interactive Focus */
+input, select, textarea {
+  border-radius: 12px;
+  border: 1px solid #e8edf4;
+  background-color: #f8fafc;
+  transition: all 0.2s ease-out;
+}
+
+input:focus, select:focus, textarea:focus {
+  background-color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  outline: none;
 }
 
 /* Custom Clean Light Scrollbars */
@@ -40,80 +100,129 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #e2e8f0;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0280d2;
+  background: #cbd5e1;
 }
 
-/* Premium Interactive Button & Micro-Animation System */
+/* Micro-Interaction Button Animations (under 300ms, ease-out) */
 .btn-interactive {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-interactive:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .btn-interactive:active {
-  transform: translateY(1px) scale(0.97);
-  box-shadow: 0 2px 8px -2px rgba(59, 130, 246, 0.4);
+  transform: translateY(0px) scale(0.98);
 }
 
 .btn-emerald-interactive {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-emerald-interactive:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
 .btn-emerald-interactive:active {
-  transform: translateY(1px) scale(0.97);
+  transform: translateY(0px) scale(0.98);
 }
 
 .btn-rose-interactive {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-rose-interactive:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .btn-rose-interactive:active {
-  transform: translateY(1px) scale(0.97);
+  transform: translateY(0px) scale(0.98);
 }
 
-.btn-pulse-glow {
-  animation: pulseGlow 2.5s infinite ease-in-out;
+/* Sidebar & Navigation Item Transitions */
+.nav-item-transition {
+  transition: all 0.15s ease-out;
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
-  }
+.nav-item-transition:hover {
+  background-color: #f8fafc;
+  color: #1f2937;
 }
 
 .tab-interactive {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease-out;
 }
 
 .tab-interactive:hover {
   transform: translateY(-1px);
 }
 
-.tab-interactive:active {
-  transform: scale(0.98);
+/* Subtle Skeleton Loader */
+.skeleton-loader {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite ease-in-out;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slideUpPop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes drawerSlideLeft {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-backdrop-blur {
+  animation: backdropFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-slide {
+  animation: drawerSlideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

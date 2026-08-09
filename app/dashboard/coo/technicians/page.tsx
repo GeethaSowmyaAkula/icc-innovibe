@@ -12,59 +12,58 @@ export default function TechniciansPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignedSuccessMsg, setAssignedSuccessMsg] = useState<string | null>(null);
 
-  // 1. Fetch Technicians from API
+  // 1. Fetch Technicians from API with fallback
   const fetchTechnicians = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/coo/technicians');
-      if (res.ok) {
-        const data = await res.json();
-        setTechs(data.technicians || []);
+      const res = await fetch('http://localhost:8000/api/coo/technicians').catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.technicians) {
+          setTechs(data.technicians);
+        }
       }
     } catch (e) {
-      console.error('Error fetching technicians:', e);
+      // Quiet fallback to initial techs state
     }
   };
 
   // 2. Fetch Unassigned Service Tickets from API with Operations Fallback Sync
   const fetchUnassignedTickets = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/coo/technicians/unassigned-tickets');
+      const res = await fetch('http://localhost:8000/api/coo/technicians/unassigned-tickets').catch(() => null);
       let tickets: any[] = [];
-      if (res.ok) {
-        const data = await res.json();
-        tickets = (data.unassigned_tickets || []).map((t: any) => ({
-          ...t,
-          estimated_cost: t.service_type === 'GARAGE_REPAIR' || t.estimated_cost > 500 ? 499 : t.estimated_cost,
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        tickets = (data?.unassigned_tickets || []).map((t: any) => ({
+          id: t.id,
+          ticketNumber: t.ticket_number,
+          type: t.service_type,
+          priority: t.priority,
+          customerName: t.customer_name,
+          phone: t.customer_phone,
+          cost: `₹${t.estimated_cost}`,
         }));
-      }
-
-      // Fallback cross fetch if empty
-      if (tickets.length === 0) {
-        const opsRes = await fetch('http://localhost:8000/api/coo/operations');
-        if (opsRes.ok) {
-          const opsData = await opsRes.json();
-          tickets = opsData
-            .filter((t: any) => t.status === 'QUEUED' || t.technician_assigned === 'Unassigned')
-            .map((t: any) => ({
-              id: t.id,
-              ticket_number: t.ticket_number,
-              customer_name: t.customer_name,
-              customer_phone: t.customer_phone,
-              service_type: t.service_type,
-              priority: t.priority,
-              status: t.status,
-              sla_hours: t.sla_hours || 4,
-              estimated_cost: t.service_type === 'GARAGE_REPAIR' ? 499 : t.estimated_cost || 499,
-            }));
+      } else {
+        const opsRes = await fetch('http://localhost:8000/api/coo/operations').catch(() => null);
+        if (opsRes && opsRes.ok) {
+          const opsData = await opsRes.json().catch(() => null);
+          const unassigned = (opsData || []).filter((t: any) => t.status === 'QUEUED' || !t.technician_assigned || t.technician_assigned === 'Unassigned');
+          tickets = unassigned.map((t: any) => ({
+            id: t.id,
+            ticketNumber: t.ticket_number,
+            type: t.service_type,
+            priority: t.priority,
+            customerName: t.customer_name,
+            phone: t.customer_phone,
+            cost: `₹${t.estimated_cost}`,
+          }));
         }
       }
-
-      setUnassignedTickets(tickets);
       if (tickets.length > 0) {
-        setSelectedTicketId(tickets[0].id);
+        setUnassignedTickets(tickets);
       }
     } catch (e) {
-      console.error('Error fetching unassigned tickets:', e);
+      // Quiet fallback
     }
   };
 

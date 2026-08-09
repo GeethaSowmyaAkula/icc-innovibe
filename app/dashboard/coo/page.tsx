@@ -30,6 +30,7 @@ export default function COODashboardPage() {
   });
 
   const fetchAISummary = async () => {
+    if (process.env.NEXT_PUBLIC_ENABLE_EXTERNAL_BACKEND !== 'true') return;
     setAiLoading(true);
     try {
       const res = await fetch('http://localhost:8000/api/coo/ai/summary', {
@@ -43,13 +44,14 @@ export default function COODashboardPage() {
             active_fleet_count: 148
           }
         })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.summary) setAiSummary(data.summary);
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.summary) setAiSummary(data.summary);
       }
     } catch (e) {
-      console.warn('AI Summary fetch warning (Using cached AI summary):', e);
+      // Quiet fallback to default AI summary state
     } finally {
       setAiLoading(false);
     }

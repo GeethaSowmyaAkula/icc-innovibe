@@ -248,9 +248,20 @@ export function Sidebar() {
   const searchParams = useSearchParams();
   const { activeRole, isSuperAdmin } = useRole();
 
+  const getEffectiveRole = (): RoleType => {
+    if (pathname.startsWith('/dashboard/hr')) return 'HR';
+    if (pathname.startsWith('/dashboard/cto')) return 'CTO';
+    if (pathname.startsWith('/dashboard/coo')) return 'COO';
+    if (pathname.startsWith('/dashboard/service-manager')) return 'SERVICE_MANAGER';
+    if (pathname.startsWith('/dashboard/technician')) return 'TECHNICIAN';
+    if (pathname.startsWith('/dashboard/ceo')) return 'CEO';
+    return activeRole;
+  };
+
+  const effectiveRole = getEffectiveRole();
   const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view')) : null;
 
-  const currentWorkspace = roleNavigationMap[activeRole] || roleNavigationMap.CEO;
+  const currentWorkspace = roleNavigationMap[effectiveRole] || roleNavigationMap.CEO;
 
   const isItemActive = (itemPath: string, exactQuery?: string) => {
     const [basePath] = itemPath.split('?');
@@ -270,13 +281,13 @@ export function Sidebar() {
             <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-sky-600" /> {currentWorkspace.workspaceTitle}
             </p>
-            {isSuperAdmin ? (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+            {effectiveRole === 'CEO' ? (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300" suppressHydrationWarning>
                 CEO SUPER ADMIN
               </span>
             ) : (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300 uppercase">
-                {activeRole}
+              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300 uppercase" suppressHydrationWarning>
+                {effectiveRole}
               </span>
             )}
           </div>
@@ -327,8 +338,8 @@ export function Sidebar() {
       </div>
 
       {/* Designation Privilege Status Card */}
-      {isSuperAdmin ? (
-        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left mt-4">
+      {effectiveRole === 'CEO' ? (
+        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left mt-4" suppressHydrationWarning>
           <div className="flex items-center gap-2 mb-1">
             <Crown className="h-4 w-4 text-amber-600 fill-amber-600" />
             <span className="text-xs font-black text-amber-900">Executive Workspace Active</span>
@@ -338,13 +349,13 @@ export function Sidebar() {
           </p>
         </div>
       ) : (
-        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-left mt-4">
+        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-left mt-4" suppressHydrationWarning>
           <div className="flex items-center gap-2 mb-1">
             <Lock className="h-4 w-4 text-slate-600" />
-            <span className="text-xs font-bold text-slate-900">{activeRole} Dedicated Workspace</span>
+            <span className="text-xs font-bold text-slate-900">{effectiveRole} Dedicated Workspace</span>
           </div>
           <p className="text-[10px] text-slate-500 font-medium">
-            Dedicated module navigation active for your {activeRole} session.
+            Dedicated module navigation active for your {effectiveRole} session.
           </p>
         </div>
       )}

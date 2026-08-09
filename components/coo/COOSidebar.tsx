@@ -117,6 +117,7 @@ export function COOSidebar() {
                   <Link
                     key={item.label}
                     href={item.href}
+                    prefetch={true}
                     className={`flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100 font-bold'

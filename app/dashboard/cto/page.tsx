@@ -3,9 +3,15 @@
 import React, { useState } from 'react';
 import { useRole } from '../../../components/RoleContext';
 import { mockVehicles } from '../../../lib/mock-data';
-import { Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal } from 'lucide-react';
+import { GlobalFilterProvider, useGlobalFilter } from '../../../lib/global-filter-context';
+import { DrillDownModal } from '../../../components/ceo/common/DrillDownModal';
+
+import {
+  Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal, Info,
+  Kanban, Layers, FileText, Bell, Sparkles, ChevronRight, CheckCircle2
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { SprintManagementModule } from '../../../components/cto/SprintManagementModule';
 import { CybersecurityModule } from '../../../components/cto/CybersecurityModule';
@@ -13,9 +19,12 @@ import { IntegrationsModule } from '../../../components/cto/IntegrationsModule';
 import { ReportsAnalyticsModule } from '../../../components/cto/ReportsAnalyticsModule';
 import { NotificationsModule } from '../../../components/cto/NotificationsModule';
 
-export default function CTODashboard() {
+function CTODashboardContent() {
   const { currentProfile } = useRole();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { openDrillDown } = useGlobalFilter();
+
   const activeModule = searchParams ? searchParams.get('module') : null;
   const [vehicles] = useState(mockVehicles);
 
@@ -27,23 +36,48 @@ export default function CTODashboard() {
   ];
 
   if (activeModule === 'sprint-management') {
-    return <SprintManagementModule />;
+    return (
+      <div className="space-y-6 text-left">
+        <SprintManagementModule />
+        <DrillDownModal />
+      </div>
+    );
   }
 
   if (activeModule === 'cybersecurity') {
-    return <CybersecurityModule />;
+    return (
+      <div className="space-y-6 text-left">
+        <CybersecurityModule />
+        <DrillDownModal />
+      </div>
+    );
   }
 
   if (activeModule === 'integrations') {
-    return <IntegrationsModule />;
+    return (
+      <div className="space-y-6 text-left">
+        <IntegrationsModule />
+        <DrillDownModal />
+      </div>
+    );
   }
 
   if (activeModule === 'reports-analytics') {
-    return <ReportsAnalyticsModule />;
+    return (
+      <div className="space-y-6 text-left">
+        <ReportsAnalyticsModule />
+        <DrillDownModal />
+      </div>
+    );
   }
 
   if (activeModule === 'notifications') {
-    return <NotificationsModule />;
+    return (
+      <div className="space-y-6 text-left">
+        <NotificationsModule />
+        <DrillDownModal />
+      </div>
+    );
   }
 
   return (
@@ -68,28 +102,148 @@ export default function CTODashboard() {
         </div>
       </div>
 
-      {/* KPI Row */}
+      {/* CTO Module Quick Navigation Toolbar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <button
+          onClick={() => router.push('/dashboard/cto')}
+          className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-2 border ${
+            !activeModule
+              ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Zap className="h-4 w-4" /> Telematics Overview
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=sprint-management')}
+          className="px-4 py-2 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <Kanban className="h-4 w-4 text-emerald-600" /> Sprint Management
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=cybersecurity')}
+          className="px-4 py-2 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <ShieldCheck className="h-4 w-4 text-red-500" /> Cybersecurity Command
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=integrations')}
+          className="px-4 py-2 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <Layers className="h-4 w-4 text-blue-600" /> API Integrations
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=reports-analytics')}
+          className="px-4 py-2 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <FileText className="h-4 w-4 text-purple-600" /> Reports & Analytics
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=notifications')}
+          className="px-4 py-2 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <Bell className="h-4 w-4 text-amber-500" /> System Notifications
+        </button>
+      </div>
+
+      {/* KPI Row with Executive Insight Top-Right Info Button and Click-to-Open Modal System */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Fleet EV Health Score</p>
+        {/* KPI 1 */}
+        <div
+          onClick={() =>
+            openDrillDown(
+              'EV Telematics Health Score Drill Down',
+              'Battery degradation, controller thermal analysis & IoT stream metrics across 12,480 connected units',
+              'SERVICE',
+              { metric: 'EV_HEALTH', score: 89.4 }
+            )
+          }
+          className="glass-card p-5 rounded-2xl border border-slate-200 relative group cursor-pointer hover:border-purple-300 hover:shadow-md transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Fleet EV Health Score</p>
+            <button
+              title="Click to view Executive Insight"
+              className="p-1.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-600 hover:text-white transition-all"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          </div>
           <p className="text-2xl font-black text-emerald-600 mt-2">89.4 / 100</p>
           <span className="text-xs text-slate-500 mt-1 inline-block font-medium">12,480 Active Connected Vehicles</span>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Advisor Accuracy</p>
+        {/* KPI 2 */}
+        <div
+          onClick={() =>
+            openDrillDown(
+              'AI Advisor & Diagnostic Accuracy Audit',
+              'Confidence score calibration, n8n agent execution logs & LLM accuracy metrics',
+              'TRANSACTION',
+              { metric: 'AI_ACCURACY', accuracy: 96.8 }
+            )
+          }
+          className="glass-card p-5 rounded-2xl border border-slate-200 relative group cursor-pointer hover:border-purple-300 hover:shadow-md transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI Advisor Accuracy</p>
+            <button
+              title="Click to view Executive Insight"
+              className="p-1.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 hover:bg-sky-600 hover:text-white transition-all"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          </div>
           <p className="text-2xl font-black text-sky-600 mt-2">96.8%</p>
           <span className="text-xs text-slate-500 mt-1 inline-block font-medium">Based on Diagnostic Audits</span>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">API Average Latency</p>
+        {/* KPI 3 */}
+        <div
+          onClick={() =>
+            openDrillDown(
+              'API Microservice Latency & Performance',
+              'Telescope real-time monitored endpoint response times, Redis hit ratios & DB query metrics',
+              'EXPENSES',
+              { metric: 'API_LATENCY', latencyMs: 34 }
+            )
+          }
+          className="glass-card p-5 rounded-2xl border border-slate-200 relative group cursor-pointer hover:border-purple-300 hover:shadow-md transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">API Average Latency</p>
+            <button
+              title="Click to view Executive Insight"
+              className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          </div>
           <p className="text-2xl font-black text-slate-900 mt-2">34 ms</p>
           <span className="text-xs text-emerald-600 font-bold mt-1 inline-block">Telescope Monitored</span>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantum-Safe Security</p>
+        {/* KPI 4 */}
+        <div
+          onClick={() =>
+            openDrillDown(
+              'Zero-Trust & Quantum-Safe Security Audit',
+              'Post-quantum TLS 1.3 cryptography, endpoint token revocation logs & threat detection status',
+              'BRANCH',
+              { metric: 'SECURITY', status: 'ACTIVE' }
+            )
+          }
+          className="glass-card p-5 rounded-2xl border border-slate-200 relative group cursor-pointer hover:border-purple-300 hover:shadow-md transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantum-Safe Security</p>
+            <button
+              title="Click to view Executive Insight"
+              className="p-1.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-600 hover:text-white transition-all"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          </div>
           <p className="text-2xl font-black text-purple-600 mt-2">ACTIVE</p>
           <span className="text-xs text-slate-500 mt-1 inline-block font-medium">Zero-Trust Gateway</span>
         </div>
@@ -97,8 +251,23 @@ export default function CTODashboard() {
 
       {/* EV Health Score (0-100) Telemetry Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-6 rounded-3xl border border-slate-200">
-          <h2 className="text-base font-extrabold text-slate-900 mb-1">EV Health Score Distribution (0-100 Algorithm)</h2>
+        <div
+          onClick={() =>
+            openDrillDown(
+              'EV Telemetry Algorithm & Distribution',
+              'Breakdown of vehicle counts across 0-100 health index ranges',
+              'SERVICE',
+              { distribution: telemetryDistribution }
+            )
+          }
+          className="lg:col-span-2 glass-panel p-6 rounded-3xl border border-slate-200 cursor-pointer hover:border-purple-300 transition-all"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-base font-extrabold text-slate-900">EV Health Score Distribution (0-100 Algorithm)</h2>
+            <span className="text-xs font-bold text-purple-600 flex items-center gap-1">
+              <Info className="h-4 w-4" /> Executive Insight
+            </span>
+          </div>
           <p className="text-xs text-slate-500 font-medium mb-4">Calculated from battery state-of-charge, motor efficiency, controller temperature, and brake wear.</p>
 
           <div className="h-64 w-full">
@@ -134,7 +303,12 @@ export default function CTODashboard() {
 
       {/* Connected Vehicle Telemetry Table */}
       <div className="glass-panel p-6 rounded-3xl border border-slate-200">
-        <h2 className="text-base font-extrabold text-slate-900 mb-4">Connected Vehicle Telemetry Diagnostics (Live Scores)</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-extrabold text-slate-900">Connected Vehicle Telemetry Diagnostics (Live Scores)</h2>
+          <span className="text-xs text-purple-600 font-bold flex items-center gap-1">
+            <CheckCircle2 className="h-4 w-4" /> Real-time Streaming
+          </span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -150,7 +324,18 @@ export default function CTODashboard() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {vehicles.map((veh) => (
-                <tr key={veh.id} className="hover:bg-slate-50 transition-all">
+                <tr
+                  key={veh.id}
+                  onClick={() =>
+                    openDrillDown(
+                      `Vehicle Diagnostic Telemetry: ${veh.registrationNumber}`,
+                      `Detailed cell voltage, controller telemetry & owner history for VIN ${veh.vin}`,
+                      'TRANSACTION',
+                      veh
+                    )
+                  }
+                  className="hover:bg-purple-50/50 transition-all cursor-pointer"
+                >
                   <td className="py-3.5 px-3">
                     <p className="font-bold text-slate-900">{veh.registrationNumber}</p>
                     <p className="text-[10px] font-mono text-slate-500">{veh.vin}</p>
@@ -181,6 +366,18 @@ export default function CTODashboard() {
           </table>
         </div>
       </div>
+
+      {/* Drill Down Modal for Executive Insights */}
+      <DrillDownModal />
     </div>
   );
 }
+
+export default function CTODashboard() {
+  return (
+    <GlobalFilterProvider>
+      <CTODashboardContent />
+    </GlobalFilterProvider>
+  );
+}
+
