@@ -1,14 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useRole } from '@/components/RoleContext';
 import { useCOOWebSocket } from '@/hooks/useCOOWebSocket';
-import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, Database } from 'lucide-react';
+import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, Database, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 export function COONavbar() {
+  const router = useRouter();
+  const { logout } = useRole();
   const { isConnected } = useCOOWebSocket();
   const [showExportModal, setShowExportModal] = useState(false);
   const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
+
+  const handleLogout = () => {
+    if (logout) logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
 
   const [notifications, setNotifications] = useState([
     {
@@ -149,6 +160,7 @@ export function COONavbar() {
         <button
           onClick={() => setShowNotificationsDrawer(true)}
           className="btn-interactive relative p-2 text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-full border border-slate-200 transition active:scale-95 cursor-pointer"
+          title="Notifications"
         >
           <Bell className="w-4 h-4" />
           {notifications.some((n) => n.unread) && (
@@ -157,6 +169,16 @@ export function COONavbar() {
               <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
             </>
           )}
+        </button>
+
+        {/* Log Out Button (Beside Notifications) */}
+        <button
+          onClick={handleLogout}
+          className="btn-interactive flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 rounded-full text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
+          title="Log Out of System"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-600" />
+          <span>Log Out</span>
         </button>
       </div>
 
