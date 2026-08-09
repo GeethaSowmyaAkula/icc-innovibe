@@ -16,6 +16,7 @@ import {
   MessageSquare,
   FileText,
   ShieldCheck,
+  Code,
   Wrench,
   Users,
   Truck,
@@ -115,9 +116,10 @@ const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: 
     workspaceTitle: 'CTO Technology Workspace',
     categories: [
       {
-        title: 'Telematics & Engineering',
+        title: 'Software & Engineering',
         items: [
-          { name: 'Telematics Overview', path: '/dashboard/cto', icon: Zap, color: 'text-purple-600' },
+          { name: 'Software Development', path: '/dashboard/cto?module=software-development', exactQuery: 'software-development', icon: Code, color: 'text-purple-600' },
+          { name: 'Telematics Overview', path: '/dashboard/cto?module=telematics', exactQuery: 'telematics', icon: Zap, color: 'text-amber-500' },
           { name: 'Sprint Management', path: '/dashboard/cto?module=sprint-management', exactQuery: 'sprint-management', icon: ClipboardList, color: 'text-emerald-600' },
           { name: 'Cybersecurity', path: '/dashboard/cto?module=cybersecurity', exactQuery: 'cybersecurity', icon: ShieldCheck, color: 'text-red-500' },
           { name: 'Integrations', path: '/dashboard/cto?module=integrations', exactQuery: 'integrations', icon: Layers, color: 'text-blue-600' },

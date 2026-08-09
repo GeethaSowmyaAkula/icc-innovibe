@@ -7,12 +7,13 @@ import { GlobalFilterProvider, useGlobalFilter } from '../../../lib/global-filte
 import { DrillDownModal } from '../../../components/ceo/common/DrillDownModal';
 
 import {
-  Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal, Info,
+  Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal, Info, Code,
   Kanban, Layers, FileText, Bell, Sparkles, ChevronRight, CheckCircle2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+import { SoftwareDevelopmentModule } from '../../../components/cto/SoftwareDevelopmentModule';
 import { SprintManagementModule } from '../../../components/cto/SprintManagementModule';
 import { CybersecurityModule } from '../../../components/cto/CybersecurityModule';
 import { IntegrationsModule } from '../../../components/cto/IntegrationsModule';
@@ -36,6 +37,7 @@ function CTODashboardContent() {
   ];
 
   const renderModuleContent = () => {
+    if (!activeModule || activeModule === 'software-development') return <SoftwareDevelopmentModule />;
     if (activeModule === 'sprint-management') return <SprintManagementModule />;
     if (activeModule === 'cybersecurity') return <CybersecurityModule />;
     if (activeModule === 'integrations') return <IntegrationsModule />;
@@ -293,14 +295,24 @@ function CTODashboardContent() {
       {/* CTO Module Quick Navigation Toolbar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
         <button
-          onClick={() => router.push('/dashboard/cto')}
+          onClick={() => router.push('/dashboard/cto?module=software-development')}
           className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-2 border ${
-            !activeModule
+            !activeModule || activeModule === 'software-development'
               ? 'bg-purple-600 text-white border-purple-600 shadow-md'
               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <Zap className="h-4 w-4" /> Telematics Overview
+          <Code className="h-4 w-4 text-purple-400" /> Software Dev & Portfolio
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=telematics')}
+          className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-2 border ${
+            activeModule === 'telematics'
+              ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Zap className="h-4 w-4 text-amber-500" /> EV Telematics & IoT
         </button>
         <button
           onClick={() => router.push('/dashboard/cto?module=sprint-management')}
