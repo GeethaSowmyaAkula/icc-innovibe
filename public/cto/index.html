@@ -223,13 +223,40 @@
           </button>
 
           <!-- User Profile Display -->
-          <div class="user-profile" id="userProfileDropdownTrigger">
-            <div class="user-avatar">
-              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" alt="CTO Profile">
+                    <!-- User Profile Display & Dropdown -->
+          <div style="position: relative;">
+            <div class="user-profile" id="userProfileDropdownTrigger" style="cursor: pointer;">
+              <div class="user-avatar">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" alt="CTO Profile">
+              </div>
+              <div class="user-details">
+                <span class="user-name">Dr. Elena Rostova <i class="fa-solid fa-chevron-down" style="font-size: 0.65rem; margin-left: 4px; opacity: 0.7;"></i></span>
+                <span class="user-role">Chief Technology Officer</span>
+              </div>
             </div>
-            <div class="user-details">
-              <span class="user-name">Dr. Elena Rostova</span>
-              <span class="user-role">Chief Technology Officer</span>
+
+            <!-- User Profile & Logout Dropdown Menu -->
+            <div class="user-profile-dropdown" id="userProfileDropdown" style="display: none; position: absolute; right: 0; top: 110%; width: 240px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 1000; padding: 8px 0; backdrop-filter: blur(12px);">
+              <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
+                <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-primary);">Dr. Elena Rostova</div>
+                <div style="font-size: 0.70rem; color: var(--text-secondary);">elena.rostova@innovibe.mobility</div>
+                <span class="badge badge-success" style="font-size: 0.58rem; margin-top: 4px; padding: 2px 6px;">Passkey SSO Active</span>
+              </div>
+              
+              <div style="padding: 4px 0;">
+                <a href="#" class="profile-dropdown-item" onclick="event.preventDefault(); window.switchRoute('system-configuration')" style="display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--text-primary); text-decoration: none;">
+                  <i class="fa-solid fa-user-gear" style="color: var(--color-blue); width: 16px;"></i> CTO Preferences
+                </a>
+                <a href="#" class="profile-dropdown-item" onclick="event.preventDefault(); window.switchRoute('cybersecurity')" style="display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--text-primary); text-decoration: none;">
+                  <i class="fa-solid fa-shield-halved" style="color: var(--color-purple); width: 16px;"></i> Security & Tokens
+                </a>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 4px; margin-top: 4px;">
+                <a href="#" id="portalLogoutBtn" class="profile-dropdown-item logout-item" style="display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--color-red); font-weight: 700; text-decoration: none;">
+                  <i class="fa-solid fa-right-from-bracket" style="color: var(--color-red); width: 16px;"></i> Log Out
+                </a>
+              </div>
             </div>
           </div>
         </div>

@@ -315,12 +315,12 @@ a {
 }
 
 .nav-group-title {
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 900;
   color: var(--text-primary);
-  opacity: 0.75;
-  letter-spacing: 0.07em;
-  padding: 0.65rem 0.75rem 0.35rem 0.75rem;
+  opacity: 1;
+  letter-spacing: 0.08em;
+  padding: 0.85rem 0.75rem 0.4rem 0.75rem;
   text-transform: uppercase;
   display: flex;
   align-items: center;
@@ -1728,3 +1728,103 @@ body.dark-mode .exec-modal-card {
   transform: scale(1) !important;
 }
 
+
+
+/* SPRINT COMPLETION ANIMATED BAR GRAPH WIDGET */
+@keyframes sprintBarLoad {
+  0% {
+    width: 0%;
+    opacity: 0.2;
+  }
+  100% {
+    width: 82%;
+    opacity: 1;
+  }
+}
+
+.sprint-animated-bar {
+  animation: sprintBarLoad 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+/* SPRINT COMPLETION ANIMATED PIE / DONUT CHART WIDGET */
+@keyframes pieStrokeLoad {
+  from {
+    stroke-dashoffset: 283;
+  }
+  to {
+    stroke-dashoffset: 51;
+  }
+}
+
+.sprint-pie-ring {
+  stroke-dasharray: 283;
+  stroke-dashoffset: 51;
+  animation: pieStrokeLoad 1.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+/* APPLE-INSPIRED PREMIUM MINIMALIST DESIGN SYSTEM & HOVER INTERACTIONS */
+:root {
+  --font-primary: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Plus Jakarta Sans", sans-serif;
+  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f7;
+}
+
+/* Apple Card Hover Micro-Interactions */
+.card, .kpi-card, .spr-kpi-card, .rdm-kpi-card, .iot-kpi-card, .telemetry-kpi-card, .evcare-kpi-card, .diag-kpi-card, .mobile-kpi-card, .web-kpi-card, .models-kpi-card, .ml-kpi-card, .notif-kpi-card, .kpi-card-bug, .kpi-card-feat {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.card:hover, .kpi-card:hover, .spr-kpi-card:hover, .rdm-kpi-card:hover, .iot-kpi-card:hover, .telemetry-kpi-card:hover, .evcare-kpi-card:hover, .diag-kpi-card:hover, .mobile-kpi-card:hover, .web-kpi-card:hover, .models-kpi-card:hover, .ml-kpi-card:hover, .notif-kpi-card:hover, .kpi-card-bug:hover, .kpi-card-feat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 113, 227, 0.22) !important;
+}
+
+/* Apple Button Micro-Interactions */
+.btn {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn:active {
+  transform: scale(0.97) !important;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35) !important;
+}
+
+/* Sidebar Nav Link Apple Hover Effect */
+.nav-item {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nav-item:hover {
+  transform: translateX(3px);
+}
+
+/* Chart Canvas Cursor Indicator */
+canvas {
+  cursor: crosshair;
+}
+
+
+/* USER PROFILE & LOGOUT DROPDOWN STYLES */
+.profile-dropdown-item {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.profile-dropdown-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.profile-dropdown-item.logout-item:hover {
+  background-color: rgba(255, 59, 48, 0.08);
+  color: var(--color-red);
+}
