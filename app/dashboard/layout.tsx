@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [pathname, activeRole, isSuperAdmin, isAuthenticated, router]);
 
-  if (pathname.startsWith('/dashboard/coo')) {
+  if (pathname.startsWith('/dashboard/coo') || pathname.startsWith('/dashboard/cto')) {
     return <>{children}</>;
   }
 
