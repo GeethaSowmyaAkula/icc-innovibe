@@ -7,12 +7,13 @@ import { GlobalFilterProvider, useGlobalFilter } from '../../../lib/global-filte
 import { DrillDownModal } from '../../../components/ceo/common/DrillDownModal';
 
 import {
-  Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal, Info, Code,
+  Zap, Cpu, Server, Activity, ShieldCheck, AlertOctagon, Terminal, Info, Code, BarChart3,
   Kanban, Layers, FileText, Bell, Sparkles, ChevronRight, CheckCircle2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+import { TechnologyDashboardModule } from '../../../components/cto/TechnologyDashboardModule';
 import { SoftwareDevelopmentModule } from '../../../components/cto/SoftwareDevelopmentModule';
 import { SprintManagementModule } from '../../../components/cto/SprintManagementModule';
 import { CybersecurityModule } from '../../../components/cto/CybersecurityModule';
@@ -37,7 +38,8 @@ function CTODashboardContent() {
   ];
 
   const renderModuleContent = () => {
-    if (!activeModule || activeModule === 'software-development') return <SoftwareDevelopmentModule />;
+    if (!activeModule || activeModule === 'technology-dashboard') return <TechnologyDashboardModule />;
+    if (activeModule === 'software-development') return <SoftwareDevelopmentModule />;
     if (activeModule === 'sprint-management') return <SprintManagementModule />;
     if (activeModule === 'cybersecurity') return <CybersecurityModule />;
     if (activeModule === 'integrations') return <IntegrationsModule />;
@@ -295,14 +297,24 @@ function CTODashboardContent() {
       {/* CTO Module Quick Navigation Toolbar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
         <button
-          onClick={() => router.push('/dashboard/cto?module=software-development')}
+          onClick={() => router.push('/dashboard/cto?module=technology-dashboard')}
           className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-2 border ${
-            !activeModule || activeModule === 'software-development'
+            !activeModule || activeModule === 'technology-dashboard'
               ? 'bg-purple-600 text-white border-purple-600 shadow-md'
               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <Code className="h-4 w-4 text-purple-400" /> Software Dev & Portfolio
+          <BarChart3 className="h-4 w-4 text-purple-400" /> Technology Dashboard
+        </button>
+        <button
+          onClick={() => router.push('/dashboard/cto?module=software-development')}
+          className={`px-4 py-2 rounded-2xl transition-all flex items-center gap-2 border ${
+            activeModule === 'software-development'
+              ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Code className="h-4 w-4 text-emerald-500" /> Software Dev & Portfolio
         </button>
         <button
           onClick={() => router.push('/dashboard/cto?module=telematics')}

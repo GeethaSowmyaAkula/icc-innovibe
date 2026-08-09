@@ -118,7 +118,8 @@ const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: 
       {
         title: 'Software & Engineering',
         items: [
-          { name: 'Software Development', path: '/dashboard/cto?module=software-development', exactQuery: 'software-development', icon: Code, color: 'text-purple-600' },
+          { name: 'Technology Dashboard', path: '/dashboard/cto', icon: BarChart3, color: 'text-purple-600' },
+          { name: 'Software Development', path: '/dashboard/cto?module=software-development', exactQuery: 'software-development', icon: Code, color: 'text-emerald-600' },
           { name: 'Telematics Overview', path: '/dashboard/cto?module=telematics', exactQuery: 'telematics', icon: Zap, color: 'text-amber-500' },
           { name: 'Sprint Management', path: '/dashboard/cto?module=sprint-management', exactQuery: 'sprint-management', icon: ClipboardList, color: 'text-emerald-600' },
           { name: 'Cybersecurity', path: '/dashboard/cto?module=cybersecurity', exactQuery: 'cybersecurity', icon: ShieldCheck, color: 'text-red-500' },
