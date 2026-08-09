@@ -16,11 +16,15 @@ import {
   MessageSquare,
   FileText,
   ShieldCheck,
+  Code,
   Wrench,
   Users,
   Truck,
   Compass,
   Sparkles,
+  AlertOctagon,
+  Server,
+  Cpu,
   ChevronRight,
   Lock,
   Layers,
@@ -115,12 +119,22 @@ const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: 
     workspaceTitle: 'CTO Technology Workspace',
     categories: [
       {
-        title: 'Telematics & Engineering',
+        title: 'Core Platform',
         items: [
-          { name: 'Telematics Overview', path: '/dashboard/cto', icon: Zap, color: 'text-purple-600' },
-          { name: 'Sprint Management', path: '/dashboard/cto?module=sprint-management', exactQuery: 'sprint-management', icon: ClipboardList, color: 'text-emerald-600' },
+          { name: 'Technology Dashboard', path: '/dashboard/cto', icon: BarChart3, color: 'text-blue-600' },
+          { name: 'Software Development', path: '/dashboard/cto?module=software-development', exactQuery: 'software-development', icon: Code, color: 'text-emerald-600' },
+          { name: 'Sprint Management', path: '/dashboard/cto?module=sprint-management', exactQuery: 'sprint-management', icon: ClipboardList, color: 'text-purple-600' },
+          { name: 'Bug Tracking', path: '/dashboard/cto?module=software-development', badge: '23', color: 'text-amber-500', icon: AlertOctagon },
+          { name: 'Feature Requests', path: '/dashboard/cto?module=software-development', badge: '12', color: 'text-blue-500', icon: Sparkles },
+        ],
+      },
+      {
+        title: 'Engineering & APIs',
+        items: [
+          { name: 'API Management', path: '/dashboard/cto?module=integrations', exactQuery: 'integrations', icon: Layers, color: 'text-blue-600' },
+          { name: 'Cloud Infrastructure', path: '/dashboard/cto?module=cybersecurity', icon: Server, color: 'text-purple-600' },
+          { name: 'DevOps & Pipelines', path: '/dashboard/cto?module=software-development', badge: 'Live', color: 'text-emerald-600', icon: Cpu },
           { name: 'Cybersecurity', path: '/dashboard/cto?module=cybersecurity', exactQuery: 'cybersecurity', icon: ShieldCheck, color: 'text-red-500' },
-          { name: 'Integrations', path: '/dashboard/cto?module=integrations', exactQuery: 'integrations', icon: Layers, color: 'text-blue-600' },
         ],
       },
       {
