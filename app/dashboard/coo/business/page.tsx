@@ -1,9 +1,12 @@
-﻿'use client';
+'use client';
 
 import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
-import { UserCheck, Target, Shield, Store, TrendingUp } from 'lucide-react';
+import {
+  UserCheck, Target, Shield, Store, TrendingUp,
+  Search, PhoneCall, ThumbsUp, FileText, CheckCircle2, ArrowDown, Award
+} from 'lucide-react';
 import Link from 'next/link';
 import {
   ResponsiveContainer,
@@ -14,25 +17,24 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
 
-/* ─── REVERSE PYRAMID ─── */
+/* ─── REVERSE PYRAMID (PROFESSIONAL EXECUTIVE DESIGN) ─── */
 const stages = [
-  { name: 'Found',       sub: 'Companies we identified',    value: 320, color: '#6366f1', icon: '🔍' },
-  { name: 'Reached Out', sub: 'Called or messaged them',    value: 240, color: '#8b5cf6', icon: '📞' },
-  { name: 'Interested',  sub: 'Said yes, tell me more',     value: 165, color: '#a855f7', icon: '✋' },
-  { name: 'Sent Quote',  sub: 'We gave them a price',       value: 98,  color: '#d946ef', icon: '📄' },
-  { name: 'Signed Up',   sub: 'Became our customer',        value: 62,  color: '#ec4899', icon: '🎉' },
+  { name: 'IDENTIFIED LEADS',          sub: 'Target Enterprise Accounts',         value: 320, color: '#4f46e5', Icon: Search },
+  { name: 'OUTREACH ENGAGED',         sub: 'Direct Calls & Email Dispatch',       value: 240, color: '#7c3aed', Icon: PhoneCall },
+  { name: 'EVALUATING & INTERESTED', sub: 'Technical & Service Intent Verified', value: 165, color: '#9333ea', Icon: ThumbsUp },
+  { name: 'PROPOSAL & QUOTE ISSUED', sub: 'Commercial Terms Provided',           value: 98,  color: '#c026d3', Icon: FileText },
+  { name: 'CONTRACT SIGNED',          sub: 'Active Onboarded Customer',           value: 62,  color: '#db2777', Icon: CheckCircle2 },
 ];
 
-/* ─── TRUE REVERSE PYRAMID ─── */
 function ReversePyramid() {
   const total = stages[0].value;
 
   return (
-    <div className="space-y-2 py-3">
+    <div className="space-y-2.5 py-4">
       <div className="flex flex-col items-center w-full">
         {stages.map((s, i) => {
-          // Shrink width layer by layer: 100%, 85%, 70%, 55%, 40%
-          const widthPct = 100 - i * 15;
+          const Icon = s.Icon;
+          const widthPct = 100 - i * 14;
           const dropOff = i < stages.length - 1 ? s.value - stages[i + 1].value : 0;
           const dropPct = i < stages.length - 1 ? Math.round((dropOff / s.value) * 100) : 0;
 
@@ -40,18 +42,20 @@ function ReversePyramid() {
             <div key={s.name} className="w-full flex flex-col items-center">
               {/* Inverted Pyramid Layer Card */}
               <div
-                className="h-13 rounded-xl flex items-center justify-between px-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer border border-white/20"
+                className="h-14 rounded-xl flex items-center justify-between px-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer border border-white/20"
                 style={{
                   width: `${widthPct}%`,
-                  minWidth: '260px',
+                  minWidth: '280px',
                   background: `linear-gradient(135deg, ${s.color} 0%, ${s.color}dd 100%)`,
                 }}
               >
-                {/* Left: Icon & Title */}
+                {/* Left: SVG Icon & Title */}
                 <div className="flex items-center gap-3 text-white min-w-0 pr-2">
-                  <span className="text-lg shrink-0">{s.icon}</span>
+                  <div className="p-2 bg-white/15 rounded-lg backdrop-blur-xs shrink-0">
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
                   <div className="truncate">
-                    <span className="font-extrabold text-xs block leading-tight tracking-wide uppercase text-white">{s.name}</span>
+                    <span className="font-extrabold text-xs block leading-tight tracking-wider uppercase text-white">{s.name}</span>
                     <span className="text-[10px] text-white/80 font-medium truncate block">{s.sub}</span>
                   </div>
                 </div>
@@ -64,9 +68,9 @@ function ReversePyramid() {
 
               {/* Drop-off Indicator between Pyramid Layers */}
               {i < stages.length - 1 && (
-                <div className="my-1 px-3 py-0.5 bg-rose-50 border border-rose-200 rounded-full text-[10px] font-bold text-rose-600 flex items-center gap-1 shadow-2xs">
-                  <span>↓</span>
-                  <span>{dropOff} dropped off ({dropPct}%)</span>
+                <div className="my-1 px-3 py-1 bg-rose-50 border border-rose-200 rounded-full text-[10px] font-bold text-rose-700 flex items-center gap-1.5 shadow-2xs">
+                  <ArrowDown className="w-3 h-3 text-rose-600" />
+                  <span>{dropOff} drop-off ({dropPct}%)</span>
                 </div>
               )}
             </div>
@@ -75,10 +79,10 @@ function ReversePyramid() {
       </div>
 
       {/* Summary Footer */}
-      <div className="mt-4 mx-auto max-w-lg px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-bold text-center flex items-center justify-center gap-2 shadow-2xs">
-        <span className="text-sm">🏆</span>
+      <div className="mt-4 mx-auto max-w-lg px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 font-bold text-center flex items-center justify-center gap-2 shadow-2xs">
+        <Award className="w-4 h-4 text-emerald-600 shrink-0" />
         <span>
-          Out of <strong>{total}</strong> leads identified → <strong>{stages.at(-1)!.value}</strong> signed up ({Math.round((stages.at(-1)!.value / total) * 100)}% overall conversion)
+          Funnel Performance: <strong>{total}</strong> Identified Leads → <strong>{stages.at(-1)!.value}</strong> Signed Accounts (<strong>{Math.round((stages.at(-1)!.value / total) * 100)}%</strong> conversion rate)
         </span>
       </div>
     </div>
@@ -360,15 +364,36 @@ function BusinessInner() {
             </Card>
 
             <Card title="Leads by Source">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={leadSourceData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="source" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} width={65} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="leads" name="Leads" fill="#6366f1" radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={leadSourceData} layout="vertical" margin={{ left: 10, right: 20, top: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="source" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} width={65} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="leads" name="Leads" fill="#6366f1" radius={[0, 6, 6, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
+
+                <div className="pt-3 border-t border-slate-100 space-y-2 text-xs">
+                  <span className="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider block">Acquisition Channel Distribution</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {leadSourceData.map((s) => {
+                      const totalLeads = leadSourceData.reduce((acc, curr) => acc + curr.leads, 0);
+                      const pct = ((s.leads / totalLeads) * 100).toFixed(1);
+                      return (
+                        <div key={s.source} className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between shadow-2xs">
+                          <span className="font-bold text-slate-700">{s.source}</span>
+                          <div className="text-right">
+                            <span className="font-black text-slate-900 block">{s.leads}</span>
+                            <span className="text-[10px] text-slate-500 font-semibold">{pct}% share</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </Card>
 
             <Card title="Pipeline Stage Summary" className="col-span-2">
@@ -402,35 +427,58 @@ function BusinessInner() {
         {currentTab === 'oems' && (
           <div className="grid grid-cols-2 gap-5">
             <Card title="Contracts per OEM Partner">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={oemContractData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="oem" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="contracts" name="Contracts" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={340}>
+                  <PieChart>
+                    <Pie
+                      data={oemContractData}
+                      dataKey="contracts"
+                      nameKey="oem"
+                      cx="50%"
+                      cy="46%"
+                      innerRadius={90}
+                      outerRadius={130}
+                      paddingAngle={4}
+                      stroke="none"
+                    >
+                      {oemContractData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#6366f1', '#8b5cf6', '#0ea5e9', '#10b981'][index % 4]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute top-[41%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                  <span className="text-3xl font-black text-slate-900 block leading-none">
+                    {oemContractData.reduce((s, c) => s + c.contracts, 0)}
+                  </span>
+                  <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block mt-1">
+                    Contracts
+                  </span>
+                </div>
+              </div>
             </Card>
 
             <Card title="OEM Revenue Contribution (₹L)">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={340}>
                 <PieChart>
                   <Pie
                     data={oemContractData}
                     dataKey="revenue"
                     nameKey="oem"
-                    cx="50%" cy="50%"
-                    outerRadius={100}
+                    cx="50%" cy="46%"
+                    outerRadius={130}
                     paddingAngle={3}
                     label={({ oem, percent }) => `${oem} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
+                    labelLine={true}
                   >
                     {oemContractData.map((_, i) => (
                       <Cell key={i} fill={['#8b5cf6', '#6366f1', '#0ea5e9', '#10b981'][i % 4]} />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
             </Card>

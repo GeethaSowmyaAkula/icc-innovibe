@@ -2,12 +2,56 @@
 
 import React, { useState } from 'react';
 import { useCOOWebSocket } from '@/hooks/useCOOWebSocket';
-import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, CheckSquare, Square, Layers, Database } from 'lucide-react';
+import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, Database } from 'lucide-react';
 import Link from 'next/link';
 
 export function COONavbar() {
   const { isConnected } = useCOOWebSocket();
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: 'EV Battery Thermal Anomaly Warning',
+      desc: 'KA-01-EQ-9983 cell temp reached 54.2°C (threshold: 50°C). Cell balancing active.',
+      time: '2 mins ago',
+      type: 'ALERT',
+      unread: true,
+    },
+    {
+      id: 2,
+      title: '30-Day Payroll Approved & Locked',
+      desc: 'Operations payroll for 142 employees approved by COO suite and dispatched to HR portal.',
+      time: '15 mins ago',
+      type: 'SUCCESS',
+      unread: true,
+    },
+    {
+      id: 3,
+      title: 'OEM Partner Contract Finalized',
+      desc: 'Ather Energy signed 4-fleet maintenance retainer for 400 commercial EVs in Bengaluru hub.',
+      time: '45 mins ago',
+      type: 'INFO',
+      unread: true,
+    },
+    {
+      id: 4,
+      title: 'Low Stock Purchase Order Pending',
+      desc: '5kW BLDC Hub Motor stock below threshold (2 units left). Reorder PO pending COO sign-off.',
+      time: '1 hour ago',
+      type: 'WARNING',
+      unread: true,
+    },
+    {
+      id: 5,
+      title: 'SLA Target Achieved (98.4%)',
+      desc: '1,420 Service tickets completed today across Bengaluru, Hyderabad, and Pune depots.',
+      time: '2 hours ago',
+      type: 'SUCCESS',
+      unread: false,
+    },
+  ]);
 
   // Available Modules State
   const moduleOptions = [
@@ -65,7 +109,7 @@ export function COONavbar() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+    <header className={`h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 shadow-xs ${showNotificationsDrawer || showExportModal ? 'z-50' : 'z-20'}`}>
       {/* Search & Breadcrumb */}
       <div className="flex items-center space-x-4">
         <div className="relative w-72">
@@ -101,16 +145,119 @@ export function COONavbar() {
           <span>Export Summary PDF</span>
         </button>
 
-        {/* Notification Bell */}
-        <Link
-          href="/dashboard/coo/collaboration#notifications"
-          className="btn-interactive relative p-2 text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-full border border-slate-200 transition active:scale-95"
+        {/* Notification Bell Button */}
+        <button
+          onClick={() => setShowNotificationsDrawer(true)}
+          className="btn-interactive relative p-2 text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-full border border-slate-200 transition active:scale-95 cursor-pointer"
         >
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-ping"></span>
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
-        </Link>
+          {notifications.some((n) => n.unread) && (
+            <>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-ping"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+            </>
+          )}
+        </button>
       </div>
+
+      {/* DRAWER: Notification Drawer (Right to Left Slide In with Full Viewport Blur Backdrop) */}
+      {showNotificationsDrawer && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Blurred Background Overlay covering entire screen & left sidebar */}
+          <div
+            onClick={() => setShowNotificationsDrawer(false)}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-md animate-backdrop-blur transition-all duration-300 cursor-pointer z-40"
+          />
+
+          {/* Right-to-Left Sliding Sidebar Panel */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-50 pointer-events-auto">
+            <div className="w-96 max-w-md bg-white border-l border-slate-200 shadow-2xl flex flex-col justify-between animate-drawer-slide">
+              
+              {/* Drawer Header */}
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 bg-blue-50 border border-blue-100 rounded-xl">
+                    <Bell className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-extrabold text-slate-900">Notifications</h2>
+                    <span className="text-[10px] text-slate-500 font-semibold">Real-time COO Audit Stream</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setNotifications(notifications.map((n) => ({ ...n, unread: false })))}
+                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => setShowNotificationsDrawer(false)}
+                    className="p-1 hover:bg-slate-200/60 rounded-full text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Notification List Container (Pop up one by one) */}
+              <div className="p-4 space-y-3 overflow-y-auto flex-1">
+                {notifications.map((n, index) => (
+                  <div
+                    key={n.id}
+                    className={`p-3.5 rounded-2xl border transition-all duration-300 shadow-2xs hover:shadow-sm cursor-pointer ${
+                      n.unread
+                        ? n.type === 'ALERT'
+                          ? 'bg-rose-50/70 border-rose-200'
+                          : n.type === 'WARNING'
+                          ? 'bg-amber-50/70 border-amber-200'
+                          : n.type === 'SUCCESS'
+                          ? 'bg-emerald-50/70 border-emerald-200'
+                          : 'bg-blue-50/70 border-blue-200'
+                        : 'bg-slate-50 border-slate-200 opacity-80'
+                    }`}
+                    style={{
+                      animation: 'slideUpPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                      animationDelay: `${index * 90 + 150}ms`,
+                      opacity: 0,
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span
+                        className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                          n.type === 'ALERT'
+                            ? 'bg-rose-100 text-rose-800 border-rose-300'
+                            : n.type === 'WARNING'
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : n.type === 'SUCCESS'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-blue-100 text-blue-800 border-blue-300'
+                        }`}
+                      >
+                        {n.type}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">{n.time}</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 leading-tight">{n.title}</h4>
+                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">{n.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Drawer Footer */}
+              <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-center">
+                <Link
+                  href="/dashboard/coo/collaboration#notifications"
+                  onClick={() => setShowNotificationsDrawer(false)}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 transition"
+                >
+                  View All Operational Logs & Alerts →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: Custom Executive PDF Export Options */}
       {showExportModal && (
@@ -154,7 +301,7 @@ export function COONavbar() {
                         className="mt-0.5 w-4 h-4 text-blue-600 rounded cursor-pointer accent-blue-600"
                       />
                       <div className="space-y-0.5">
-                        <span className="text-xs font-bold text-slate-900 block">{mod.label}</span>
+                        <span className="font-extrabold text-xs text-slate-900 block">{mod.label}</span>
                         <span className="text-[11px] text-slate-500 block">{mod.desc}</span>
                       </div>
                     </label>
@@ -163,13 +310,11 @@ export function COONavbar() {
               </div>
             </div>
 
-            {/* Bottom Special Checkbox: Summary of Entire Data Accessed by COO */}
-            <div className="pt-3 border-t border-slate-200">
+            {/* Select Entire COO Data Option */}
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
               <label
                 onClick={handleToggleAllCOOData}
-                className={`p-3.5 rounded-xl border flex items-center space-x-3 cursor-pointer transition ${
-                  selectAllCOOData ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-100 border-slate-300'
-                }`}
+                className="flex items-center space-x-3 cursor-pointer"
               >
                 <input
                   type="checkbox"
