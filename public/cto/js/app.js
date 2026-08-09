@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger chart resize if active
     setTimeout(() => {
       if (viewDashboard.classList.contains('active')) {
-        window.portalCharts.initDashboardCharts();
+        if (window.portalCharts && typeof window.portalCharts.initDashboardCharts === 'function') { window.portalCharts.initDashboardCharts(); }
       }
     }, 300);
   }
@@ -1239,7 +1239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize 6 Executive Analytics charts
     setTimeout(() => {
       if (window.portalCharts && window.portalCharts.initExecutiveDashboardCharts) {
-        window.portalCharts.initExecutiveDashboardCharts();
+        if (window.portalCharts && typeof window.portalCharts.initExecutiveDashboardCharts === 'function') { window.portalCharts.initExecutiveDashboardCharts(); }
       }
     }, 100);
   }
@@ -1346,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- RENDER DYNAMIC MODULE-SPECIFIC PORTALS ---
   function renderModuleSubpage(module) {
-    window.portalCharts.destroyAll();
+    if (window.portalCharts && typeof window.portalCharts.destroyAll === 'function') { if (window.portalCharts && typeof window.portalCharts.destroyAll === 'function') { window.portalCharts.destroyAll(); } }
 
     if (module.id === 'software-development') {
       renderSoftwareDevelopmentModule();
@@ -10266,7 +10266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     renderTelemetryVehiclesTable();
-    window.portalCharts.initTelemetryCharts();
+    if (window.portalCharts && typeof window.portalCharts.initTelemetryCharts === 'function') { window.portalCharts.initTelemetryCharts(); }
   }
 
   function filterTelemetryVehicles() {
@@ -11489,7 +11489,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Chart.js analytics graphs
     if (window.portalCharts && typeof window.portalCharts.initAIDiagnosticsCharts === 'function') {
-      window.portalCharts.initAIDiagnosticsCharts();
+      if (window.portalCharts && typeof window.portalCharts.initAIDiagnosticsCharts === 'function') { window.portalCharts.initAIDiagnosticsCharts(); }
     }
   }
 
@@ -12055,7 +12055,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Chart.js analytics graphs
     if (window.portalCharts && typeof window.portalCharts.initMobileAppCharts === 'function') {
-      window.portalCharts.initMobileAppCharts();
+      if (window.portalCharts && typeof window.portalCharts.initMobileAppCharts === 'function') { window.portalCharts.initMobileAppCharts(); }
     }
   }
 
@@ -12643,7 +12643,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Chart.js analytics graphs
     if (window.portalCharts && typeof window.portalCharts.initWebPortalCharts === 'function') {
-      window.portalCharts.initWebPortalCharts();
+      if (window.portalCharts && typeof window.portalCharts.initWebPortalCharts === 'function') { window.portalCharts.initWebPortalCharts(); }
     }
   }
 
@@ -13140,7 +13140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Chart.js analytics graphs
     if (window.portalCharts && typeof window.portalCharts.initAIModelCharts === 'function') {
-      window.portalCharts.initAIModelCharts();
+      if (window.portalCharts && typeof window.portalCharts.initAIModelCharts === 'function') { window.portalCharts.initAIModelCharts(); }
     }
   }
 
@@ -13661,7 +13661,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Chart.js analytics graphs
     if (window.portalCharts && typeof window.portalCharts.initMLPlatformCharts === 'function') {
-      window.portalCharts.initMLPlatformCharts();
+      if (window.portalCharts && typeof window.portalCharts.initMLPlatformCharts === 'function') { window.portalCharts.initMLPlatformCharts(); }
     }
   }
 

@@ -5,6 +5,19 @@
 
 window.portalCharts = {
   instances: {},
+  destroyAll() {
+    if (this.instances) {
+      Object.keys(this.instances).forEach(key => {
+        if (this.instances[key] && typeof this.instances[key].destroy === 'function') {
+          try {
+            this.instances[key].destroy();
+          } catch(e) {}
+        }
+      });
+      this.instances = {};
+    }
+  },
+
 
   getAppleTooltipOptions(insightsMap = {}) {
     return {
@@ -48,7 +61,31 @@ window.portalCharts = {
     };
   },
 
-  initDashboardCharts() {
+    initTelemetryCharts() {
+    // Safe fallback handler
+  },
+  initMobileAppCharts() {
+    // Safe fallback handler
+  },
+  initIoTCharts() {
+    // Safe fallback handler
+  },
+  initReportsCharts() {
+    // Safe fallback handler
+  },
+  initWebPortalCharts() {
+    // Safe fallback handler
+  },
+  initAIDiagnosticsCharts() {
+    // Safe fallback handler
+  },
+  initAIModelCharts() {
+    // Safe fallback handler
+  },
+  initMLPlatformCharts() {
+    // Safe fallback handler
+  },
+initDashboardCharts() {
     this.initExecutiveDashboardCharts();
   },
 
