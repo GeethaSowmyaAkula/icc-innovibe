@@ -8,6 +8,12 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"SF Pro Text"', '"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        gotham: ['Gotham', '"Gotham Bold"', '"SF Pro Display"', 'sans-serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
+        apfel: ['"Apfel Grotezk"', '"Apfel Grotesk"', 'sans-serif'],
+      },
       colors: {
         brand: {
           50: '#f0f7ff',

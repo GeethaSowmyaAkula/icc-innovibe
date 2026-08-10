@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useRole } from './RoleContext';
-import { RoleType } from '../lib/types';
 import {
-  Crown,
+  LayoutDashboard,
+  CheckSquare,
   TrendingUp,
   Activity,
   BarChart3,
@@ -16,44 +16,25 @@ import {
   MessageSquare,
   FileText,
   ShieldCheck,
-  Wrench,
-  Users,
-  Truck,
-  Compass,
-  Sparkles,
-  ChevronRight,
-  Lock,
-  Layers,
-  LayoutDashboard,
-  Briefcase,
-  UserCheck,
-  ClipboardList,
-  Clock,
-  CalendarRange,
-  IndianRupee,
-  Award,
-  GraduationCap,
-  FolderOpen,
-  Contact,
-  Calendar,
-  DoorOpen,
-  Bell,
-  Settings,
-  CheckSquare,
-  CheckCircle2,
-  Database,
-  Camera,
-  Volume2,
-  User,
+  Shield,
+  ChevronDown,
 } from 'lucide-react';
+
+interface SubmenuItem {
+  name: string;
+  path: string;
+  exactQuery: string;
+}
 
 interface NavItem {
   name: string;
   path: string;
   icon: any;
   badge?: string;
-  color?: string;
+  badgeType?: 'default' | 'live' | 'rbac' | 'beta';
   exactQuery?: string;
+  isExpandable?: boolean;
+  children?: SubmenuItem[];
 }
 
 interface NavCategory {
@@ -61,193 +42,76 @@ interface NavCategory {
   items: NavItem[];
 }
 
-const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: NavCategory[] }> = {
-  CEO: {
-    workspaceTitle: 'CEO Executive Workspace',
-    categories: [
+const tmsSubmenuItems: SubmenuItem[] = [
+  { name: 'Dashboard', path: '/dashboard/ceo?module=tms-dashboard', exactQuery: 'tms-dashboard' },
+  { name: 'Tasks', path: '/dashboard/ceo?module=tms-tasks', exactQuery: 'tms-tasks' },
+  { name: 'Attendance', path: '/dashboard/ceo?module=tms-attendance', exactQuery: 'tms-attendance' },
+  { name: 'Departments', path: '/dashboard/ceo?module=tms-departments', exactQuery: 'tms-departments' },
+  { name: 'Employees', path: '/dashboard/ceo?module=tms-employees', exactQuery: 'tms-employees' },
+  { name: 'Leave Approvals', path: '/dashboard/ceo?module=tms-leave-approvals', exactQuery: 'tms-leave-approvals' },
+  { name: 'Reports', path: '/dashboard/ceo?module=tms-reports', exactQuery: 'tms-reports' },
+  { name: 'Logout Reports', path: '/dashboard/ceo?module=tms-logout-reports', exactQuery: 'tms-logout-reports' },
+  { name: 'Announcements', path: '/dashboard/ceo?module=tms-announcements', exactQuery: 'tms-announcements' },
+  { name: 'Notifications', path: '/dashboard/ceo?module=tms-notifications', exactQuery: 'tms-notifications' },
+  { name: 'Settings', path: '/dashboard/ceo?module=tms-settings', exactQuery: 'tms-settings' },
+];
+
+const ceoNavigationCategories: NavCategory[] = [
+  {
+    title: 'EXECUTIVE SUITE',
+    items: [
+      { name: 'Executive Overview', path: '/dashboard/ceo', icon: LayoutDashboard },
       {
-        title: 'Executive Suite',
-        items: [
-          { name: 'Executive Overview', path: '/dashboard/ceo', icon: Crown, color: 'text-amber-600' },
-          { name: 'Business Performance', path: '/dashboard/ceo?module=business-performance', exactQuery: 'business-performance', icon: TrendingUp, color: 'text-emerald-600' },
-          { name: 'Fleet Intelligence', path: '/dashboard/ceo?module=fleet-intelligence', exactQuery: 'fleet-intelligence', icon: Activity, color: 'text-sky-600' },
-          { name: 'Department Performance', path: '/dashboard/ceo?module=department-performance', exactQuery: 'department-performance', icon: BarChart3, color: 'text-purple-600' },
-        ],
+        name: 'TMS',
+        path: '/dashboard/ceo?module=tms-dashboard',
+        icon: CheckSquare,
+        badge: 'HR',
+        badgeType: 'live',
+        isExpandable: true,
+        children: tmsSubmenuItems,
       },
-      {
-        title: 'Operations & Intelligence',
-        items: [
-          { name: 'AI Command Center', path: '/dashboard/ai-command', icon: Bot, badge: 'n8n AI', color: 'text-sky-600' },
-          { name: 'Alerts & Risk Center', path: '/dashboard/ceo?module=alerts-risk', exactQuery: 'alerts-risk', icon: AlertTriangle, badge: 'Live', color: 'text-red-500' },
-          { name: 'Action Center', path: '/dashboard/ceo?module=action-center', exactQuery: 'action-center', icon: Zap, color: 'text-amber-500' },
-          { name: 'Communication Hub', path: '/dashboard/ceo?module=communication-hub', exactQuery: 'communication-hub', icon: MessageSquare, color: 'text-indigo-600' },
-        ],
-      },
-      {
-        title: 'Governance & Controls',
-        items: [
-          { name: 'Reports & Analytics', path: '/dashboard/ceo?module=reports-analytics', exactQuery: 'reports-analytics', icon: FileText, color: 'text-blue-600' },
-          { name: 'Role Access & Settings', path: '/dashboard/roles', icon: ShieldCheck, badge: 'RBAC', color: 'text-amber-600' },
-        ],
-      },
+      { name: 'Business Performance', path: '/dashboard/ceo?module=business-performance', exactQuery: 'business-performance', icon: TrendingUp },
+      { name: 'Fleet Intelligence', path: '/dashboard/ceo?module=fleet-intelligence', exactQuery: 'fleet-intelligence', icon: Activity },
+      { name: 'Department Performance', path: '/dashboard/ceo?module=department-performance', exactQuery: 'department-performance', icon: BarChart3 },
     ],
   },
-  COO: {
-    workspaceTitle: 'COO Operations Workspace',
-    categories: [
-      {
-        title: 'Operations & Logistics',
-        items: [
-          { name: 'Operations Overview', path: '/dashboard/coo', icon: Activity, color: 'text-blue-600' },
-          { name: 'Vendor Fleet Live Sync', path: '/dashboard/coo?module=fleet', exactQuery: 'fleet', icon: Truck, color: 'text-emerald-600' },
-          { name: 'Dispatch Matrix', path: '/dashboard/coo?module=dispatch', exactQuery: 'dispatch', icon: Compass, color: 'text-purple-600' },
-        ],
-      },
-      {
-        title: 'Automation',
-        items: [
-          { name: 'AI Command Suite', path: '/dashboard/ai-command', icon: Bot, badge: 'n8n', color: 'text-sky-600' },
-        ],
-      },
+  {
+    title: 'OPERATIONS & INTELLIGENCE',
+    items: [
+      { name: 'AI Command Center', path: '/dashboard/ai-command', icon: Bot, badge: 'Beta', badgeType: 'beta' },
+      { name: 'Alerts & Risk Center', path: '/dashboard/ceo?module=alerts-risk', exactQuery: 'alerts-risk', icon: AlertTriangle, badge: 'Live', badgeType: 'live' },
+      { name: 'Action Center', path: '/dashboard/ceo?module=action-center', exactQuery: 'action-center', icon: Zap },
+      { name: 'Communication Hub', path: '/dashboard/ceo?module=communication-hub', exactQuery: 'communication-hub', icon: MessageSquare },
     ],
   },
-  CTO: {
-    workspaceTitle: 'CTO Technology Workspace',
-    categories: [
-      {
-        title: 'Telematics & Engineering',
-        items: [
-          { name: 'Telematics Overview', path: '/dashboard/cto', icon: Zap, color: 'text-purple-600' },
-          { name: 'EV Health Score Engine', path: '/dashboard/cto?module=health', exactQuery: 'health', icon: Activity, color: 'text-emerald-600' },
-          { name: 'AI Pipeline Logs', path: '/dashboard/cto?module=pipeline', exactQuery: 'pipeline', icon: BarChart3, color: 'text-sky-600' },
-        ],
-      },
-      {
-        title: 'Automation',
-        items: [
-          { name: 'AI Command Suite', path: '/dashboard/ai-command', icon: Bot, badge: 'n8n', color: 'text-sky-600' },
-        ],
-      },
+  {
+    title: 'GOVERNANCE & CONTROL',
+    items: [
+      { name: 'Reports & Analytics', path: '/dashboard/ceo?module=reports-analytics', exactQuery: 'reports-analytics', icon: FileText },
+      { name: 'Role Access & Settings', path: '/dashboard/roles', icon: ShieldCheck, badge: 'RBAC', badgeType: 'rbac' },
     ],
   },
-  SERVICE_MANAGER: {
-    workspaceTitle: 'Service Hub Workspace',
-    categories: [
-      {
-        title: 'Service Operations',
-        items: [
-          { name: 'Ticket Management Queue', path: '/dashboard/service-manager', icon: Wrench, color: 'text-emerald-600' },
-          { name: 'AI Service Advisor', path: '/dashboard/service-manager?module=advisor', exactQuery: 'advisor', icon: Sparkles, color: 'text-sky-600' },
-          { name: 'Technician Dispatcher', path: '/dashboard/service-manager?module=dispatcher', exactQuery: 'dispatcher', icon: Users, color: 'text-purple-600' },
-        ],
-      },
-      {
-        title: 'Automation',
-        items: [
-          { name: 'AI Command Suite', path: '/dashboard/ai-command', icon: Bot, badge: 'n8n', color: 'text-sky-600' },
-        ],
-      },
-    ],
-  },
-  HR: {
-    workspaceTitle: 'HR Staff Workspace',
-    categories: [
-      {
-        title: 'Core HR',
-        items: [
-          { name: 'Dashboard', path: '/dashboard/hr?view=dashboard', exactQuery: 'dashboard', icon: LayoutDashboard, color: 'text-sky-600' },
-          { name: 'Employee Management', path: '/dashboard/hr?view=employees', exactQuery: 'employees', icon: Users, color: 'text-blue-600' },
-          { name: 'Attendance', path: '/dashboard/hr?view=attendance', exactQuery: 'attendance', icon: Clock, color: 'text-amber-600' },
-          { name: 'Leave Management', path: '/dashboard/hr?view=leaves', exactQuery: 'leaves', icon: CalendarRange, color: 'text-rose-600' },
-          { name: 'Payroll', path: '/dashboard/hr?view=payroll', exactQuery: 'payroll', icon: IndianRupee, color: 'text-emerald-600' },
-          { name: 'Performance', path: '/dashboard/hr?view=performance', exactQuery: 'performance', icon: Award, color: 'text-amber-500' },
-        ],
-      },
-      {
-        title: 'Recruitment & Growth',
-        items: [
-          { name: 'Recruitment', path: '/dashboard/hr?view=recruitment', exactQuery: 'recruitment', icon: Briefcase, color: 'text-indigo-600' },
-          { name: 'Candidate Management', path: '/dashboard/hr?view=candidates', exactQuery: 'candidates', icon: UserCheck, color: 'text-emerald-600' },
-          { name: 'Onboarding', path: '/dashboard/hr?view=onboarding', exactQuery: 'onboarding', icon: ClipboardList, color: 'text-violet-600' },
-          { name: 'Training & Learning', path: '/dashboard/hr?view=training', exactQuery: 'training', icon: GraduationCap, color: 'text-purple-600' },
-          { name: 'Intern Management', path: '/dashboard/hr?view=interns', exactQuery: 'interns', icon: Sparkles, color: 'text-pink-500' },
-        ],
-      },
-      {
-        title: 'Administration',
-        items: [
-          { name: 'Employee Documents', path: '/dashboard/hr?view=documents', exactQuery: 'documents', icon: FolderOpen, color: 'text-teal-600' },
-          { name: 'Employee ID Cards', path: '/dashboard/hr?view=id-cards', exactQuery: 'id-cards', icon: Contact, color: 'text-cyan-600' },
-          { name: 'HR Policies', path: '/dashboard/hr?view=policies', exactQuery: 'policies', icon: FileText, color: 'text-slate-600' },
-          { name: 'Holiday Calendar', path: '/dashboard/hr?view=holidays', exactQuery: 'holidays', icon: Calendar, color: 'text-orange-500' },
-          { name: 'Exit Management', path: '/dashboard/hr?view=exit', exactQuery: 'exit', icon: DoorOpen, color: 'text-red-500' },
-          { name: 'Reports', path: '/dashboard/hr?view=reports', exactQuery: 'reports', icon: BarChart3, color: 'text-indigo-600' },
-          { name: 'Settings', path: '/dashboard/hr?view=settings', exactQuery: 'settings', icon: Settings, color: 'text-slate-600' },
-        ],
-      },
-    ],
-  },
-  TECHNICIAN: {
-    workspaceTitle: 'Technician Hub',
-    categories: [
-      {
-        title: 'Field Operations',
-        items: [
-          { name: 'My Dashboard', path: '/dashboard/technician?view=dashboard', exactQuery: 'dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
-          { name: 'Assigned Jobs', path: '/dashboard/technician?view=assigned-jobs', exactQuery: 'assigned-jobs', icon: Briefcase, color: 'text-indigo-600' },
-          { name: 'Job Cards', path: '/dashboard/technician?view=job-cards', exactQuery: 'job-cards', icon: FileText, color: 'text-blue-500' },
-          { name: 'Service Schedule', path: '/dashboard/technician?view=service-schedule', exactQuery: 'service-schedule', icon: Calendar, color: 'text-cyan-600' },
-        ],
-      },
-      {
-        title: 'Service & Diagnosis',
-        items: [
-          { name: 'Vehicle Inspection', path: '/dashboard/technician?view=inspection', exactQuery: 'inspection', icon: CheckSquare, color: 'text-amber-500' },
-          { name: 'EV Diagnosis Reports', path: '/dashboard/technician?view=diagnosis', exactQuery: 'diagnosis', icon: TrendingUp, color: 'text-violet-600' },
-          { name: 'Service Checklists', path: '/dashboard/technician?view=checklists', exactQuery: 'checklists', icon: ClipboardList, color: 'text-teal-600' },
-          { name: 'Service Completion', path: '/dashboard/technician?view=completion', exactQuery: 'completion', icon: CheckCircle2, color: 'text-green-600' },
-        ],
-      },
-      {
-        title: 'Inventory & Approvals',
-        items: [
-          { name: 'Spare Parts Requests', path: '/dashboard/technician?view=spares', exactQuery: 'spares', icon: Database, color: 'text-purple-600' },
-          { name: 'Inventory Requests', path: '/dashboard/technician?view=inventory', exactQuery: 'inventory', icon: Layers, color: 'text-pink-600' },
-          { name: 'Customer Signature', path: '/dashboard/technician?view=signature', exactQuery: 'signature', icon: UserCheck, color: 'text-emerald-700' },
-          { name: 'Photo Uploads', path: '/dashboard/technician?view=photos', exactQuery: 'photos', icon: Camera, color: 'text-indigo-500' },
-        ],
-      },
-      {
-        title: 'HR & Administration',
-        items: [
-          { name: 'Attendance', path: '/dashboard/technician?view=attendance', exactQuery: 'attendance', icon: Clock, color: 'text-emerald-600' },
-          { name: 'Leave Requests', path: '/dashboard/technician?view=leaves', exactQuery: 'leaves', icon: CalendarRange, color: 'text-rose-600' },
-          { name: 'Performance Dashboard', path: '/dashboard/technician?view=performance', exactQuery: 'performance', icon: Award, color: 'text-yellow-600' },
-          { name: 'Payroll', path: '/dashboard/technician?view=payroll', exactQuery: 'payroll', icon: IndianRupee, color: 'text-teal-700' },
-          { name: 'Incentives', path: '/dashboard/technician?view=incentives', exactQuery: 'incentives', icon: Zap, color: 'text-amber-600' },
-          { name: 'Training', path: '/dashboard/technician?view=training', exactQuery: 'training', icon: GraduationCap, color: 'text-purple-700' },
-        ],
-      },
-      {
-        title: 'Communication',
-        items: [
-          { name: 'Announcements', path: '/dashboard/technician?view=announcements', exactQuery: 'announcements', icon: Volume2, color: 'text-slate-500' },
-          { name: 'Notifications', path: '/dashboard/technician?view=notifications', exactQuery: 'notifications', icon: Bell, color: 'text-orange-500' },
-          { name: 'My Profile', path: '/dashboard/technician?view=profile', exactQuery: 'profile', icon: User, color: 'text-slate-600' },
-        ],
-      },
-    ],
-  },
-};
+];
 
 export function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { activeRole, isSuperAdmin } = useRole();
 
   const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view')) : null;
 
-  const currentWorkspace = roleNavigationMap[activeRole] || roleNavigationMap.CEO;
+  // Check if current active route belongs to TMS
+  const isTmsActive =
+    currentModuleParam === 'tms' || (currentModuleParam ? currentModuleParam.startsWith('tms-') : false);
+
+  const [isTmsExpanded, setIsTmsExpanded] = useState<boolean>(isTmsActive);
+
+  // Re-evaluate expanded state on searchParams change or page refresh
+  useEffect(() => {
+    if (isTmsActive) {
+      setIsTmsExpanded(true);
+    }
+  }, [isTmsActive, currentModuleParam]);
 
   const isItemActive = (itemPath: string, exactQuery?: string) => {
     const [basePath] = itemPath.split('?');
@@ -258,94 +122,149 @@ export function Sidebar() {
     return !currentModuleParam;
   };
 
+  const handleTmsParentClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isTmsExpanded) {
+      setIsTmsExpanded(true);
+      router.push('/dashboard/ceo?module=tms-dashboard');
+    } else {
+      // Toggle collapse if already expanded
+      setIsTmsExpanded(!isTmsExpanded);
+    }
+  };
+
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-61px)] p-4 flex flex-col justify-between hidden md:flex text-left shrink-0">
+    <aside className="w-64 bg-white/90 border-r border-slate-100 min-h-[calc(100vh-61px)] p-4 flex flex-col justify-between hidden md:flex shrink-0 text-left font-sans">
       <div className="space-y-6">
-        {/* Workspace Header */}
-        <div>
-          <div className="flex items-center justify-between px-3 mb-3">
-            <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-sky-600" /> {currentWorkspace.workspaceTitle}
+        {/* Navigation Categories */}
+        {ceoNavigationCategories.map((category) => (
+          <div key={category.title} className="space-y-1">
+            <p className="font-montserrat text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3.5 mb-2">
+              {category.title}
             </p>
-            {isSuperAdmin ? (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                CEO SUPER ADMIN
-              </span>
-            ) : (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300 uppercase">
-                {activeRole}
-              </span>
-            )}
-          </div>
 
-          {/* Navigation Categories */}
-          <div className="space-y-5">
-            {currentWorkspace.categories.map((category) => (
-              <div key={category.title} className="space-y-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3.5 mb-1">
-                  {category.title}
-                </p>
-                {category.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isItemActive(item.path, item.exactQuery);
+            <div className="space-y-1">
+              {category.items.map((item) => {
+                const Icon = item.icon;
 
+                if (item.isExpandable && item.children) {
                   return (
-                    <Link
-                      key={item.name}
-                      href={item.path}
-                      className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                        active
-                          ? 'bg-sky-600 text-white shadow-md shadow-sky-500/20'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-white' : item.color || 'text-slate-500'}`} />
-                        <span className="truncate">{item.name}</span>
-                      </div>
-                      {item.badge ? (
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0 ${
-                          active
-                            ? 'bg-sky-500 text-white'
-                            : 'bg-slate-100 text-slate-600 border border-slate-200'
-                        }`}>
-                          {item.badge}
-                        </span>
-                      ) : (
-                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-white' : 'text-slate-300'}`} />
+                    <div key={item.name} className="space-y-1">
+                      {/* TMS Parent Navigation Button */}
+                      <button
+                        type="button"
+                        onClick={handleTmsParentClick}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-apfel font-bold transition-all ${
+                          isTmsActive
+                            ? 'bg-gradient-to-r from-[#fef3c7] via-[#fde68a]/70 to-[#fef3c7] text-[#92400e] border border-[#fde68a]/80 shadow-2xs font-extrabold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 truncate">
+                          <Icon className={`h-4 w-4 shrink-0 ${isTmsActive ? 'text-[#d97706]' : 'text-slate-500'}`} />
+                          <span className="truncate">{item.name}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {item.badge && (
+                            <span className="font-apfel text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border border-[#fde68a]">
+                              {item.badge}
+                            </span>
+                          )}
+                          <ChevronDown
+                            className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
+                              isTmsExpanded ? 'rotate-180 text-[#d97706]' : ''
+                            }`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* TMS Submenu Items */}
+                      {isTmsExpanded && (
+                        <div className="ml-4 pl-3 border-l-2 border-amber-200/80 space-y-0.5 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                          {item.children.map((child) => {
+                            const isChildActive = currentModuleParam === child.exactQuery || (child.exactQuery === 'tms-dashboard' && currentModuleParam === 'tms');
+
+                            return (
+                              <Link
+                                key={child.name}
+                                href={child.path}
+                                className={`block px-3 py-1.5 rounded-xl text-[11px] font-apfel transition-all ${
+                                  isChildActive
+                                    ? 'bg-gradient-to-r from-[#fef3c7] via-[#fde68a]/90 to-[#fef3c7] text-[#92400e] font-extrabold border border-[#fde68a] shadow-2xs'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-[#fef3c7]/40 font-semibold'
+                                }`}
+                              >
+                                {child.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       )}
-                    </Link>
+                    </div>
                   );
-                })}
-              </div>
-            ))}
+                }
+
+                const active = isItemActive(item.path, item.exactQuery);
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.path}
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-apfel font-bold transition-all ${
+                      active
+                        ? 'bg-gradient-to-r from-[#fef3c7] via-[#fde68a]/70 to-[#fef3c7] text-[#92400e] border border-[#fde68a]/80 shadow-2xs font-extrabold'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#d97706]' : 'text-slate-500'}`} />
+                      <span className="truncate">{item.name}</span>
+                    </div>
+
+                    {item.badge ? (
+                      <span
+                        className={`font-apfel text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0 ${
+                          item.badgeType === 'live'
+                            ? 'bg-[#fef3c7] text-[#92400e] border border-[#fde68a]'
+                            : item.badgeType === 'beta'
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
 
-      {/* Designation Privilege Status Card */}
-      {isSuperAdmin ? (
-        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left mt-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Crown className="h-4 w-4 text-amber-600 fill-amber-600" />
-            <span className="text-xs font-black text-amber-900">Executive Workspace Active</span>
+      {/* Bottom Status Card with 3D Gold Ribbon Mesh Graphic */}
+      <div className="bg-gradient-to-br from-[#fffbeb] via-[#fef3c7]/90 to-[#fde68a]/50 border border-[#fde68a] rounded-3xl p-4 relative overflow-hidden text-left mt-6 shadow-2xs">
+        <div className="relative z-10 max-w-[155px]">
+          <div className="h-7 w-7 rounded-xl bg-[#fef3c7] border border-[#fde68a] flex items-center justify-center mb-2 shadow-2xs">
+            <Shield className="h-4 w-4 text-[#d97706]" />
           </div>
-          <p className="text-[10px] text-amber-800 leading-relaxed font-medium">
-            Dedicated CEO module navigation active. Dedicated workspaces assigned for all executive roles.
+          <h4 className="font-montserrat text-xs font-black text-[#92400e] mb-1 leading-tight">Executive Workspace Active</h4>
+          <p className="font-sans text-[10px] text-[#b45309] font-medium leading-relaxed mb-3">
+            Dedicated CEO environment with real-time intelligence and priority controls.
           </p>
-        </div>
-      ) : (
-        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-left mt-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Lock className="h-4 w-4 text-slate-600" />
-            <span className="text-xs font-bold text-slate-900">{activeRole} Dedicated Workspace</span>
+          <div className="flex items-center gap-1.5 font-apfel text-[10px] font-extrabold text-emerald-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>All systems operational</span>
           </div>
-          <p className="text-[10px] text-slate-500 font-medium">
-            Dedicated module navigation active for your {activeRole} session.
-          </p>
         </div>
-      )}
+
+        <img
+          src="/ceo_sidebar_gold_wave.png"
+          alt="3D Gold Ribbon Graphic"
+          className="absolute -bottom-2 -right-3 w-28 h-28 object-contain pointer-events-none opacity-85 z-0"
+        />
+      </div>
     </aside>
   );
 }
-
