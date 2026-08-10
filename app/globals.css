@@ -239,5 +239,4 @@ input:focus, select:focus, textarea:focus {
 
 .animate-drawer-slide {
   animation: drawerSlideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
->>>>>>> upstream/main
 }
