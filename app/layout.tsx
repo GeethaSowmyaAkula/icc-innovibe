@@ -1,4 +1,5 @@
 import './globals.css';
+import '../styles.css';
 import type { Metadata } from 'next';
 import { RoleProvider } from '../components/RoleContext';
 
