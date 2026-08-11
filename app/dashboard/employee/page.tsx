@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRole } from '@/components/RoleContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createCrossRoleTicketNotification, TicketPriority } from '@/lib/ticketNotifications';
@@ -103,7 +103,7 @@ export interface AssignedTask {
   } | null;
 }
 
-export default function EmployeeDashboardPage() {
+function EmployeeDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentProfile } = useRole();
@@ -6426,3 +6426,19 @@ export default function EmployeeDashboardPage() {
     </div>
   );
 }
+
+export default function EmployeeDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[400px] flex items-center justify-center p-8 text-center">
+        <div className="space-y-3">
+          <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs font-bold text-slate-600">Loading Employee Workspace...</p>
+        </div>
+      </div>
+    }>
+      <EmployeeDashboardContent />
+    </Suspense>
+  );
+}
+
