@@ -45,6 +45,9 @@ import {
   Camera,
   Volume2,
   User,
+  HelpCircle,
+  ClipboardCheck,
+  Inbox,
 } from 'lucide-react';
 
 interface NavItem {
@@ -241,6 +244,36 @@ const roleNavigationMap: Record<RoleType, { workspaceTitle: string; categories: 
       },
     ],
   },
+  EMPLOYEE: {
+    workspaceTitle: 'Employee Workspace',
+    categories: [
+      {
+        title: 'Daily Operations',
+        items: [
+          { name: 'My Dashboard', path: '/dashboard/employee?view=dashboard', exactQuery: 'dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
+          { name: 'My Daily Tasks', path: '/dashboard/employee?view=tasks', exactQuery: 'tasks', icon: CheckSquare, color: 'text-indigo-600' },
+          { name: 'Attendance & Roster', path: '/dashboard/employee?view=attendance', exactQuery: 'attendance', icon: Clock, color: 'text-emerald-600' },
+        ],
+      },
+      {
+        title: 'Time & Reports',
+        items: [
+          { name: 'Leave & Time Off', path: '/dashboard/employee?view=leave', exactQuery: 'leave', icon: CalendarRange, color: 'text-amber-500' },
+          { name: 'Logout Reports', path: '/dashboard/employee?view=logout-reports', exactQuery: 'logout-reports', icon: ClipboardCheck, color: 'text-violet-600' },
+          { name: 'Employee Reports', path: '/dashboard/employee?view=reports', exactQuery: 'reports', icon: BarChart3, color: 'text-blue-600' },
+        ],
+      },
+      {
+        title: 'Workspace & Communication',
+        items: [
+          { name: 'Notice Board', path: '/dashboard/employee?view=announcements', exactQuery: 'announcements', icon: Bell, color: 'text-orange-500' },
+          { name: 'Internal Helpdesk', path: '/dashboard/employee?view=helpdesk', exactQuery: 'helpdesk', icon: HelpCircle, color: 'text-purple-600' },
+          { name: 'Notifications', path: '/dashboard/employee?view=notifications', exactQuery: 'notifications', icon: Inbox, color: 'text-rose-500' },
+          { name: 'My Profile', path: '/dashboard/employee?view=profile', exactQuery: 'profile', icon: User, color: 'text-slate-600' },
+        ],
+      },
+    ],
+  },
 };
 
 export function Sidebar() {
@@ -248,7 +281,7 @@ export function Sidebar() {
   const searchParams = useSearchParams();
   const { activeRole, isSuperAdmin } = useRole();
 
-  const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view')) : null;
+  const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view') || searchParams.get('tab')) : null;
 
   const currentWorkspace = roleNavigationMap[activeRole] || roleNavigationMap.CEO;
 
@@ -256,36 +289,40 @@ export function Sidebar() {
     const [basePath] = itemPath.split('?');
     if (pathname !== basePath) return false;
     if (exactQuery) {
+      if ((exactQuery === 'dashboard' || exactQuery === 'overview') && (!currentModuleParam || currentModuleParam === exactQuery)) {
+        return true;
+      }
       return currentModuleParam === exactQuery;
     }
     return !currentModuleParam;
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-61px)] p-4 flex flex-col justify-between hidden md:flex text-left shrink-0">
-      <div className="space-y-6">
+    <aside className="w-60 bg-white border-r border-slate-200/90 min-h-[calc(100vh-61px)] py-4 px-3 flex flex-col justify-between hidden md:flex text-left shrink-0 select-none">
+      <div className="space-y-5">
         {/* Workspace Header */}
         <div>
-          <div className="flex items-center justify-between px-3 mb-3">
-            <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-sky-600" /> {currentWorkspace.workspaceTitle}
+          <div className="flex items-center justify-between px-2 mb-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5 truncate">
+              <Layers className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+              <span className="truncate">{currentWorkspace.workspaceTitle}</span>
             </p>
             {isSuperAdmin ? (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                CEO SUPER ADMIN
+              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+                SUPER ADMIN
               </span>
             ) : (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300 uppercase">
+              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70 shrink-0">
                 {activeRole}
               </span>
             )}
           </div>
 
           {/* Navigation Categories */}
-          <div className="space-y-5">
+          <div className="space-y-4">
             {currentWorkspace.categories.map((category) => (
               <div key={category.title} className="space-y-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3.5 mb-1">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-2 mb-1.5">
                   {category.title}
                 </p>
                 {category.items.map((item) => {
@@ -296,26 +333,26 @@ export function Sidebar() {
                     <Link
                       key={item.name}
                       href={item.path}
-                      className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 group ${
                         active
-                          ? 'bg-sky-600 text-white shadow-md shadow-sky-500/20'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm shadow-indigo-500/20 font-bold'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-white' : item.color || 'text-slate-500'}`} />
+                        <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-white' : item.color || 'text-slate-500'}`} />
                         <span className="truncate">{item.name}</span>
                       </div>
                       {item.badge ? (
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0 ${
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
                           active
-                            ? 'bg-sky-500 text-white'
+                            ? 'bg-white/20 text-white'
                             : 'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}>
                           {item.badge}
                         </span>
                       ) : (
-                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-white' : 'text-slate-300'}`} />
+                        !active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" />
                       )}
                     </Link>
                   );
@@ -328,23 +365,23 @@ export function Sidebar() {
 
       {/* Designation Privilege Status Card */}
       {isSuperAdmin ? (
-        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left mt-4">
+        <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-left mt-4">
           <div className="flex items-center gap-2 mb-1">
-            <Crown className="h-4 w-4 text-amber-600 fill-amber-600" />
-            <span className="text-xs font-black text-amber-900">Executive Workspace Active</span>
+            <Crown className="h-3.5 w-3.5 text-amber-600 fill-amber-600 shrink-0" />
+            <span className="text-[11px] font-bold text-amber-900 truncate">Super Admin Controls</span>
           </div>
-          <p className="text-[10px] text-amber-800 leading-relaxed font-medium">
-            Dedicated CEO module navigation active. Dedicated workspaces assigned for all executive roles.
+          <p className="text-[10px] text-amber-800/80 leading-normal font-medium">
+            Full system permissions active across all roles and workspaces.
           </p>
         </div>
       ) : (
-        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-left mt-4">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left mt-4">
           <div className="flex items-center gap-2 mb-1">
-            <Lock className="h-4 w-4 text-slate-600" />
-            <span className="text-xs font-bold text-slate-900">{activeRole} Dedicated Workspace</span>
+            <Lock className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+            <span className="text-[11px] font-bold text-slate-900 truncate">{activeRole} Workspace</span>
           </div>
-          <p className="text-[10px] text-slate-500 font-medium">
-            Dedicated module navigation active for your {activeRole} session.
+          <p className="text-[10px] text-slate-500 leading-normal font-medium">
+            Dedicated scope navigation active for your session.
           </p>
         </div>
       )}
