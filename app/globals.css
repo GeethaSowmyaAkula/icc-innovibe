@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-gotham: 'Gotham', 'Gotham Bold', 'SF Pro Display', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-apfel: 'Apfel Grotezk', 'Apfel Grotesk', sans-serif;
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --bg-primary: #ffffff;
@@ -23,6 +27,18 @@ body {
   letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.font-montserrat, .side-heading {
+  font-family: var(--font-montserrat);
+}
+
+.font-apfel {
+  font-family: var(--font-apfel);
+}
+
+.font-gotham {
+  font-family: var(--font-gotham);
 }
 
 /* Global Typography: Body text in Italic SF Pro Display, Headings & Bold Titles in Geist (Normal) */
