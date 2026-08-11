@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
   Wrench,
   MapPin,
@@ -45,7 +45,7 @@ import {
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useRole } from '../../../components/RoleContext';
 
-export default function TechnicianPortalPage() {
+function TechnicianPortalContent() {
   const { currentProfile } = useRole();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -4731,4 +4731,12 @@ export default function TechnicianPortalPage() {
     </div>
   );
 }
-// force recompile
+
+export default function TechnicianPortalPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500 font-bold">Loading Technician Portal...</div>}>
+      <TechnicianPortalContent />
+    </Suspense>
+  );
+}
+

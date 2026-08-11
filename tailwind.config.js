@@ -9,7 +9,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', 'system-ui', 'sans-serif'],
+        sans: ['"SF Pro Text"', '"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        gotham: ['Gotham', '"Gotham Bold"', '"SF Pro Display"', 'sans-serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
+        apfel: ['"Apfel Grotezk"', '"Apfel Grotesk"', 'sans-serif'],
         heading: ['"Geist"', '"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         display: ['"Geist"', '"SF Pro Display"', 'sans-serif'],
       },
@@ -38,6 +41,11 @@ module.exports = {
           600: '#1d4ed8',
           700: '#1e40af',
           900: '#1e3a8a',
+        },
+        evgreen: {
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
         },
       },
       boxShadow: {

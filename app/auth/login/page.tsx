@@ -60,6 +60,14 @@ export default function LoginPage() {
       badge: 'Diagnostics & Repairs',
       badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
+    {
+      role: 'EMPLOYEE' as RoleType,
+      label: 'Employee',
+      email: 'employee@innovibemobility.com',
+      pass: 'emp123',
+      badge: 'Tasks & Timesheets',
+      badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    },
   ];
 
   const handleSelectAccount = (acc: typeof demoAccounts[0]) => {

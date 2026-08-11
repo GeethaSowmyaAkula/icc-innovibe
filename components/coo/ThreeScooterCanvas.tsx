@@ -189,9 +189,9 @@ export function ThreeScooterCanvas({
     scooterGroup.rotation.y = (heading * Math.PI) / 180;
 
     // 5. Render & Animation Loop
-    const startTime = Date.now();
+    let clock = new THREE.Clock();
     const animate = () => {
-      const elapsedTime = (Date.now() - startTime) * 0.001;
+      const elapsedTime = clock.getElapsedTime();
       scooterGroup.rotation.y += 0.015;
       scooterGroup.position.y = Math.sin(elapsedTime * 3) * 0.04;
 

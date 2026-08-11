@@ -1,14 +1,47 @@
 'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useRole } from '@/components/RoleContext';
 import { useCOOWebSocket } from '@/hooks/useCOOWebSocket';
-import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, Database } from 'lucide-react';
+import { Bell, Search, ShieldCheck, Wifi, FileText, Download, X, Database, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import {
+  getNotificationsForRole,
+  markTicketNotificationAsRead,
+  markAllTicketNotificationsAsRead,
+  CrossRoleNotification,
+} from '@/lib/ticketNotifications';
 
 export function COONavbar() {
+  const router = useRouter();
+  const { logout } = useRole();
   const { isConnected } = useCOOWebSocket();
   const [showExportModal, setShowExportModal] = useState(false);
   const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
+  const [ticketNotifs, setTicketNotifs] = useState<CrossRoleNotification[]>([]);
+
+  useEffect(() => {
+    const loadTickets = () => {
+      setTicketNotifs(getNotificationsForRole('COO'));
+    };
+    loadTickets();
+
+    const handleUpdate = () => loadTickets();
+    window.addEventListener('icc_ticket_notifications_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('icc_ticket_notifications_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    if (logout) logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
 
   const [notifications, setNotifications] = useState([
     {
@@ -149,6 +182,7 @@ export function COONavbar() {
         <button
           onClick={() => setShowNotificationsDrawer(true)}
           className="btn-interactive relative p-2 text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-full border border-slate-200 transition active:scale-95 cursor-pointer"
+          title="Notifications"
         >
           <Bell className="w-4 h-4" />
           {notifications.some((n) => n.unread) && (
@@ -157,6 +191,16 @@ export function COONavbar() {
               <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
             </>
           )}
+        </button>
+
+        {/* Log Out Button (Beside Notifications) */}
+        <button
+          onClick={handleLogout}
+          className="btn-interactive flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 rounded-full text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
+          title="Log Out of System"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-600" />
+          <span>Log Out</span>
         </button>
       </div>
 
@@ -202,6 +246,35 @@ export function COONavbar() {
 
               {/* Notification List Container (Pop up one by one) */}
               <div className="p-4 space-y-3 overflow-y-auto flex-1">
+                {/* Employee Submitted Ticket Alerts with Priority Colors */}
+                {ticketNotifs.map((tktNotif, index) => (
+                  <div
+                    key={tktNotif.id}
+                    onClick={() => {
+                      markTicketNotificationAsRead(tktNotif.id);
+                      setTicketNotifs((prev) => prev.map((n) => (n.id === tktNotif.id ? { ...n, unread: false } : n)));
+                    }}
+                    className={`p-3.5 rounded-2xl border transition-all duration-300 shadow-2xs hover:shadow-sm cursor-pointer ${
+                      tktNotif.unread ? tktNotif.colorScheme.bg + ' ' + tktNotif.colorScheme.border : 'bg-slate-50 border-slate-200 opacity-85'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${tktNotif.colorScheme.badgeBg} ${tktNotif.colorScheme.badgeText}`}>
+                          {tktNotif.priority}
+                        </span>
+                        <span className="font-mono text-[11px] font-black text-slate-900">{tktNotif.ticketId}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">{tktNotif.timeAgo}</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 leading-tight">{tktNotif.subject}</h4>
+                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">{tktNotif.description}</p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 mt-1.5 border-t border-slate-200/60">
+                      <span>By: <strong className="text-slate-700">{tktNotif.submittedBy}</strong></span>
+                      <span className="font-semibold text-slate-500">{tktNotif.category}</span>
+                    </div>
+                  </div>
+                ))}
                 {notifications.map((n, index) => (
                   <div
                     key={n.id}
