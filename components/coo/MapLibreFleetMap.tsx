@@ -471,6 +471,7 @@ export function MapLibreFleetMap() {
   // 1. Fetch Database Vehicle Telemetry with Fallback Mock Data
   useEffect(() => {
     async function fetchDbVehicles() {
+      if (process.env.NEXT_PUBLIC_ENABLE_EXTERNAL_BACKEND !== 'true') return;
       try {
         let res: Response | null = null;
         try {

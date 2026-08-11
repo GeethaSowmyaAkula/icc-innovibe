@@ -31,11 +31,13 @@ function FinancialsInner() {
 
   useEffect(() => {
     fetch('http://localhost:8000/api/coo/finance')
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => (res && res.ok ? res.json() : null))
       .then((data) => {
         if (data) setLiveData(data);
       })
-      .catch((err) => console.error('Error fetching finance API:', err));
+      .catch(() => {
+        // Safe silent fallback to local metrics when backend is offline
+      });
   }, []);
 
   // Premium Datasets for Recharts

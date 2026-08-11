@@ -1,112 +1,157 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRole } from '../../../components/RoleContext';
-import { mockTechnicians } from '../../../lib/mock-data';
-import { Users, Star, Award, CheckCircle, TrendingUp, UserCheck, ShieldAlert } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSearchParams } from 'next/navigation';
+import { GlobalFilterProvider } from '../../../lib/global-filter-context';
+import { DrillDownModal } from '../../../components/ceo/common/DrillDownModal';
 
-export default function HRDashboard() {
-  const { currentProfile } = useRole();
-  const [techs] = useState(mockTechnicians);
+// Import all HR views from components/hr-portal
+import { DashboardView } from '../../../components/hr-portal/DashboardView';
+import { EmployeeView } from '../../../components/hr-portal/EmployeeView';
+import { EmployeeRecordsSystem } from '../../../components/hr-portal/EmployeeRecordsSystem';
+import { AttendanceView } from '../../../components/hr-portal/AttendanceView';
+import { LeaveView } from '../../../components/hr-portal/LeaveView';
+import { PayrollView } from '../../../components/hr-portal/PayrollView';
+import { PerformanceView } from '../../../components/hr-portal/PerformanceView';
+import { RecruitmentView } from '../../../components/hr-portal/RecruitmentView';
+import { InternManagementView } from '../../../components/hr-portal/InternManagementView';
+import { TrainingLearningView } from '../../../components/hr-portal/TrainingLearningView';
+import SettingsView from '../../../components/hr-portal/SettingsView';
+import { OtherModulesView } from '../../../components/hr-portal/OtherModulesView';
+import { Users, LayoutGrid, FileText, CheckCircle2 } from 'lucide-react';
 
-  const productivityChartData = techs.map((t) => ({
-    name: t.name.split(' ')[0],
-    completed: t.completedJobsMonth,
-    rating: t.customerRating,
-  }));
+function HRDashboardContent() {
+  const searchParams = useSearchParams();
+  const rawView = searchParams ? searchParams.get('view') : null;
+  const activeView = rawView || 'dashboard';
+
+  // Sub-view toggle for Employees section (Directory vs Full Records System)
+  const [empSubTab, setEmpSubTab] = useState<'RECORDS' | 'DIRECTORY'>('RECORDS');
+
+  // Toast Notification System
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'info' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'warning' | 'info' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
+
+  const renderCurrentView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <DashboardView showToast={showToast} />;
+
+      case 'employees':
+        return (
+          <div className="space-y-4">
+            {/* View Switcher Header Bar */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200 shadow-xs">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Employee Workspace</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button
+                  onClick={() => setEmpSubTab('RECORDS')}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                    empSubTab === 'RECORDS'
+                      ? 'bg-white text-blue-600 shadow-xs font-extrabold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5" /> Employee Records System (Full Profiles)
+                </button>
+                <button
+                  onClick={() => setEmpSubTab('DIRECTORY')}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                    empSubTab === 'DIRECTORY'
+                      ? 'bg-white text-blue-600 shadow-xs font-extrabold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" /> Directory & Org Chart
+                </button>
+              </div>
+            </div>
+
+            {empSubTab === 'RECORDS' ? (
+              <EmployeeRecordsSystem showToast={showToast} />
+            ) : (
+              <EmployeeView showToast={showToast} />
+            )}
+          </div>
+        );
+
+      case 'attendance':
+        return <AttendanceView showToast={showToast} />;
+
+      case 'leaves':
+        return <LeaveView showToast={showToast} />;
+
+      case 'payroll':
+        return <PayrollView showToast={showToast} />;
+
+      case 'performance':
+        return <PerformanceView showToast={showToast} />;
+
+      case 'recruitment':
+        return <RecruitmentView showToast={showToast} />;
+
+      case 'interns':
+        return <InternManagementView showToast={showToast} />;
+
+      case 'training':
+        return <TrainingLearningView showToast={showToast} />;
+
+      case 'settings':
+        return <SettingsView showToast={showToast} />;
+
+      case 'candidates':
+      case 'onboarding':
+      case 'documents':
+      case 'id-cards':
+      case 'policies':
+      case 'holidays':
+      case 'exit':
+      case 'reports':
+      default:
+        return <OtherModulesView activeView={activeView} showToast={showToast} />;
+    }
+  };
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-3xl border border-pink-200 bg-gradient-to-r from-pink-500/10 via-pink-500/5 to-white flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-2 z-10">
-          <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-pink-600" />
-            <span className="text-xs font-black uppercase tracking-widest text-pink-700">Human Resources Office</span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900">Technician Productivity & Staff Analytics</h1>
-          <p className="text-xs text-slate-600 max-w-xl font-medium">
-            Monitoring technician SLAs, monthly job output, customer rating indices, and service hub attendance rosters.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 z-10">
-          <div className="px-4 py-2 rounded-2xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-2 shadow-xs">
-            <UserCheck className="h-4 w-4 text-pink-600" /> Total Staff: 64 Employed
+    <div className="space-y-6 text-left relative">
+      {/* Global Toast Banner */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-50 animate-in slide-in-from-top-4 fade-in">
+          <div className={`px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2.5 ${
+            toast.type === 'success' ? 'bg-emerald-950 text-emerald-200 border-emerald-800' :
+            toast.type === 'warning' ? 'bg-amber-950 text-amber-200 border-amber-800' :
+            toast.type === 'error' ? 'bg-red-950 text-red-200 border-red-800' :
+            'bg-slate-900 text-slate-100 border-slate-700'
+          }`}>
+            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <span>{toast.message}</span>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Technician CSAT</p>
-          <p className="text-2xl font-black text-amber-600 mt-2 flex items-center gap-1">
-            4.88 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-          </p>
-          <span className="text-xs text-slate-500 mt-1 inline-block font-medium">Based on 1,240 Customer Reviews</span>
-        </div>
+      {/* Render Active View */}
+      {renderCurrentView()}
 
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Completed Jobs</p>
-          <p className="text-2xl font-black text-slate-900 mt-2">1,410 Jobs</p>
-          <span className="text-xs text-emerald-600 font-bold mt-1 inline-block">+14% Productivity Growth</span>
-        </div>
-
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">SLA Compliance Rate</p>
-          <p className="text-2xl font-black text-emerald-600 mt-2">97.6%</p>
-          <span className="text-xs text-slate-500 mt-1 inline-block font-medium">On-time service execution</span>
-        </div>
-
-        <div className="glass-card p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Technicians On-Duty</p>
-          <p className="text-2xl font-black text-slate-900 mt-2">48 Active</p>
-          <span className="text-xs text-slate-500 mt-1 inline-block font-medium">16 On Shift Break / Training</span>
-        </div>
-      </div>
-
-      {/* Productivity Chart & Technician Roster */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-6 rounded-3xl border border-slate-200">
-          <h2 className="text-base font-extrabold text-slate-900 mb-1">Monthly Technician Job Output</h2>
-          <p className="text-xs text-slate-500 font-medium mb-4">Comparison of completed EV service jobs across staff members</p>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={productivityChartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="completed" fill="#db2777" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Staff Performance Index */}
-        <div className="glass-panel p-6 rounded-3xl border border-slate-200 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-extrabold text-slate-900">Top Performers</h2>
-              <Award className="h-5 w-5 text-amber-500" />
-            </div>
-            <div className="space-y-3">
-              {techs.map((tech) => (
-                <div key={tech.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">{tech.name}</p>
-                    <p className="text-[10px] text-slate-500 font-medium">{tech.completedJobsMonth} Jobs • Rating {tech.customerRating}★</p>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-600">{tech.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Executive Insight DrillDown Modal */}
+      <DrillDownModal />
     </div>
   );
 }
+
+export default function HRDashboard() {
+  return (
+    <GlobalFilterProvider>
+      <HRDashboardContent />
+    </GlobalFilterProvider>
+  );
+}
+

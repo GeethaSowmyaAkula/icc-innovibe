@@ -1,10 +1,9 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useRole } from './RoleContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { RoleType } from '../lib/types';
-import { Zap, Sparkles, LogOut, Search, Activity, Bell, CheckSquare, Clock, LayoutGrid } from 'lucide-react';
+import { initialProfiles } from '../lib/mock-data';
+import { Zap, Sparkles, LogOut, Search, Activity, Bell, CheckSquare, Clock, LayoutGrid, Settings } from 'lucide-react';
 import Link from 'next/link';
 import {
   getNotificationsForRole,
@@ -15,6 +14,7 @@ import {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { activeRole, currentProfile, logout, isSuperAdmin } = useRole();
   const [roleNotifications, setRoleNotifications] = useState<CrossRoleNotification[]>([]);
@@ -35,6 +35,18 @@ export function Navbar() {
       window.removeEventListener('storage', handleUpdate);
     };
   }, [activeRole]);
+
+  const getEffectiveRole = (): RoleType => {
+    if (pathname.startsWith('/dashboard/hr')) return 'HR';
+    if (pathname.startsWith('/dashboard/cto')) return 'CTO';
+    if (pathname.startsWith('/dashboard/coo')) return 'COO';
+    if (pathname.startsWith('/dashboard/service-manager')) return 'SERVICE_MANAGER';
+    if (pathname.startsWith('/dashboard/technician')) return 'TECHNICIAN';
+    if (pathname.startsWith('/dashboard/ceo')) return 'CEO';
+    return activeRole;
+  };
+
+  const effectiveRole = getEffectiveRole();
 
   const handleLogout = () => {
     logout();
@@ -168,17 +180,24 @@ export function Navbar() {
     EMPLOYEE: { title: 'Employee Portal (Staff Workspace)', badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-300' },
   };
 
+  const displayProfile = (currentProfile && currentProfile.role === effectiveRole)
+    ? currentProfile
+    : (initialProfiles[effectiveRole] || currentProfile || initialProfiles.CEO);
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-xs font-sans">
       {/* Left Branding & Role Indicator */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="flex items-center gap-1.5 group">
           <img src="/logo.jpeg" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base tracking-wider text-slate-900">INNOVIBE</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">ICC v1.0</span>
+              <span className="font-gotham font-black text-lg tracking-tight text-slate-900 leading-none">INNOVIBE</span>
+              <span className="font-apfel text-[10px] px-2 py-0.5 rounded-full bg-[#fef3c7] text-[#b45309] font-extrabold border border-[#fde68a]">
+                ICC v1.0
+              </span>
             </div>
+            <p className="font-montserrat text-[11px] text-slate-400 font-semibold tracking-tight mt-0.5">Mobility Command Center</p>
           </div>
         </Link>
 
@@ -186,11 +205,11 @@ export function Navbar() {
 
         {/* Active Designation Badge */}
         <div className="hidden lg:flex items-center gap-2">
-          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[activeRole].badgeColor} flex items-center gap-1.5 shadow-xs`}>
+          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`}>
             <Sparkles className="h-3.5 w-3.5" />
-            {roleLabels[activeRole].title}
+            {roleLabels[effectiveRole]?.title || roleLabels.CEO.title}
           </span>
-          {isSuperAdmin && (
+          {effectiveRole === 'CEO' && (
             <span className="text-[10px] font-bold px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
               <Activity className="h-3 w-3 text-emerald-600 animate-pulse" /> Live Tracking Active
             </span>
@@ -198,6 +217,7 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Center Search Bar with Dropdown */}
       {/* Center Search Bar with Dropdown */}
       <div className="relative hidden md:block z-[60]">
         <form 
@@ -295,10 +315,26 @@ export function Navbar() {
             </div>
           </>
         )}
+=======
+      {/* Center Search Bar */}
+      <div className="hidden md:flex items-center justify-between bg-slate-50/80 border border-slate-200/70 rounded-xl px-3.5 py-1.5 w-[420px] shadow-2xs focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-500/10 transition-all">
+        <div className="flex items-center gap-2 w-full">
+          <Search className="h-4 w-4 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search tickets, vehicles, telematics, staff..."
+            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-sans font-medium"
+          />
+        </div>
+        <kbd className="font-apfel text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs font-mono shrink-0 ml-2">
+          ⌘K
+        </kbd>
+>>>>>>> upstream/main
       </div>
 
       {/* Right User & Logout Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
+<<<<<<< HEAD
 
         {/* Live IST Clock */}
         <div className="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl" title="Indian Standard Time (UTC+5:30)">
@@ -453,14 +489,72 @@ export function Navbar() {
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
         <div className="flex items-center gap-3 pl-1">
+=======
+        {/* Notifications Popover */}
+        <div className="relative">
+          <button 
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            className={`relative p-2 rounded-xl transition-all ${isNotificationsOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+            title="Notifications"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border border-white"></span>
+          </button>
+          
+          {isNotificationsOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)}></div>
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                  <h3 className="text-sm font-black text-slate-900">Notifications</h3>
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">2 New</span>
+                </div>
+                <div className="max-h-[300px] overflow-y-auto">
+                  <div className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Activity className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">System Update</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">InnoVibe Command Center v1.0 has been successfully deployed.</p>
+                      <p className="text-[9px] font-medium text-slate-400 mt-1">10 mins ago</p>
+                    </div>
+                  </div>
+                  <div className="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">New Task Assigned</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">You have a new high-voltage EV diagnostic task pending in your queue.</p>
+                      <p className="text-[9px] font-medium text-slate-400 mt-1">1 hour ago</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2.5 border-t border-slate-100 text-center bg-slate-50">
+                  <button onClick={() => setIsNotificationsOpen(false)} className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                    View All Notifications
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        {/* User Profile & Logout */}
+        <div className="flex items-center gap-3 pl-1" suppressHydrationWarning>
+>>>>>>> upstream/main
           <img
-            src={currentProfile.avatar}
-            alt={currentProfile.name}
+            src={displayProfile.avatar}
+            alt={displayProfile.name}
             className="h-9 w-9 rounded-full object-cover border-2 border-sky-500 shadow-xs"
+            suppressHydrationWarning
           />
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-slate-900 leading-none">{currentProfile.name}</p>
-            <p className="text-[10px] text-sky-700 font-medium mt-0.5">{currentProfile.title}</p>
+          <div className="hidden sm:block text-left" suppressHydrationWarning>
+            <p className="text-xs font-bold text-slate-900 leading-none" suppressHydrationWarning>{displayProfile.name}</p>
+            <p className="text-[10px] text-sky-700 font-medium mt-0.5" suppressHydrationWarning>{displayProfile.title}</p>
           </div>
         </div>
 

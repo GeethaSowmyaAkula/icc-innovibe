@@ -23,12 +23,23 @@ export function useCOOWebSocket() {
   });
 
   useEffect(() => {
+    // Only attempt WebSocket connection if an external backend service is explicitly enabled
+    if (process.env.NEXT_PUBLIC_ENABLE_EXTERNAL_BACKEND !== 'true') {
+      setIsConnected(false);
+      return;
+    }
+
     let ws: WebSocket | null = null;
     try {
       ws = new WebSocket('ws://localhost:8000/ws/coo');
 
       ws.onopen = () => {
         setIsConnected(true);
+      };
+
+      ws.onerror = () => {
+        // Graceful silent fallback when backend server is offline
+        setIsConnected(false);
       };
 
       ws.onmessage = (event) => {
