@@ -4362,19 +4362,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO DEVOPS: Opening pipeline wizard...')"><i class="fa-solid fa-plus"></i> Create Pipeline</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVOPS: Initiating deployment run...')"><i class="fa-solid fa-rocket"></i> Trigger Deployment</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVOPS: Scheduling automated rollback audit...')"><i class="fa-solid fa-clock-rotate-left"></i> Schedule Rollback</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVOPS: Exported release deployment log.')"><i class="fa-solid fa-download"></i> Export Deployment Log</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCTOFormModal('Create Pipeline')"><i class="fa-solid fa-plus"></i> Create Pipeline</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openReleasePromotionDrawer('EVcare Mobile App Backend', '25% Canary', '100% Production Live')"><i class="fa-solid fa-rocket"></i> Trigger Deployment</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openDevOpsArchitectureDrawer()"><i class="fa-solid fa-clock-rotate-left"></i> Schedule Rollback</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('Release Deployment Audit Log')"><i class="fa-solid fa-download"></i> Export Deployment Log</button>
       </section>
 
       <!-- DEVOPS SUBTITLE DESCRIPTION & BUTTONS -->
       <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 1rem; line-height: 1.4;">Monitor deployment workflows, CI/CD pipelines, release health, and software delivery operations across InnoVibe Mobility.</p>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Create new deployment pipeline wizard triggered.')"><i class="fa-solid fa-plus"></i> Create Pipeline</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Loading deployment timeline archive logs...')"><i class="fa-solid fa-clock-rotate-left"></i> View Deployment History</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: PDF deployment performance report generated.')"><i class="fa-solid fa-download"></i> Export Report</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCTOFormModal('Create Pipeline')"><i class="fa-solid fa-plus"></i> Create Pipeline</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openDevOpsArchitectureDrawer()"><i class="fa-solid fa-clock-rotate-left"></i> View Deployment History</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('DevOps Performance Report')"><i class="fa-solid fa-download"></i> Export Report</button>
         </div>
       </div>
 
@@ -4508,7 +4508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="card-title"><i class="fa-solid fa-globe" style="color: var(--color-blue);"></i> Active Application Deployment Landscape</span>
             <span class="card-subtitle">Release-focused status across core InnoVibe Mobility production and staging systems</span>
           </div>
-          <button class="btn btn-outline btn-sm" onclick="alert('DevOps Landscape catalog sync initialized...')"><i class="fa-solid fa-rotate"></i> Refresh Landscape</button>
+          <button class="btn btn-outline btn-sm" onclick="if(window.showExecutiveToast){window.showExecutiveToast('DevOps Landscape catalog synced successfully.', 'success');}"><i class="fa-solid fa-rotate"></i> Refresh Landscape</button>
         </div>
         <div class="card-body">
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" id="devopsLandscapeGrid">
@@ -4787,9 +4787,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO OBS: Dispatched logs export request.')"><i class="fa-solid fa-download"></i> Export Logs</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO OBS: Query filter profile lock active.')"><i class="fa-solid fa-magnifying-glass"></i> Query Logs</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO OBS: Cleared system logs caches.')"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openExportReportModal('System Observability & Audit Logs Report')"><i class="fa-solid fa-download"></i> Export Logs</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openLogQueryBuilderDrawer()"><i class="fa-solid fa-magnifying-glass"></i> Query Logs</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openClearLogsConfirmationDrawer()"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
       </section>
 
       <!-- SEARCH BAR & SELECT DROPDOWN FILTERS -->
@@ -4915,7 +4915,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div>Status: <span style="font-weight: 600; color: ${srv.alerts === 'No active alerts' ? 'var(--color-green)' : 'var(--color-orange)'};">${srv.alerts}</span></div>
                   </div>
                 </div>
-                <button class="table-action-btn table-action-btn-neutral" style="width: 100%; margin-top: 12px;" onclick="alert('CTO OBSERVABILITY: Loading real-time Grafana metric dashboard for ${srv.name}...')">View Telemetry</button>
+                <button class="table-action-btn table-action-btn-neutral" style="width: 100%; margin-top: 12px;" onclick="window.openServiceTelemetryDrawer('${srv.name}...')">View Telemetry</button>
               </div>
             `).join('')}
           </div>
@@ -5219,9 +5219,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO CLOUD: Resource provision request wizard initiated.')"><i class="fa-solid fa-plus"></i> Provision Resource</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO CLOUD: Drift detection run sequence active...')"><i class="fa-solid fa-shield-halved"></i> Drift Detection Run</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO CLOUD: Exported AWS cost analysis models.')"><i class="fa-solid fa-download"></i> Export AWS Cost Analysis</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCTOFormModal('Provision Cloud Resource')"><i class="fa-solid fa-plus"></i> Provision Resource</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openCloudArchitectureDrawer()"><i class="fa-solid fa-shield-halved"></i> Drift Detection Run</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('AWS Cloud Cost Analysis Report')"><i class="fa-solid fa-download"></i> Export AWS Cost Analysis</button>
       </section>
 
       <!-- SEARCH BAR & SELECT DROPDOWN FILTERS -->
@@ -5691,9 +5691,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO DATABASE: Add Database wizard initiated...')"><i class="fa-solid fa-plus"></i> Add Database</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DATABASE: Displaying Database Architecture topologies...')"><i class="fa-solid fa-sitemap"></i> Database Architecture</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DATABASE: Database reliability report exported.')"><i class="fa-solid fa-download"></i> Export Report</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCTOFormModal('Create Database')"><i class="fa-solid fa-plus"></i> Add Database</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openDatabaseArchitectureDrawer()"><i class="fa-solid fa-sitemap"></i> Database Architecture</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('Database Reliability & Capacity Report')"><i class="fa-solid fa-download"></i> Export Report</button>
       </section>
 
       <!-- SEARCH BAR & SELECT DROPDOWN FILTERS (cto2.mp4 single-row layout) -->
@@ -5875,7 +5875,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     💡 <strong>Recommendation:</strong> ${ins.recommendation}
                   </div>
                 </div>
-                <button class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; font-size: 0.72rem; margin-top: 12px;" onclick="alert('CTO DATABASE Action: Acknowledging AI data recommendations.')">Acknowledge Insight</button>
+                <button class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; font-size: 0.72rem; margin-top: 12px;" onclick="window.acknowledgeDatabaseInsight(this)">Acknowledge Insight</button>
               </div>
             `).join('')}
           </div>
@@ -7929,58 +7929,234 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
-          <!-- Animated Sprint Completion Pie Chart Widget -->
-          <div style="background-color: var(--bg-app); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; box-shadow: var(--shadow-sm);">
+          
+          <!-- Sprint Completion Dynamic Doughnut Chart Card -->
+          <div style="background-color: var(--bg-app); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+            <!-- Header row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase;">SPRINT COMPLETION</span>
+              <span class="badge" style="font-size: 0.68rem; font-weight: 700; color: var(--color-green); background: rgba(40, 167, 69, 0.12); padding: 2px 8px; border-radius: 12px;">+11% Ahead</span>
+            </div>
+
+            <!-- Center Doughnut Chart Container -->
+            <div style="position: relative; width: 130px; height: 130px; margin: 4px auto; display: flex; align-items: center; justify-content: center;">
+              <canvas id="sprintCompletionChart" width="130" height="130"></canvas>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                <div style="font-size: 1.65rem; font-weight: 800; color: var(--text-primary); line-height: 1;">82%</div>
+                <div style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; margin-top: 2px;">DONE</div>
+              </div>
+            </div>
+
+            <!-- Bottom Breakdown Legend -->
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px; border-top: 1px solid var(--border-color); padding-top: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;">
+                <span style="color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #0071E3; display: inline-block;"></span> Completed
+                </span>
+                <span style="font-weight: 700; color: var(--text-primary);">23 Stories (82%)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem;">
+                <span style="color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF9500; display: inline-block;"></span> Code Review
+                </span>
+                <span style="font-weight: 700; color: var(--text-primary);">3 Stories (11%)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; margin-top: 2px;">
+                <span style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                  <i class="fa-regular fa-clock" style="font-size: 0.7rem;"></i> Day 10 of 14 Elapsed
+                </span>
+                <span style="font-size: 0.65rem; font-weight: 700; color: #ff3b30; background: rgba(255, 59, 48, 0.12); padding: 1px 6px; border-radius: 4px;">1 Blocker</span>
+              </div>
+            </div>
+          </div>
+
+
+      </div>
+      </section>
+
+      <!-- SECTION 2: SPRINT EXECUTION TIMELINE -->
+      <section class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 122, 255, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-blue); font-size: 0.88rem; border: 1px solid rgba(0, 122, 255, 0.15);">
+            <i class="fa-solid fa-timeline"></i>
+          </div>
+          <div>
+            <span style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: block; line-height: 1.2;">Sprint Execution Timeline</span>
+            <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-top: 2px;">Sequential sprint checkpoints, automated gate statuses, and operational notes. Click any phase to inspect details</span>
+          </div>
+        </div>
+
+        <div class="timeline-container-spr">
+          ${window.portalData.sprintManagement.timeline.map((time, idx) => `
+            <div class="timeline-node-spr" onclick="window.openSprintPhaseDrawer('${time.id}')">
+              <div style="font-size: 0.76rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">${time.name}</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted);">${time.duration} &bull; ${time.completion}</div>
+              <span class="badge badge-${time.statusClass}" style="font-size: 0.6rem; padding: 1px 4px; margin-top: 6px;">${time.status}</span>
+            </div>
+            ${idx < 6 ? '<div style="color: var(--color-blue); font-size: 0.78rem;"><i class="fa-solid fa-arrow-right"></i></div>' : ''}
+          `).join('')}
+        </div>
+      </section>
+
+      <!-- SECTION 3: ENGINEERING DELIVERY INTELLIGENCE -->
+      <section class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 122, 255, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-blue); font-size: 0.88rem; border: 1px solid rgba(0, 122, 255, 0.15);">
+            <i class="fa-solid fa-users-gear"></i>
+          </div>
+          <div>
+            <span style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: block; line-height: 1.2;">Engineering Delivery Intelligence</span>
+            <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-top: 2px;">Team velocities, capacity allocations, resource utilization, and delivery consistency metrics. Click team name to expand performance workspace</span>
+          </div>
+        </div>
+
+        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background-color: var(--bg-surface); margin-bottom: 12px;">
+          <div class="team-row-spr" style="background-color: var(--bg-app); font-weight: 800; border-bottom: 2px solid var(--border-color);">
+            <div>Team</div>
+            <div>Velocity</div>
+            <div>Capacity</div>
+            <div>Utilization</div>
+            <div>Consistency</div>
+            <div>Blocked Work</div>
+            <div>Quality Score</div>
+            <div>Trend</div>
+          </div>
+          ${window.portalData.sprintManagement.deliveryIntelligence.map(t => `
+            <div class="team-row-spr" style="cursor: pointer;" onclick="window.toggleTeamWorkspace('${t.team}')">
+              <div style="font-weight: 800; color: var(--color-blue); text-decoration: underline;">${t.team}</div>
+              <div style="font-weight: 700;">${t.velocity}</div>
+              <div>${t.capacity}</div>
+              
+              <!-- Utilization progress bar -->
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.65rem; margin-bottom: 2px;">
+                  <span>${t.utilization}</span>
+                </div>
+                <div style="width: 100%; height: 3px; background: var(--border-color); border-radius: 1.5px; overflow: hidden;">
+                  <div style="width: ${t.utilization}; height: 100%; background: var(--color-blue);"></div>
+                </div>
+              </div>
+              
+              <div>${t.consistency}</div>
+              <div style="color: ${t.blocked !== '0 pts' ? 'var(--color-red)' : 'var(--text-secondary)'}; font-weight: 600;">${t.blocked}</div>
+              <div style="font-weight: 600; color: var(--color-green);">${t.quality}</div>
+              <span class="badge badge-${t.trendClass}" style="font-size: 0.62rem; padding: 1px 5px;">${t.trend}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Inline Team Performance Workspace -->
+        <div id="teamPerformanceWorkspaceContainer" style="display: none; background-color: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- SECTION 4: SPRINT FLOW INTELLIGENCE -->
+      <section class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 122, 255, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-blue); font-size: 0.88rem; border: 1px solid rgba(0, 122, 255, 0.15);">
+            <i class="fa-solid fa-arrows-spin"></i>
+          </div>
+          <div>
+            <span style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: block; line-height: 1.2;">Sprint Flow Intelligence</span>
+            <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-top: 2px;">Backlog transition tracking, average cycle times, bottlenecks, and flow efficiency scores</span>
+          </div>
+        </div>
+
+        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background-color: var(--bg-surface);">
+          <div class="flow-row-spr" style="background-color: var(--bg-app); font-weight: 800; border-bottom: 2px solid var(--border-color);">
+            <div>Stage</div>
+            <div>Work Items</div>
+            <div>Avg Cycle Time</div>
+            <div>Blocked Items</div>
+            <div>Flow Efficiency</div>
+          </div>
+          ${window.portalData.sprintManagement.flowIntelligence.map(fl => `
+            <div class="flow-row-spr">
+              <strong style="color: var(--text-primary);">${fl.stage}</strong>
+              <div style="font-weight: 700; font-size: 0.82rem;">${fl.items} items</div>
+              <div>${fl.cycleTime}</div>
+              <div style="color: ${fl.blocked > 0 ? 'var(--color-red)' : 'var(--text-secondary)'}; font-weight: 700;">${fl.blocked} blocked</div>
+              <div><strong style="color: var(--color-green);">${fl.efficiency}</strong></div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <!-- EXECUTIVE SPRINT WORKSPACE CARD -->
+      <section class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+          <h4 style="font-size: 0.94rem; font-weight: 800; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-list-check" style="color: var(--color-blue);"></i> Active Sprint Execution Backlog</h4>
+          <span class="badge badge-grey">Active Sprints List</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+          ${window.portalData.sprintManagement.sprintsList.map(spr => `
+            <div style="background-color: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h5 style="font-size: 0.88rem; font-weight: 800; color: var(--text-primary);">${spr.name}</h5>
+                <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 4px;">🎯 <strong>Goal:</strong> ${spr.goal}</div>
+                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">Assigned Teams: ${spr.teams} &bull; Target Release: <strong style="color: var(--color-blue);">${spr.release}</strong></div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="window.openSprintDetailDrawer('${spr.id}')">View Sprint Workspace</button>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <!-- SECTION 6: RELEASE CONFIDENCE CENTER & SECTION 7: ENGINEERING BOTTLENECKS (Side-by-Side) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem;">
+        
+        <!-- RELEASE CONFIDENCE CENTER -->
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="font-size: 0.94rem; font-weight: 800; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-halved" style="color: var(--color-blue);"></i> Release Confidence Center</h4>
+              <span class="badge badge-grey">Release Predictions</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">Deployment readiness, testing scopes, and quality confidence scores</p>
             
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">Sprint Completion</span>
-              <span class="badge badge-success" style="font-size: 0.62rem; font-weight: 700; padding: 2px 6px;">+11% Ahead</span>
-            </div>
-
-            <!-- SVG Animated Donut / Pie Chart -->
-            <div style="position: relative; width: 115px; height: 115px; display: flex; align-items: center; justify-content: center; margin: 4px 0;">
-              <svg width="115" height="115" viewBox="0 0 100 100" style="transform: rotate(-90deg); filter: drop-shadow(0px 4px 8px rgba(37, 99, 235, 0.25));">
-                <!-- Background Circle Track -->
-                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border-color)" stroke-width="9" />
-                <!-- In Review Segment (11%) -->
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#F59E0B" stroke-width="9" stroke-dasharray="283" stroke-dashoffset="20" stroke-linecap="round" />
-                <!-- Completed Segment (82%) Animated -->
-                <circle class="sprint-pie-ring" cx="50" cy="50" r="45" fill="none" stroke="url(#sprintPieGrad)" stroke-width="9" stroke-linecap="round" />
-                <defs>
-                  <linearGradient id="sprintPieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3B82F6" />
-                    <stop offset="100%" stop-color="#1D4ED8" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <!-- Center Text Overlay -->
-              <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <span style="font-size: 1.65rem; font-weight: 900; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1;">${window.portalData.sprintManagement.commandCenter.completion}%</span>
-                <span style="font-size: 0.60rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Done</span>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="monitoring-bar-api">
+                <i class="fa-solid fa-circle-check" style="color: var(--color-green); font-size: 0.94rem;"></i>
+                <div style="font-size: 0.8rem; font-weight: 800;">Sprint Completion Probability: ${window.portalData.sprintManagement.releaseConfidence.probability}</div>
+              </div>
+              <div class="monitoring-bar-api">
+                <i class="fa-solid fa-truck-ramp-box" style="color: var(--color-blue); font-size: 0.94rem;"></i>
+                <div style="font-size: 0.8rem; font-weight: 800;">Deployment Readiness: ${window.portalData.sprintManagement.releaseConfidence.deployment} / Testing Readiness: ${window.portalData.sprintManagement.releaseConfidence.testing}</div>
+              </div>
+              <div class="monitoring-bar-api">
+                <i class="fa-solid fa-heart-pulse" style="color: var(--color-green); font-size: 0.94rem;"></i>
+                <div style="font-size: 0.8rem; font-weight: 800;">Quality Confidence Score: ${window.portalData.sprintManagement.releaseConfidence.quality}</div>
               </div>
             </div>
-
-            <!-- Pie Chart Legend & Story Breakdown -->
-            <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 0.68rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 5px; color: var(--text-primary); font-weight: 600;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #2563EB;"></span> Completed
-                </span>
-                <span style="font-weight: 800; color: var(--text-primary);">23 Stories (82%)</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary); font-weight: 500;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #F59E0B;"></span> Code Review
-                </span>
-                <span style="font-weight: 700; color: var(--text-secondary);">3 Stories (11%)</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">
-                <span>⏱️ Day 10 of 14 Elapsed</span>
-                <span class="badge badge-warning" style="font-size: 0.58rem; padding: 1px 4px;">1 Blocker</span>
-              </div>
+            <div style="background-color: var(--bg-app); border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 0.72rem; color: var(--text-secondary); margin-top: 10px;">
+              💡 <strong>AI Analysis:</strong> ${window.portalData.sprintManagement.releaseConfidence.aiSummary}
             </div>
+          </div>
+        </div>
 
-          </div></div>
+        <!-- ENGINEERING BOTTLENECKS -->
+        <div class="card" style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="font-size: 0.94rem; font-weight: 800; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-xmark" style="color: var(--color-red);"></i> Executive Bottleneck Intelligence</h4>
+              <span class="badge badge-grey">Critical Blockers</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px;">Active cross-team dependencies, vendor bottlenecks, and capacity shortages</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${window.portalData.sprintManagement.bottlenecks.map(bot => `
+                <div style="background-color: var(--bg-app); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span class="badge badge-${bot.severity === 'Critical' ? 'danger' : 'warning'}" style="font-size: 0.6rem; padding: 1px 4px; margin-bottom: 4px;">${bot.severity}</span>
+                    <strong style="font-size: 0.76rem; color: var(--text-primary); display: block;">${bot.issue}</strong>
+                    <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Impact: ${bot.impact} &bull; Delay: <strong style="color: var(--color-red);">${bot.delay}</strong></div>
+                  </div>
+                  <button class="btn btn-outline btn-sm" style="font-size: 0.65rem; padding: 2px 6px;" onclick="alert('CTO BOTTLENECK: Executing - ${bot.action}')">${bot.action}</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
         </div>
 
       </div>
@@ -8224,12 +8400,18 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     drawerOverlay.classList.add('active');
-  };
+  
+    setTimeout(() => { if (window.portalCharts && window.portalCharts.initSprintCompletionChart) window.portalCharts.initSprintCompletionChart(); }, 60);
+};
 
   // ==========================================================
   // PRODUCT ROADMAP MODULE - STRATEGY & ROADMAP CENTER
   // ==========================================================
-  function renderProductRoadmapModule() {
+  
+
+window.renderSprintManagementModule = renderSprintManagementModule;
+
+function renderProductRoadmapModule() {
     viewSubpage.innerHTML = `
       <style>
         .rdm-filter-select {
@@ -14334,3 +14516,522 @@ document.addEventListener('DOMContentLoaded', () => {
   window.openTechnologyDashboardDrawer = openTechnologyDashboardDrawer;
 
 });
+
+
+
+// =========================================================
+// ENGINEERING & APIs CTO WORKFLOW HELPERS
+// =========================================================
+
+window.openDatabaseArchitectureDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Database Architecture & Relationship Topology <span class="badge badge-success" style="margin-left: 8px;">100% Healthy</span>`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+        Executive architectural topology mapping client applications to database clusters, primary nodes, read replicas, and session caches.
+      </p>
+      
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+        <h4 style="font-size: 0.88rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">Primary Database Cluster Topologies</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.78rem;">
+          <div style="padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px;">
+            <strong>EVcare Production DB (PostgreSQL 16.2):</strong> Primary Node $\rightarrow$ 2 Read Replicas &bull; Connected App: <strong>EVcare Backend APIs</strong> &bull; Storage: <span style="color: var(--color-green); font-weight: 700;">64% (Healthy)</span>
+          </div>
+          <div style="padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px;">
+            <strong>Telemetry Ingress DB (TimescaleDB 2.14):</strong> Primary Ingestion Node $\rightarrow$ Hypertable Partitioning &bull; Connected App: <strong>Telemetry Ingress Stream</strong> &bull; Storage: <span style="color: var(--color-blue); font-weight: 700;">72% (Optimal)</span>
+          </div>
+          <div style="padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px;">
+            <strong>User Auth & Session Store (Redis 7.2):</strong> Cluster Mode / 6 Shards &bull; Connected App: <strong>User Core API</strong> &bull; Memory: <span style="color: var(--color-green); font-weight: 700;">45% (Nominal)</span>
+          </div>
+          <div style="padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px;">
+            <strong>Fleet Routing Data Warehouse (ClickHouse 24.2):</strong> 2 Nodes Shard Cluster &bull; Connected App: <strong>Fleet Routing AI Core</strong> &bull; Storage: <span style="color: var(--color-red); font-weight: 700;">88% (Capacity Warning)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="closeDrawer()">Done Inspecting Topology</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.acknowledgeDatabaseInsight = function(btnElement) {
+  if (btnElement) {
+    btnElement.innerText = "Acknowledged";
+    btnElement.className = "btn btn-success btn-sm";
+    btnElement.disabled = true;
+  }
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("AI Database recommendation acknowledged by CTO.", "success");
+  }
+};
+
+window.openCloudArchitectureDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Multi-Cloud Infrastructure Topology <span class="badge badge-info" style="margin-left: 8px;">Multi-Region</span>`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        Global multi-cloud topology mapping Cloudflare CDN edge routing, AWS EKS primary compute, Azure AKS telemetry analytics, and GCP AI diagnostic node pools.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <strong style="font-size: 0.82rem; color: var(--color-blue); font-weight: 800;">AWS EKS (us-east-1)</strong>
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin-top: 4px;">Primary Compute &bull; 48 Nodes &bull; $18,400/mo</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <strong style="font-size: 0.82rem; color: var(--color-blue); font-weight: 800;">Azure AKS (eu-central-1)</strong>
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin-top: 4px;">Telemetry Analytics &bull; 32 Nodes &bull; $12,200/mo</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <strong style="font-size: 0.82rem; color: var(--color-blue); font-weight: 800;">GCP GKE (us-central1)</strong>
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin-top: 4px;">AI Diagnostics &bull; 16 Nodes &bull; $6,800/mo</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <strong style="font-size: 0.82rem; color: var(--color-blue); font-weight: 800;">Cloudflare Edge CDN</strong>
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin-top: 4px;">280+ Global POPs &bull; Ingress Protection &bull; $5,450/mo</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="closeDrawer()">Done Inspecting Cloud Map</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.openDevOpsArchitectureDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `CI/CD Software Delivery Architecture <span class="badge badge-success" style="margin-left: 8px;">Automated</span>`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        End-to-end automated pipeline flow from developer code commit to production canary deployment.
+      </p>
+
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); font-size: 0.78rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>1. Commit</strong><br><span style="font-size: 0.68rem; color: var(--text-muted);">GitHub PR</span>
+          </div>
+          <i class="fa-solid fa-arrow-right" style="color: var(--color-blue);"></i>
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>2. Build</strong><br><span style="font-size: 0.68rem; color: var(--text-muted);">Docker Image</span>
+          </div>
+          <i class="fa-solid fa-arrow-right" style="color: var(--color-blue);"></i>
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>3. Security</strong><br><span style="font-size: 0.68rem; color: var(--text-muted);">SAST Scan</span>
+          </div>
+          <i class="fa-solid fa-arrow-right" style="color: var(--color-blue);"></i>
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>4. Staging</strong><br><span style="font-size: 0.68rem; color: var(--text-muted);">Integration Test</span>
+          </div>
+          <i class="fa-solid fa-arrow-right" style="color: var(--color-blue);"></i>
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>5. Canary</strong><br><span style="font-size: 0.68rem; color: var(--color-muted);">25% Traffic</span>
+          </div>
+          <i class="fa-solid fa-arrow-right" style="color: var(--color-blue);"></i>
+          <div style="padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; text-align: center; flex: 1;">
+            <strong>6. Release</strong><br><span style="font-size: 0.68rem; color: var(--color-green); font-weight: 700;">100% Live</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="closeDrawer()">Done Inspecting Pipeline</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.openReleasePromotionDrawer = function(pipelineName, currentTraffic, targetTraffic) {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Canary Release Promotion: ${pipelineName}`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 0.88rem; color: var(--text-primary);">${pipelineName}</strong>
+          <span class="badge badge-info">${currentTraffic}</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px;">
+          Promote active release candidate from <strong>${currentTraffic}</strong> traffic allocation to <strong>${targetTraffic}</strong> production allocation.
+        </p>
+        <div style="font-size: 0.74rem; color: var(--text-muted);">
+          Build Pass Rate: <strong style="color: var(--color-green);">98.4%</strong> &bull; Integration Errors: <strong style="color: var(--color-green);">0 Spikes</strong> &bull; AI Confidence: <strong>96%</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.confirmReleasePromotion('${pipelineName}')">Confirm 100% Production Promotion</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.confirmReleasePromotion = function(pipelineName) {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast(`Canary release "${pipelineName}" successfully promoted to 100% Production Live.`, "success");
+  }
+};
+
+window.openLogQueryBuilderDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Executive Log Query Builder <span class="badge badge-grey" style="margin-left: 8px;">Observability</span>`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        Configure log filter profiles, specify latency thresholds, or search specific error stack traces.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label style="font-size: 0.76rem; font-weight: 700;">Target Microservice / System Component</label>
+        <select class="spr-filter-select" id="queryBuilderService">
+          <option value="all">All Microservices</option>
+          <option value="auth">Authentication Service</option>
+          <option value="db">Database Service</option>
+          <option value="gw">API Gateway</option>
+          <option value="telemetry">Telemetry Streamer</option>
+        </select>
+
+        <label style="font-size: 0.76rem; font-weight: 700; margin-top: 6px;">Min Severity Level</label>
+        <select class="spr-filter-select" id="queryBuilderSev">
+          <option value="all">All Severities</option>
+          <option value="critical">Critical Only</option>
+          <option value="warning">Warning & Critical</option>
+        </select>
+
+        <label style="font-size: 0.76rem; font-weight: 700; margin-top: 6px;">Keyword / Exception String</label>
+        <input type="text" class="spr-filter-select" id="queryBuilderKw" placeholder="e.g. ConnectionTimeoutException, 504 Gateway...">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.applyLogQueryBuilder()">Apply Log Query Filter</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.applyLogQueryBuilder = function() {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("Log query filter profile applied successfully.", "success");
+  }
+};
+
+window.openClearLogsConfirmationDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Purge Transient Log Buffer Caches`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
+        <strong style="font-size: 0.88rem; color: var(--color-red); font-weight: 800;">Purge Confirmation</strong>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 6px 0 10px 0;">
+          Are you sure you want to clear <strong>1,420 transient log buffer entries</strong>?
+        </p>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">
+          🔒 <strong>Compliance Note:</strong> Security audit logs and 90-day retention log archives will remain 100% intact.
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" style="background-color: var(--color-red); border-color: var(--color-red);" onclick="window.confirmClearLogs()">Confirm Clear Transient Buffer</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.confirmClearLogs = function() {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("Transient log buffer cleared. Audit archives preserved.", "success");
+  }
+};
+
+window.openServiceTelemetryDrawer = function(serviceName) {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Grafana Telemetry: ${serviceName} <span class="badge badge-success" style="margin-left: 8px;">Live</span>`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        Real-time operational telemetry, Grafana latency curves, and active throughput metrics for <strong>${serviceName}</strong>.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700;">THROUGHPUT</span>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">14.2M req/sec</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700;">AVG LATENCY</span>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--color-green); margin-top: 4px;">142 ms</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700;">ERROR RATE</span>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--color-green); margin-top: 4px;">0.02%</div>
+        </div>
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+          <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700;">ACTIVE ALERTS</span>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">0 Alerts</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="closeDrawer()">Done Viewing Grafana Telemetry</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.acknowledgeLogInsight = function(btnElement) {
+  if (btnElement) {
+    btnElement.innerText = "Acknowledged";
+    btnElement.className = "btn btn-success btn-sm";
+    btnElement.disabled = true;
+  }
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("AI System log anomaly acknowledged.", "success");
+  }
+};
+
+window.openTrafficInvestigationDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Traffic Anomaly & DDoS Security Investigation`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 0.88rem; color: var(--text-primary);">Telemetry Ingress Traffic Anomaly</strong>
+          <span class="badge badge-danger">Confidence: 94%</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px;">
+          Telemetry ingress traffic pattern indicates potential runaway mobile app retry loop or malformed bot socket requests.
+        </p>
+        <div style="font-size: 0.74rem; color: var(--text-muted);">
+          Affected Target: <strong>API Gateway / /api/v2/telemetry/ingest</strong> &bull; Rate Spike: <strong>+450%</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.confirmRateLimitEnforcement()">Enforce Gateway Rate Limit</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.confirmRateLimitEnforcement = function() {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("API Gateway rate limiting policy enforced for telemetry ingress.", "success");
+  }
+};
+
+window.openDatabaseMigrationDrawer = function() {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  drawerTitle.innerHTML = `Database Query Migration Authorization`;
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 0.88rem; color: var(--text-primary);">ClickHouse Data Warehouse Query Migration</strong>
+          <span class="badge badge-warning">High Priority</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px;">
+          Migrate active fleet dispatch query workload from primary node 01 to secondary standby replica 02 to eliminate disk I/O lockup.
+        </p>
+        <div style="font-size: 0.74rem; color: var(--text-muted);">
+          Target DB: <strong>Fleet Core DB (ClickHouse)</strong> &bull; Expected Latency Drop: <strong>-420ms</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.confirmQueryMigration()">Authorize Query Migration</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.confirmQueryMigration = function() {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast("ClickHouse database query workload successfully migrated to Replica 02.", "success");
+  }
+};
+
+
+
+// =========================================================
+// GLOBAL CTO EXECUTIVE FORM & REPORT MODAL HELPERS
+// =========================================================
+
+window.openCTOFormModal = function(mode) {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  const modeTitle = mode || "Create Executive Entity";
+  drawerTitle.innerHTML = `CTO Governance Wizard: ${modeTitle} <span class="badge badge-primary" style="margin-left: 8px;">Executive Form</span>`;
+  
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        Configure and authorize technical entity provisioning under CTO governance standards.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary);">Entity Name / Title *</label>
+        <input type="text" class="spr-filter-select" id="ctoFormName" placeholder="e.g. EVcare-Prod-Postgres-Replica-03" value="InnoVibe-Executive-${modeTitle.replace(/\s+/g, '-')}-01">
+
+        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">Target Environment *</label>
+        <select class="spr-filter-select" id="ctoFormEnv">
+          <option value="Production">Production (High Availability)</option>
+          <option value="Staging">Testing / Staging</option>
+        </select>
+
+        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">Connected Application / Service *</label>
+        <select class="spr-filter-select" id="ctoFormApp">
+          <option value="EVcare Backend APIs">EVcare Backend APIs</option>
+          <option value="Telemetry Ingress Stream">Telemetry Ingress Stream Service</option>
+          <option value="Fleet Routing AI Core">Fleet Routing AI Core</option>
+          <option value="Core API Gateway & Auth">Core API Gateway & Auth</option>
+        </select>
+
+        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); margin-top: 4px;">Primary Capacity & Policy</label>
+        <input type="text" class="spr-filter-select" id="ctoFormConfig" value="Capacity: 2 TB SSD &bull; Replication: 3 Nodes Cluster &bull; SLA: 99.99%">
+      </div>
+
+      <div style="background: #fbf5eb; border: 1px solid #f2e3cd; padding: 10px; border-radius: var(--radius-sm); font-size: 0.74rem; color: #8a6d3b;">
+        🔒 <strong>CTO Governance Check:</strong> Automated security audit, mTLS encryption verification, and backup policy attachment will execute upon provisioning.
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.submitCTOFormModal('${modeTitle}')">Authorize & Provision ${modeTitle}</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.submitCTOFormModal = function(modeTitle) {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast(`${modeTitle} authorized and provisioned successfully under CTO governance.`, "success");
+  }
+};
+
+window.openExportReportModal = function(reportTitle) {
+  const drawerTitle = document.getElementById("drawerTitle");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawer = document.getElementById("drawerOverlay") || document.getElementById("globalDrawer");
+  if (!drawer || !drawerTitle || !drawerBody) return;
+
+  const title = reportTitle || "Executive Technical Report";
+  drawerTitle.innerHTML = `Export Report: ${title}`;
+
+  drawerBody.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <p style="font-size: 0.82rem; color: var(--text-secondary);">
+        Configure export format, date range scope, and analytical depth for executive reporting.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label style="font-size: 0.76rem; font-weight: 700;">Report Format</label>
+        <select class="spr-filter-select" id="expFormat">
+          <option value="PDF">PDF Document (.pdf)</option>
+          <option value="CSV">CSV Data Export (.csv)</option>
+        </select>
+
+        <label style="font-size: 0.76rem; font-weight: 700; margin-top: 4px;">Time Range</label>
+        <select class="spr-filter-select" id="expRange">
+          <option value="24h">Last 24 Hours</option>
+          <option value="7d">Last 7 Days (Sprint 43)</option>
+          <option value="30d">Last 30 Days (Q3 Baseline)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn btn-outline btn-sm" onclick="closeDrawer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="window.confirmReportExport('${title}')">Generate & Download Report</button>
+      </div>
+    </div>
+  `;
+  drawer.classList.add("open"); drawer.classList.add("active");
+};
+
+window.confirmReportExport = function(title) {
+  closeDrawer();
+  if (window.showExecutiveToast) {
+    window.showExecutiveToast(`Executive report "${title}" generated and downloaded successfully.`, "success");
+  }
+};
+
+
+
+window.closeDrawer = function() {
+  const drawerOverlay = document.getElementById('drawerOverlay');
+  const globalDrawer = document.getElementById('globalDrawer');
+  if (drawerOverlay) {
+    drawerOverlay.classList.remove('open');
+    drawerOverlay.classList.remove('active');
+  }
+  if (globalDrawer) {
+    globalDrawer.classList.remove('open');
+    globalDrawer.classList.remove('active');
+  }
+};
