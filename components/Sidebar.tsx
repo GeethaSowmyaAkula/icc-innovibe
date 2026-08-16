@@ -248,7 +248,6 @@ const roleNavigationMap: Record<RoleType, WorkspaceConfig> = {
       },
     ],
   },
-<<<<<<< HEAD
   EMPLOYEE: {
     workspaceTitle: 'Employee Workspace',
     categories: [
@@ -275,17 +274,58 @@ const roleNavigationMap: Record<RoleType, WorkspaceConfig> = {
           { name: 'Internal Helpdesk', path: '/dashboard/employee?view=helpdesk', exactQuery: 'helpdesk', icon: HelpCircle, color: 'text-purple-600' },
           { name: 'Notifications', path: '/dashboard/employee?view=notifications', exactQuery: 'notifications', icon: Inbox, color: 'text-rose-500' },
           { name: 'My Profile', path: '/dashboard/employee?view=profile', exactQuery: 'profile', icon: User, color: 'text-slate-600' },
-=======
+        ],
+      },
+    ],
+  },
   SERVICE_MANAGER: {
-    workspaceTitle: 'Service Manager Workspace',
+    workspaceTitle: 'Service Operations Command Center',
     categories: [
       {
-        title: 'Service Operations',
+        title: 'SERVICE OPERATIONS',
         items: [
-          { name: 'Service Overview', path: '/dashboard/service-manager', icon: Wrench, color: 'text-emerald-600' },
-          { name: 'Ticket Assignments', path: '/dashboard/service-manager?module=tickets', exactQuery: 'tickets', icon: CheckSquare, color: 'text-blue-600' },
-          { name: 'Fleet Maintenance', path: '/dashboard/service-manager?module=maintenance', exactQuery: 'maintenance', icon: Truck, color: 'text-amber-600' },
->>>>>>> upstream/main
+          { name: 'Service Overview', path: '/dashboard/service-manager', icon: LayoutDashboard, color: 'text-emerald-600' },
+        ],
+      },
+      {
+        title: 'SERVICE MANAGEMENT',
+        items: [
+          { name: 'Service Tickets', path: '/dashboard/service-manager?module=tickets', exactQuery: 'tickets', icon: ClipboardList, color: 'text-blue-600' },
+          { name: 'Technician Dispatch', path: '/dashboard/service-manager?module=dispatch', exactQuery: 'dispatch', icon: UserCheck, color: 'text-indigo-600' },
+          { name: 'Vehicles', path: '/dashboard/service-manager?module=vehicles', exactQuery: 'vehicles', icon: Truck, color: 'text-slate-600' },
+          { name: 'Appointments', path: '/dashboard/service-manager?module=appointments', exactQuery: 'appointments', icon: Calendar, color: 'text-amber-600' },
+          { name: 'Service Bays', path: '/dashboard/service-manager?module=bays', exactQuery: 'bays', icon: Layers, color: 'text-purple-600' },
+        ],
+      },
+      {
+        title: 'OPERATIONS',
+        items: [
+          { name: 'Active Jobs', path: '/dashboard/service-manager?module=active-jobs', exactQuery: 'active-jobs', icon: CheckSquare, color: 'text-emerald-600' },
+          { name: 'EV Diagnostics', path: '/dashboard/service-manager?module=diagnostics', exactQuery: 'diagnostics', icon: Zap, color: 'text-indigo-600' },
+          { name: 'Parts & Inventory', path: '/dashboard/service-manager?module=parts', exactQuery: 'parts', icon: Database, color: 'text-amber-500' },
+          { name: 'Quality Control', path: '/dashboard/service-manager?module=qc', exactQuery: 'qc', icon: ShieldCheck, color: 'text-teal-600' },
+        ],
+      },
+      {
+        title: 'CUSTOMERS',
+        items: [
+          { name: 'Customers', path: '/dashboard/service-manager?module=customers', exactQuery: 'customers', icon: Users, color: 'text-sky-600' },
+          { name: 'Service Requests', path: '/dashboard/service-manager?module=requests', exactQuery: 'requests', icon: Inbox, color: 'text-blue-500' },
+        ],
+      },
+      {
+        title: 'ANALYTICS',
+        items: [
+          { name: 'KYP Intelligence', path: '/dashboard/service-manager?module=kyp', exactQuery: 'kyp', icon: BarChart3, color: 'text-indigo-600', badge: 'LIVE' },
+          { name: 'Service Performance', path: '/dashboard/service-manager?module=performance', exactQuery: 'performance', icon: TrendingUp, color: 'text-purple-600' },
+          { name: 'Reports', path: '/dashboard/service-manager?module=reports', exactQuery: 'reports', icon: FileText, color: 'text-slate-600' },
+        ],
+      },
+      {
+        title: 'SYSTEM',
+        items: [
+          { name: 'Notifications', path: '/dashboard/service-manager?module=notifications', exactQuery: 'notifications', icon: Bell, color: 'text-amber-500', badge: '4' },
+          { name: 'Profile', path: '/dashboard/service-manager?module=profile', exactQuery: 'profile', icon: User, color: 'text-indigo-600' },
         ],
       },
     ],
@@ -298,9 +338,6 @@ export function Sidebar() {
   const searchParams = useSearchParams();
   const { activeRole, isSuperAdmin } = useRole();
 
-<<<<<<< HEAD
-  const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view') || searchParams.get('tab')) : null;
-=======
   const getEffectiveRole = (): RoleType => {
     if (pathname.startsWith('/dashboard/hr')) return 'HR';
     if (pathname.startsWith('/dashboard/cto')) return 'CTO';
@@ -312,8 +349,7 @@ export function Sidebar() {
   };
 
   const effectiveRole = getEffectiveRole();
-  const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view')) : null;
->>>>>>> upstream/main
+  const currentModuleParam = searchParams ? (searchParams.get('module') || searchParams.get('view') || searchParams.get('tab')) : null;
 
   const currentWorkspace = roleNavigationMap[effectiveRole] || roleNavigationMap.CEO;
 
@@ -349,8 +385,15 @@ export function Sidebar() {
     } else {
       setIsTmsExpanded(!isTmsExpanded);
     }
+  };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <aside className="w-60 bg-white border-r border-slate-200/90 min-h-[calc(100vh-61px)] py-4 px-3 flex flex-col justify-between hidden md:flex text-left shrink-0 select-none">
+    <aside className="w-60 bg-white border-r border-slate-200/90 h-[calc(100vh-61px)] sticky top-[61px] py-4 px-3 flex flex-col justify-between hidden md:flex text-left shrink-0 select-none overflow-y-auto">
       <div className="space-y-5">
         {/* Workspace Header */}
         <div>
@@ -359,25 +402,26 @@ export function Sidebar() {
               <Layers className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
               <span className="truncate">{currentWorkspace.workspaceTitle}</span>
             </p>
-            {isSuperAdmin ? (
-              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+            {mounted && isSuperAdmin ? (
+              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 shrink-0" suppressHydrationWarning>
                 SUPER ADMIN
               </span>
             ) : (
-              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70 shrink-0">
-                {activeRole}
+              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70 shrink-0" suppressHydrationWarning>
+                {mounted ? activeRole : 'SERVICE_MANAGER'}
               </span>
             )}
           </div>
+        </div>
 
-          {/* Navigation Categories */}
           <div className="space-y-4">
             {currentWorkspace.categories.map((category) => (
               <div key={category.title} className="space-y-1">
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-2 mb-1.5">
                   {category.title}
                 </p>
-                {category.items.map((item) => {
+                <div className="space-y-1">
+                  {category.items.map((item) => {
                   const Icon = item.icon;
 
                   if (item.isExpandable && item.children) {
@@ -444,8 +488,11 @@ export function Sidebar() {
                     <Link
                       key={item.name}
                       href={item.path}
-<<<<<<< HEAD
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 group ${
+                      onClick={(e) => {
+                        e.preventDefault();
+                        router.push(item.path);
+                      }}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 group cursor-pointer ${
                         active
                           ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm shadow-indigo-500/20 font-bold'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -453,21 +500,10 @@ export function Sidebar() {
                     >
                       <div className="flex items-center gap-2.5 truncate">
                         <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-white' : item.color || 'text-slate-500'}`} />
-=======
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-apfel font-bold transition-all ${
-                        active
-                          ? 'bg-gradient-to-r from-[#fef3c7] via-[#fde68a]/70 to-[#fef3c7] text-[#92400e] border border-[#fde68a]/80 shadow-2xs font-extrabold'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 truncate">
-                        <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#d97706]' : item.color || 'text-slate-500'}`} />
->>>>>>> upstream/main
                         <span className="truncate">{item.name}</span>
                       </div>
 
                       {item.badge ? (
-<<<<<<< HEAD
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
                           active
                             ? 'bg-white/20 text-white'
@@ -477,21 +513,6 @@ export function Sidebar() {
                         </span>
                       ) : (
                         !active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" />
-=======
-                        <span
-                          className={`font-apfel text-[9px] font-extrabold px-1.5 py-0.5 rounded shrink-0 ${
-                            item.badgeType === 'live'
-                              ? 'bg-[#fef3c7] text-[#92400e] border border-[#fde68a]'
-                              : item.badgeType === 'beta'
-                              ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                              : 'bg-slate-100 text-slate-600 border border-slate-200'
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      ) : (
-                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-[#d97706]' : 'text-slate-300'}`} />
->>>>>>> upstream/main
                       )}
                     </Link>
                   );
@@ -503,9 +524,8 @@ export function Sidebar() {
       </div>
 
       {/* Designation Privilege Status Card */}
-<<<<<<< HEAD
-      {isSuperAdmin ? (
-        <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-left mt-4">
+      {mounted && isSuperAdmin ? (
+        <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-left mt-4" suppressHydrationWarning>
           <div className="flex items-center gap-2 mb-1">
             <Crown className="h-3.5 w-3.5 text-amber-600 fill-amber-600 shrink-0" />
             <span className="text-[11px] font-bold text-amber-900 truncate">Super Admin Controls</span>
@@ -515,45 +535,13 @@ export function Sidebar() {
           </p>
         </div>
       ) : (
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left mt-4">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left mt-4" suppressHydrationWarning>
           <div className="flex items-center gap-2 mb-1">
             <Lock className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
-            <span className="text-[11px] font-bold text-slate-900 truncate">{activeRole} Workspace</span>
+            <span className="text-[11px] font-bold text-slate-900 truncate">{mounted ? activeRole : 'SERVICE_MANAGER'} Workspace</span>
           </div>
           <p className="text-[10px] text-slate-500 leading-normal font-medium">
             Dedicated scope navigation active for your session.
-=======
-      {effectiveRole === 'CEO' ? (
-        <div className="bg-gradient-to-br from-[#fffbeb] via-[#fef3c7]/90 to-[#fde68a]/50 border border-[#fde68a] rounded-3xl p-4 relative overflow-hidden text-left mt-6 shadow-2xs">
-          <div className="relative z-10 max-w-[155px]">
-            <div className="h-7 w-7 rounded-xl bg-[#fef3c7] border border-[#fde68a] flex items-center justify-center mb-2 shadow-2xs">
-              <Shield className="h-4 w-4 text-[#d97706]" />
-            </div>
-            <h4 className="font-montserrat text-xs font-black text-[#92400e] mb-1 leading-tight">Executive Workspace Active</h4>
-            <p className="font-sans text-[10px] text-[#b45309] font-medium leading-relaxed mb-3">
-              Dedicated CEO environment with real-time intelligence and priority controls.
-            </p>
-            <div className="flex items-center gap-1.5 font-apfel text-[10px] font-extrabold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>All systems operational</span>
-            </div>
-          </div>
-
-          <img
-            src="/ceo_sidebar_gold_wave.png"
-            alt="3D Gold Ribbon Graphic"
-            className="absolute -bottom-2 -right-3 w-28 h-28 object-contain pointer-events-none opacity-85 z-0"
-          />
-        </div>
-      ) : (
-        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-left mt-4" suppressHydrationWarning>
-          <div className="flex items-center gap-2 mb-1">
-            <Lock className="h-4 w-4 text-slate-600" />
-            <span className="text-xs font-bold text-slate-900">{effectiveRole} Dedicated Workspace</span>
-          </div>
-          <p className="text-[10px] text-slate-500 font-medium">
-            Dedicated module navigation active for your {effectiveRole} session.
->>>>>>> upstream/main
           </p>
         </div>
       )}

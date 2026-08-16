@@ -189,7 +189,7 @@ export function Navbar() {
       {/* Left Branding & Role Indicator */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="flex items-center gap-1.5 group">
-          <img src="/logo.jpeg" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
+          <img src="/innovibe-official-logo.png" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-gotham font-black text-lg tracking-tight text-slate-900 leading-none">INNOVIBE</span>
@@ -204,8 +204,8 @@ export function Navbar() {
         <div className="h-5 w-px bg-slate-200 mx-1 hidden md:block" />
 
         {/* Active Designation Badge */}
-        <div className="hidden lg:flex items-center gap-2">
-          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`}>
+        <div className="hidden lg:flex items-center gap-2" suppressHydrationWarning>
+          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`} suppressHydrationWarning>
             <Sparkles className="h-3.5 w-3.5" />
             {roleLabels[effectiveRole]?.title || roleLabels.CEO.title}
           </span>
@@ -217,7 +217,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Center Search Bar with Dropdown */}
       {/* Center Search Bar with Dropdown */}
       <div className="relative hidden md:block z-[60]">
         <form 
@@ -315,26 +314,10 @@ export function Navbar() {
             </div>
           </>
         )}
-=======
-      {/* Center Search Bar */}
-      <div className="hidden md:flex items-center justify-between bg-slate-50/80 border border-slate-200/70 rounded-xl px-3.5 py-1.5 w-[420px] shadow-2xs focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-500/10 transition-all">
-        <div className="flex items-center gap-2 w-full">
-          <Search className="h-4 w-4 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search tickets, vehicles, telematics, staff..."
-            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-sans font-medium"
-          />
-        </div>
-        <kbd className="font-apfel text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs font-mono shrink-0 ml-2">
-          ⌘K
-        </kbd>
->>>>>>> upstream/main
       </div>
 
       {/* Right User & Logout Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
-<<<<<<< HEAD
 
         {/* Live IST Clock */}
         <div className="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl" title="Indian Standard Time (UTC+5:30)">
@@ -414,7 +397,9 @@ export function Navbar() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-500">All caught up!</p>
-                    <p className="text-xs text-slate-400 mt-1">No notifications for {roleLabels[activeRole]?.title || activeRole}</p>
+                    <p className="text-xs text-slate-400 mt-1" suppressHydrationWarning>
+                      No notifications for {roleLabels[effectiveRole]?.title || effectiveRole}
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -487,65 +472,10 @@ export function Navbar() {
         </>
 
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
-
-        <div className="flex items-center gap-3 pl-1">
-=======
-        {/* Notifications Popover */}
-        <div className="relative">
-          <button 
-            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-            className={`relative p-2 rounded-xl transition-all ${isNotificationsOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
-            title="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 border border-white"></span>
-          </button>
-          
-          {isNotificationsOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)}></div>
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                  <h3 className="text-sm font-black text-slate-900">Notifications</h3>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">2 New</span>
-                </div>
-                <div className="max-h-[300px] overflow-y-auto">
-                  <div className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
-                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <Activity className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">System Update</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">InnoVibe Command Center v1.0 has been successfully deployed.</p>
-                      <p className="text-[9px] font-medium text-slate-400 mt-1">10 mins ago</p>
-                    </div>
-                  </div>
-                  <div className="p-3 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
-                    <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <Zap className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">New Task Assigned</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">You have a new high-voltage EV diagnostic task pending in your queue.</p>
-                      <p className="text-[9px] font-medium text-slate-400 mt-1">1 hour ago</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-2.5 border-t border-slate-100 text-center bg-slate-50">
-                  <button onClick={() => setIsNotificationsOpen(false)} className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                    View All Notifications
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
         {/* User Profile & Logout */}
         <div className="flex items-center gap-3 pl-1" suppressHydrationWarning>
->>>>>>> upstream/main
           <img
             src={displayProfile.avatar}
             alt={displayProfile.name}

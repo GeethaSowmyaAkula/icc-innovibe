@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useRole } from '../../../components/RoleContext';
+import { ApiGateway } from '../../../lib/api-client';
 
 function TechnicianPortalContent() {
   const { currentProfile } = useRole();
@@ -55,6 +56,66 @@ function TechnicianPortalContent() {
   useEffect(() => {
     setActiveTab(activeTabParam);
   }, [activeTabParam]);
+
+  // Sync assigned jobs from FastAPI backend every 5 seconds
+  useEffect(() => {
+    const fetchLiveJobs = async () => {
+      const liveJobs = await ApiGateway.getTechnicianJobs('tech_1');
+      if (liveJobs && liveJobs.length > 0) {
+        setJobCardsList((prev) => {
+          const existingIds = new Set(prev.map((j) => j.id || j.ticketId));
+          const newFormattedJobs = liveJobs
+            .filter((j) => !existingIds.has(j.id) && !existingIds.has(j.ticketNumber))
+            .map((j) => ({
+              id: j.ticketNumber || j.id,
+              ticketId: j.id,
+              customerName: j.customerName || 'Customer',
+              customerContact: j.customerPhone || '+91 9000000000',
+              customerEmail: 'customer@innovibemobility.com',
+              vehicleModel: 'Ather 450X Apex',
+              vehicleReg: 'AP39AB1234',
+              vin: 'AT45XAP98239012389',
+              odometer: 12500,
+              complaintDesc: j.serviceType || 'Periodic Maintenance Diagnostic',
+              priority: j.priority || 'High',
+              assignedTech: 'Rahul Sharma',
+              assignedHub: 'Kakinada Main Hub',
+              scheduledTime: new Date().toISOString(),
+              startedTime: '',
+              completedTime: '',
+              estDuration: '60 mins',
+              actDuration: '45 mins',
+              status: j.status === 'TECHNICIAN_ASSIGNED' ? 'Assigned' : j.status,
+              vehicleBrand: 'Ather',
+              complaintHistory: [],
+              aiDiagnosis: 'BMS Diagnostic Check Completed',
+              techNotes: '',
+              repairsPerformed: '',
+              sparesUsed: [],
+              consumablesUsed: [],
+              checklist: [
+                { task: 'Inspect battery casing for physical damage or swelling', checked: false },
+                { task: 'Check connector pins for corrosion or carbon buildup', checked: false },
+              ],
+              photosBefore: [],
+              photosAfter: [],
+              customerSignature: '',
+              techSignature: '',
+              qaApproval: { approved: false, inspector: 'QA Inspector', timestamp: '' },
+              warrantyInfo: 'Standard Warranty',
+              finalSummary: 'Pending Service Inspection',
+              feedback: { rating: 0, review: '' },
+            }));
+
+          return [...newFormattedJobs, ...prev];
+        });
+      }
+    };
+
+    fetchLiveJobs();
+    const interval = setInterval(fetchLiveJobs, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleTabChange = (tabId: string) => {
     router.push(`/dashboard/technician?view=${tabId}`);

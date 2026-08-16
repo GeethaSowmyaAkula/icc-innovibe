@@ -1,168 +1,339 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRole } from '../../../components/RoleContext';
-import { mockServiceTickets, mockTechnicians } from '../../../lib/mock-data';
-import { Wrench, Sparkles, CheckCircle2, UserPlus, Clock, IndianRupee, MapPin, Check, AlertCircle } from 'lucide-react';
+import { mockServiceTickets, mockTechnicians, mockVehicles } from '../../../lib/mock-data';
+import { ServiceTicket, Technician } from '../../../lib/types';
+import { useSearchParams } from 'next/navigation';
 
-export default function ServiceManagerDashboard() {
+import { ServiceManagerHeader } from '../../../components/service-manager/ServiceManagerHeader';
+import { ServiceKpiGrid } from '../../../components/service-manager/ServiceKpiGrid';
+import { NeedsAttentionAlerts } from '../../../components/service-manager/NeedsAttentionAlerts';
+import { ServiceDispatchWorkbench } from '../../../components/service-manager/ServiceDispatchWorkbench';
+import { ServiceJobBoard } from '../../../components/service-manager/ServiceJobBoard';
+import { TechnicianControlCenter } from '../../../components/service-manager/TechnicianControlCenter';
+import { AppointmentsAndBays } from '../../../components/service-manager/AppointmentsAndBays';
+import { EvDiagnosticsAndParts } from '../../../components/service-manager/EvDiagnosticsAndParts';
+import { ServiceAnalyticsAndSla } from '../../../components/service-manager/ServiceAnalyticsAndSla';
+import { ServiceModalsAndDrawers } from '../../../components/service-manager/ServiceModalsAndDrawers';
+import { ServiceVehiclesView } from '../../../components/service-manager/ServiceVehiclesView';
+import { ServiceQualityControlView } from '../../../components/service-manager/ServiceQualityControlView';
+import { ServiceCustomersView } from '../../../components/service-manager/ServiceCustomersView';
+import { ServiceRequestsView } from '../../../components/service-manager/ServiceRequestsView';
+import { ServiceReportsView } from '../../../components/service-manager/ServiceReportsView';
+import { ServiceNotificationsView } from '../../../components/service-manager/ServiceNotificationsView';
+import { ServiceSettingsView } from '../../../components/service-manager/ServiceSettingsView';
+import { ServiceProfileView } from '../../../components/service-manager/ServiceProfileView';
+import { ServiceKypView } from '../../../components/service-manager/ServiceKypView';
+import { ServiceAppointmentsView } from '../../../components/service-manager/ServiceAppointmentsView';
+import { ServiceBaysView } from '../../../components/service-manager/ServiceBaysView';
+
+import { ApiGateway } from '../../../lib/api-client';
+
+function ServiceManagerDashboardContent() {
   const { currentProfile } = useRole();
-  const [tickets, setTickets] = useState(mockServiceTickets);
-  const [techs] = useState(mockTechnicians);
+  const searchParams = useSearchParams();
+  const activeModule = searchParams ? searchParams.get('module') : null;
+
+  // Master State
+  const [tickets, setTickets] = useState<ServiceTicket[]>(mockServiceTickets);
+  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
   const [selectedTicketId, setSelectedTicketId] = useState<string>('tkt_101');
+  const [currentCenter, setCurrentCenter] = useState<string>('Vizag Service Center');
+  const [activeKpiFilter, setActiveKpiFilter] = useState<string | null>(null);
+  const [overviewTab, setOverviewTab] = useState<'all' | 'techs' | 'analytics'>('all');
 
-  const selectedTicket = tickets.find((t) => t.id === selectedTicketId) || tickets[0];
+  // Modal State
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
-  const handleAssignTech = (techName: string) => {
+  // Fetch live technicians on mount
+  useEffect(() => {
+    ApiGateway.getTechnicians().then((liveTechs) => {
+      if (liveTechs && liveTechs.length > 0) {
+        setTechnicians(liveTechs);
+      }
+    });
+  }, []);
+
+  // Assign job handler connected to FastAPI Backend API
+  const handleAssignJob = async (ticketId: string, techName: string) => {
+    // Optimistic UI state update
     setTickets((prev) =>
-      prev.map((t) => (t.id === selectedTicketId ? { ...t, assignedTechnician: techName, status: 'TECHNICIAN_ASSIGNED' } : t))
+      prev.map((t) => (t.id === ticketId ? { ...t, assignedTechnician: techName, status: 'TECHNICIAN_ASSIGNED' } : t))
     );
+
+    // Resolve technician ID
+    const targetTech = technicians.find((tech) => tech.name === techName || tech.id === techName);
+    const techId = targetTech ? targetTech.id : 'tech_1';
+
+    // Call live FastAPI assignment endpoint
+    await ApiGateway.assignTechnician(techId, ticketId);
+  };
+
+  // Update job status handler connected to FastAPI Backend API
+  const handleUpdateJobStatus = async (ticketId: string, newStatus: string) => {
+    setTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus as any } : t))
+    );
+    await ApiGateway.updateJobStatus(ticketId, newStatus);
+  };
+
+  // Add new ticket handler
+  const handleCreateNewTicket = (ticketData: any) => {
+    const newTkt: ServiceTicket = {
+      id: `tkt_${Date.now()}`,
+      ticketNumber: `BK-2026-0${tickets.length + 1}`,
+      customerName: ticketData.customerName,
+      customerPhone: ticketData.customerPhone,
+      vehicleModel: ticketData.vehicleModel,
+      registrationNumber: ticketData.registrationNumber,
+      serviceType: ticketData.serviceType,
+      status: 'PENDING',
+      aiSuggestedFault: ticketData.aiSuggestedFault,
+      aiEstimatedCost: ticketData.aiEstimatedCost,
+      aiEstimatedTimeMins: ticketData.aiEstimatedTimeMins,
+      location: 'Visakhapatnam Hub',
+      createdAt: 'Just now',
+      urgency: ticketData.urgency || 'MEDIUM',
+    };
+
+    setTickets((prev) => [newTkt, ...prev]);
+    setSelectedTicketId(newTkt.id);
   };
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-white flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-2 z-10">
-          <div className="flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-emerald-600" />
-            <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Service Center Management</span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900">AI Service Advisor & Dispatcher Workbench</h1>
-          <p className="text-xs text-slate-600 max-w-xl font-medium">
-            Augmenting service managers with AI-powered fault diagnostics, repair cost estimates, and technician dispatch recommendations.
-          </p>
-        </div>
+    <div className="space-y-6 text-left font-sans">
+      {/* Top Header Command Bar (Hidden in Profile view) */}
+      {activeModule !== 'profile' && (
+        <ServiceManagerHeader
+          currentCenter={currentCenter}
+          onCenterChange={setCurrentCenter}
+          onOpenQuickAction={(action) => setActiveModal(action)}
+        />
+      )}
 
-        <div className="flex items-center gap-3 z-10">
-          <div className="px-4 py-2 rounded-2xl bg-white border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-2 shadow-xs">
-            <Sparkles className="h-4 w-4 text-emerald-600" /> AI Advisor Status: ONLINE
-          </div>
+      {/* Sub-module Views or Full Command Center */}
+      {activeModule === 'tickets' ? (
+        <div className="space-y-6">
+          <ServiceDispatchWorkbench
+            tickets={tickets}
+            technicians={technicians}
+            selectedTicketId={selectedTicketId}
+            onSelectTicket={setSelectedTicketId}
+            onAssignJob={handleAssignJob}
+          />
         </div>
-      </div>
+      ) : activeModule === 'dispatch' ? (
+        <div className="space-y-6">
+          <TechnicianControlCenter technicians={technicians} />
+        </div>
+      ) : activeModule === 'vehicles' ? (
+        <div className="space-y-6">
+          <ServiceVehiclesView />
+        </div>
+      ) : activeModule === 'active-jobs' ? (
+        <div className="space-y-6" key="active-jobs">
+          <ServiceJobBoard tickets={tickets} onUpdateJobStatus={handleUpdateJobStatus} />
+        </div>
+      ) : activeModule === 'appointments' ? (
+        <div className="space-y-6" key="appointments">
+          <ServiceAppointmentsView />
+        </div>
+      ) : activeModule === 'bays' ? (
+        <div className="space-y-6" key="bays">
+          <ServiceBaysView />
+        </div>
+      ) : activeModule === 'diagnostics' ? (
+        <div className="space-y-6" key="diagnostics">
+          <EvDiagnosticsAndParts viewMode="diagnostics" />
+        </div>
+      ) : activeModule === 'parts' ? (
+        <div className="space-y-6" key="parts">
+          <EvDiagnosticsAndParts viewMode="parts" />
+        </div>
+      ) : activeModule === 'qc' ? (
+        <div className="space-y-6" key="qc">
+          <ServiceQualityControlView />
+        </div>
+      ) : activeModule === 'customers' ? (
+        <div className="space-y-6" key="customers">
+          <ServiceCustomersView />
+        </div>
+      ) : activeModule === 'requests' ? (
+        <div className="space-y-6" key="requests">
+          <ServiceRequestsView />
+        </div>
+      ) : activeModule === 'performance' ? (
+        <div className="space-y-6" key="performance">
+          <ServiceAnalyticsAndSla />
+        </div>
+      ) : activeModule === 'reports' ? (
+        <div className="space-y-6" key="reports">
+          <ServiceReportsView />
+        </div>
+      ) : activeModule === 'notifications' ? (
+        <div className="space-y-6" key="notifications">
+          <ServiceNotificationsView />
+        </div>
+      ) : activeModule === 'settings' ? (
+        <div className="space-y-6" key="settings">
+          <ServiceSettingsView />
+        </div>
+      ) : activeModule === 'profile' ? (
+        <div className="space-y-6" key="profile">
+          <ServiceProfileView />
+        </div>
+      ) : activeModule === 'kyp' ? (
+        <div className="space-y-6" key="kyp">
+          <ServiceKypView />
+        </div>
+      ) : (
+        /* Default Full Command Center Overview — Uncluttered & Spacious Layout */
+        <div className="space-y-7">
+          {/* 1. KPI Row */}
+          <ServiceKpiGrid
+            onSelectKpiFilter={(filterKey) =>
+              setActiveKpiFilter(activeKpiFilter === filterKey ? null : filterKey)
+            }
+            activeFilter={activeKpiFilter}
+          />
 
-      {/* Main Grid Workbench */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ticket List Queue */}
-        <div className="glass-panel p-6 rounded-3xl border border-slate-200 space-y-4">
-          <h2 className="text-base font-extrabold text-slate-900">Service Ticket Queue</h2>
-          <div className="space-y-3">
-            {tickets.map((tkt) => (
-              <div
-                key={tkt.id}
-                onClick={() => setSelectedTicketId(tkt.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                  selectedTicketId === tkt.id
-                    ? 'bg-sky-50/80 border-sky-500 ring-2 ring-sky-500/20 shadow-md'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+          {/* 2. Needs Attention Critical Bar */}
+          <NeedsAttentionAlerts
+            onSelectAlert={(type, id) => {
+              if (type === 'CRITICAL_DIAGNOSTIC') {
+                setSelectedTicketId('tkt_103');
+                setActiveModal('inspect-ticket');
+              } else if (type === 'SLA_RISK') {
+                setActiveModal('view-job-progress');
+              } else if (type === 'PARTS_BLOCKER') {
+                setActiveModal('parts-request');
+              }
+            }}
+          />
+
+          {/* 3. Spacious Overview Operational Hub Filter Bar */}
+          <div className="bg-white rounded-3xl p-3 border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs font-bold">
+            <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => setOverviewTab('all')}
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                  overviewTab === 'all'
+                    ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-sky-700">{tkt.ticketNumber}</span>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                    tkt.urgency === 'EMERGENCY' ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-blue-100 text-blue-800 border border-blue-200'
-                  }`}>
-                    {tkt.serviceType}
-                  </span>
-                </div>
+                ⚡ Dispatch & Job Board
+              </button>
 
-                <p className="text-sm font-bold text-slate-900 mt-2">{tkt.customerName}</p>
-                <p className="text-xs text-slate-500 font-medium">{tkt.vehicleModel} • {tkt.registrationNumber}</p>
+              <button
+                type="button"
+                onClick={() => setOverviewTab('kyp')}
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                  overviewTab === 'kyp'
+                    ? 'bg-indigo-600 text-white shadow-xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                📊 KYP — Operational Intelligence
+              </button>
 
-                <div className="mt-3 flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
-                  <span className="text-slate-500">{tkt.createdAt}</span>
-                  <span className="font-bold text-emerald-700">{tkt.assignedTechnician || 'AI Recommended'}</span>
-                </div>
-              </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => setOverviewTab('techs')}
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                  overviewTab === 'techs'
+                    ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                👥 Technicians & Service Bays
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setOverviewTab('analytics')}
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                  overviewTab === 'analytics'
+                    ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                📊 Diagnostics & SLA Analytics
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-400 font-medium px-2">
+              Viewing <span className="font-extrabold text-slate-700">{currentCenter}</span> Command Stream
+            </div>
           </div>
+
+          {/* 4. Tab Content View */}
+          {overviewTab === 'all' && (
+            <div className="space-y-7 animate-in fade-in duration-200">
+              {/* Main Workbench (Ticket Queue + AI Advisor + AI Dispatcher) */}
+              <ServiceDispatchWorkbench
+                tickets={tickets}
+                technicians={technicians}
+                selectedTicketId={selectedTicketId}
+                onSelectTicket={setSelectedTicketId}
+                onAssignJob={handleAssignJob}
+              />
+
+              {/* Live Service Job Board */}
+              <ServiceJobBoard tickets={tickets} onUpdateJobStatus={handleUpdateJobStatus} />
+            </div>
+          )}
+
+          {overviewTab === 'kyp' && (
+            <div className="space-y-7 animate-in fade-in duration-200" key="overview-kyp">
+              <ServiceKypView />
+            </div>
+          )}
+
+          {overviewTab === 'techs' && (
+            <div className="space-y-7 animate-in fade-in duration-200">
+              {/* Technician Status Control Center */}
+              <TechnicianControlCenter technicians={technicians} />
+
+              {/* Today's Appointments & Service Bays */}
+              <AppointmentsAndBays />
+            </div>
+          )}
+
+          {overviewTab === 'analytics' && (
+            <div className="space-y-7 animate-in fade-in duration-200">
+              {/* EV Diagnostics & Parts Inventory */}
+              <EvDiagnosticsAndParts />
+
+              {/* Service Performance Analytics & SLA */}
+              <ServiceAnalyticsAndSla />
+            </div>
+          )}
         </div>
+      )}
 
-        {/* Selected Ticket AI Diagnosis & Dispatcher Center */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* AI Service Advisor Component */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-base font-extrabold text-slate-900">AI Service Advisor Diagnosis</h3>
-              </div>
-              <span className="text-xs font-mono font-bold text-slate-500">{selectedTicket.ticketNumber}</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-white border border-emerald-200 space-y-3">
-              <div>
-                <p className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">AI Suggested Fault Diagnosis</p>
-                <p className="text-sm font-extrabold text-slate-900 mt-1">{selectedTicket.aiSuggestedFault}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200">
-                <div>
-                  <p className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">AI Estimated Cost</p>
-                  <p className="text-lg font-black text-slate-900 flex items-center gap-1 mt-0.5">
-                    <IndianRupee className="h-4 w-4 text-emerald-600" /> ₹{selectedTicket.aiEstimatedCost}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">AI Estimated Repair Time</p>
-                  <p className="text-lg font-black text-slate-900 flex items-center gap-1 mt-0.5">
-                    <Clock className="h-4 w-4 text-sky-600" /> {selectedTicket.aiEstimatedTimeMins} Minutes
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Dispatcher Technician Assignment */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-sky-600" />
-                <h3 className="text-base font-extrabold text-slate-900">AI Dispatcher Technician Recommendation</h3>
-              </div>
-              <span className="text-xs text-slate-500 font-medium">Ranked by Proximity & Skill Match</span>
-            </div>
-
-            <div className="space-y-3">
-              {techs.map((tech, idx) => (
-                <div key={tech.id} className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-xs">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900">{tech.name}</span>
-                      {idx === 0 && (
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                          AI Top Pick (98% Match)
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-600 font-medium">{tech.skills.join(' • ')}</p>
-                    <p className="text-[11px] text-slate-500">
-                      Distance: <strong className="text-sky-700 font-bold">{tech.distanceKm} km</strong> | Active Jobs: {tech.activeJobsCount}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => handleAssignTech(tech.name)}
-                    className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-                      selectedTicket.assignedTechnician === tech.name
-                        ? 'bg-emerald-600 text-white shadow-md flex items-center gap-1'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white'
-                    }`}
-                  >
-                    {selectedTicket.assignedTechnician === tech.name ? (
-                      <>
-                        <Check className="h-4 w-4" /> Assigned
-                      </>
-                    ) : (
-                      'Assign Job'
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Global Modals & Drawers */}
+      <ServiceModalsAndDrawers
+        activeModal={activeModal}
+        onCloseModal={() => setActiveModal(null)}
+        onSubmitNewTicket={handleCreateNewTicket}
+      />
     </div>
+  );
+}
+
+export default function ServiceManagerDashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-xs text-slate-500 font-bold bg-[#F7F9FC] min-h-screen">
+          Loading Service Operations Command Center...
+        </div>
+      }
+    >
+      <ServiceManagerDashboardContent />
+    </Suspense>
   );
 }
