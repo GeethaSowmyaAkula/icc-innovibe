@@ -189,7 +189,7 @@ export function Navbar() {
       {/* Left Branding & Role Indicator */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="flex items-center gap-1.5 group">
-          <img src="/logo.jpeg" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
+          <img src="/innovibe-official-logo.png" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-gotham font-black text-lg tracking-tight text-slate-900 leading-none">INNOVIBE</span>
@@ -204,8 +204,8 @@ export function Navbar() {
         <div className="h-5 w-px bg-slate-200 mx-1 hidden md:block" />
 
         {/* Active Designation Badge */}
-        <div className="hidden lg:flex items-center gap-2">
-          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`}>
+        <div className="hidden lg:flex items-center gap-2" suppressHydrationWarning>
+          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`} suppressHydrationWarning>
             <Sparkles className="h-3.5 w-3.5" />
             {roleLabels[effectiveRole]?.title || roleLabels.CEO.title}
           </span>
@@ -217,7 +217,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Center Search Bar with Dropdown */}
       {/* Center Search Bar with Dropdown */}
       <div className="relative hidden md:block z-[60]">
         <form 
@@ -398,7 +397,9 @@ export function Navbar() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-500">All caught up!</p>
-                    <p className="text-xs text-slate-400 mt-1">No notifications for {roleLabels[activeRole]?.title || activeRole}</p>
+                    <p className="text-xs text-slate-400 mt-1" suppressHydrationWarning>
+                      No notifications for {roleLabels[effectiveRole]?.title || effectiveRole}
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -470,6 +471,7 @@ export function Navbar() {
           </aside>
         </>
 
+        <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
         {/* User Profile & Logout */}

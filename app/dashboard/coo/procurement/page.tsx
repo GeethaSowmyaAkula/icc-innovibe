@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
-import React, { useState, useRef, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RouteGuard } from '@/components/rbac/RouteGuard';
+import { crossDashboardStore, LiveSpareRequest } from '@/lib/cross-dashboard-store';
 import {
   Package,
   WrenchIcon,
@@ -18,6 +19,9 @@ import {
   Barcode,
   Layers,
   Eye,
+  Check,
+  AlertCircle,
+  Radio,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,6 +32,30 @@ function ProcurementInner() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'single' | 'excel'>('single');
   const [inspectItem, setInspectItem] = useState<any | null>(null);
+
+  // Live Technician Spare Requests from CrossDashboardStore
+  const [liveSpares, setLiveSpares] = useState<LiveSpareRequest[]>([]);
+
+  useEffect(() => {
+    setLiveSpares(crossDashboardStore.getSpareRequests());
+    const unsubscribe = crossDashboardStore.onSparesUpdated((spares) => {
+      setLiveSpares(spares);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleApproveSpare = (reqId: string, partCode?: string) => {
+    const generatedSerial = `SN-${partCode || 'SPARE'}-${Math.floor(1000 + Math.random() * 9000)}`;
+    crossDashboardStore.updateSpareRequestStatus(reqId, 'APPROVED', [generatedSerial]);
+    setSuccessMsg(`Approved spare request ${reqId}! Serial ${generatedSerial} assigned & dispatched to field technician.`);
+    setTimeout(() => setSuccessMsg(null), 5000);
+  };
+
+  const handleIssueSpare = (reqId: string) => {
+    crossDashboardStore.updateSpareRequestStatus(reqId, 'ISSUED');
+    setSuccessMsg(`Marked spare request ${reqId} as ISSUED & handed over to technician.`);
+    setTimeout(() => setSuccessMsg(null), 5000);
+  };
 
   const [items, setItems] = useState<any[]>([
     {
@@ -300,7 +328,123 @@ function ProcurementInner() {
         </div>
 
         {/* Tab Views */}
-        {(currentTab === 'inventory' || currentTab === 'spares' || currentTab === 'orders' || currentTab === 'po') && (
+        {currentTab === 'spares' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-amber-500/10 border border-amber-300/60 p-4 rounded-2xl">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-amber-500 text-white rounded-xl shadow-xs">
+                  <Radio className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    Live Field Technician Spare Requisitions Stream
+                  </h3>
+                  <p className="text-xs text-slate-600 font-medium">
+                    Real-time spare parts requests originating from active technician diagnostic workbenches across all hubs.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-900 rounded-full border border-amber-300">
+                  {liveSpares.filter((s) => s.status === 'PENDING').length} Pending Approval
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <th className="p-4">Req ID</th>
+                    <th className="p-4">Requested Part Name</th>
+                    <th className="p-4">Technician & Job</th>
+                    <th className="p-4">Qty</th>
+                    <th className="p-4">Priority</th>
+                    <th className="p-4">Issued Serial Codes</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">COO Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {liveSpares.map((sp) => (
+                    <tr key={sp.id} className="hover:bg-slate-50 transition">
+                      <td className="p-4 font-mono font-bold text-amber-700">{sp.id}</td>
+                      <td className="p-4">
+                        <span className="font-extrabold text-slate-900 block">{sp.part}</span>
+                        <span className="text-[11px] text-slate-400 font-mono">{sp.partCode || 'SPARE-OEM-GEN'}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-bold text-slate-800 block">{sp.technicianName}</span>
+                        <span className="text-[11px] text-blue-600 font-medium">{sp.jobId} • {sp.vehicleModel || 'EV Unit'}</span>
+                      </td>
+                      <td className="p-4 font-black text-slate-900 text-sm">{sp.qty}</td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                            sp.priority === 'CRITICAL'
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse'
+                              : sp.priority === 'HIGH'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {sp.priority}
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono text-[11px]">
+                        {sp.issuedSerials && sp.issuedSerials.length > 0 ? (
+                          <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                            {sp.issuedSerials.join(', ')}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                            sp.status === 'APPROVED'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : sp.status === 'ISSUED'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              : sp.status === 'COMPLETED'
+                              ? 'bg-slate-100 text-slate-800'
+                              : 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
+                          }`}
+                        >
+                          {sp.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        {sp.status === 'PENDING' ? (
+                          <button
+                            onClick={() => handleApproveSpare(sp.id, sp.partCode)}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs transition active:scale-95 cursor-pointer flex items-center space-x-1 ml-auto"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve & Assign Serial</span>
+                          </button>
+                        ) : sp.status === 'APPROVED' ? (
+                          <button
+                            onClick={() => handleIssueSpare(sp.id)}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs shadow-xs transition active:scale-95 cursor-pointer flex items-center space-x-1 ml-auto"
+                          >
+                            <Package className="w-3.5 h-3.5" />
+                            <span>Mark Issued</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 font-bold text-[11px]">Dispatched ✔</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {(currentTab === 'inventory' || currentTab === 'orders' || currentTab === 'po') && (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left border-collapse text-xs">
               <thead>

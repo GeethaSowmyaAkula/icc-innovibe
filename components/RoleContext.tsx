@@ -23,6 +23,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 function getInitialRole(): RoleType {
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
+    if (path.includes('/dashboard/employee')) return 'EMPLOYEE';
     if (path.includes('/dashboard/hr')) return 'HR';
     if (path.includes('/dashboard/cto')) return 'CTO';
     if (path.includes('/dashboard/coo')) return 'COO';
@@ -67,7 +68,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
       let detectedRole: RoleType | null = null;
-      if (path.includes('/dashboard/hr')) detectedRole = 'HR';
+      if (path.includes('/dashboard/employee')) detectedRole = 'EMPLOYEE';
+      else if (path.includes('/dashboard/hr')) detectedRole = 'HR';
       else if (path.includes('/dashboard/cto')) detectedRole = 'CTO';
       else if (path.includes('/dashboard/coo')) detectedRole = 'COO';
       else if (path.includes('/dashboard/service-manager')) detectedRole = 'SERVICE_MANAGER';

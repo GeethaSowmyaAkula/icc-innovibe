@@ -1,49 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
-
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  }
+:root {
+  --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-gotham: 'Gotham', 'Gotham Bold', 'SF Pro Display', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-apfel: 'Apfel Grotezk', 'Apfel Grotesk', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-primary: #4f46e5;
+  --accent-hover: #4338ca;
+  --sidebar-bg: #0f172a;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.07), 0 2px 6px rgba(15,23,42,0.04);
+  --shadow-lg: 0 12px 32px rgba(15,23,42,0.09), 0 4px 12px rgba(15,23,42,0.05);
 }
 
-* {
+/* ── Base Reset ── */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
   background-color: #f8fafc;
-  color: #1f2937;
+  color: var(--text-primary);
   font-family: var(--font-sans);
-  letter-spacing: -0.012em;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
+/* ── Typography ── */
 h1, h2, h3, h4, h5, h6,
 .font-bold, .font-extrabold, .font-black, .font-semibold,
 button, th, .font-heading {
@@ -52,69 +57,90 @@ button, th, .font-heading {
   letter-spacing: -0.02em;
 }
 
-p, span, td, li, label {
-  font-style: normal;
+.font-montserrat, .side-heading {
+  font-family: var(--font-montserrat);
 }
 
-code, kbd, pre, .font-mono {
-  font-family: var(--font-mono);
+.font-apfel {
+  font-family: var(--font-apfel);
 }
 
-/* Scrollbars */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.font-gotham {
+  font-family: var(--font-gotham);
+}
 
-/* Card System */
-.card, .glass-panel, .glass-card {
+/* ── Premium Universal Interactive Card System ── */
+.glass-panel,
+.glass-card,
+div.bg-white.rounded-2xl,
+div.bg-white.rounded-xl {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1),
-              box-shadow 0.2s cubic-bezier(0.16,1,0.3,1),
-              border-color 0.2s ease;
+  border: 1px solid #e8edf4;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.card:hover, .glass-panel:hover, .glass-card:hover {
-  border-color: #c7d7f0;
-  box-shadow: 0 4px 12px rgba(15,23,42,0.08);
-  transform: translateY(-1px);
+.glass-panel:hover,
+.glass-card:hover,
+div.bg-white.rounded-2xl:hover,
+div.bg-white.rounded-xl:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(37, 99, 235, 0.04);
 }
 
-/* Interactive Stat Cards */
-.interactive-stat-card {
+/* ── Interactive Cards ── */
+.interactive-card {
   transition: all 0.22s cubic-bezier(0.16,1,0.3,1);
-  position: relative;
-  overflow: hidden;
+  cursor: pointer;
 }
 
-.interactive-stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px -4px rgba(15,23,42,0.09);
-  border-color: #c7d2fe !important;
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -4px rgba(15,23,42,0.08), 0 4px 10px -2px rgba(99,102,241,0.06);
+  border-color: #a5b4fc !important;
 }
 
-/* Inputs */
+.interactive-card:active {
+  transform: translateY(0) scale(0.994);
+}
+
+/* Modern Input & Interactive Focus */
 input, select, textarea {
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid #e8edf4;
   background-color: #f8fafc;
-  font-family: var(--font-sans);
-  transition: all 0.18s ease;
+  transition: all 0.2s ease-out;
 }
 
 input:focus, select:focus, textarea:focus {
-  background-color: #fff;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background-color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   outline: none;
 }
 
-/* Buttons */
+/* Custom Clean Light Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* Micro-Interaction Button Animations */
 .btn-interactive {
-  transition: all 0.18s cubic-bezier(0.16,1,0.3,1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-interactive:hover {
@@ -126,14 +152,128 @@ input:focus, select:focus, textarea:focus {
   transform: translateY(0) scale(0.97);
 }
 
-/* Skeleton Loader */
+.btn-emerald-interactive {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-emerald-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16,185,129,0.22);
+}
+
+.btn-emerald-interactive:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-rose-interactive {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-rose-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(239,68,68,0.22);
+}
+
+.btn-rose-interactive:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.nav-item-transition {
+  transition: all 0.15s ease-out;
+}
+
+.nav-item-transition:hover {
+  background-color: #f8fafc;
+  color: #1f2937;
+}
+
+.tab-interactive {
+  transition: all 0.2s ease-out;
+}
+
+.tab-interactive:hover {
+  transform: translateY(-1px);
+}
+
+/* Subtle Skeleton Loader */
 .skeleton-loader {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e8eef5 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
-  animation: skeletonLoading 1.6s infinite ease-in-out;
+  animation: skeletonLoading 1.5s infinite ease-in-out;
 }
 
 @keyframes skeletonLoading {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slideUpPop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes drawerSlideLeft {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-backdrop-blur {
+  animation: backdropFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-slide {
+  animation: drawerSlideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.shimmer-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 60%, transparent 80%);
+  transition: none;
+  pointer-events: none;
+}
+
+.shimmer-hover:hover::after {
+  animation: shimmerSlide 0.6s ease forwards;
+}
+
+@keyframes shimmerSlide {
+  0% { left: -100%; }
+  100% { left: 160%; }
 }

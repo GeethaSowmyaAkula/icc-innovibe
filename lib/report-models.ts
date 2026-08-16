@@ -29,18 +29,38 @@ export interface ReportConfig {
   startDate?: string;
   endDate?: string;
   exportFormat: ExportFormat;
-  employeeSelection: EmployeeSelectionOption;
+  employeeSelection?: EmployeeSelectionOption;
+  employeeId?: string;
+  employeeName?: string;
+  departmentName?: string;
+  designation?: string;
   selectedDepartment?: string;
   selectedStatus?: string;
   selectedPriority?: string;
-  includeInactive: boolean;
-  includeArchived: boolean;
+  includeInactive?: boolean;
+  includeArchived?: boolean;
+}
+
+export interface SummaryMetricItem {
+  label: string;
+  value: string | number;
 }
 
 export interface GeneratedReportData {
   reportTitle: string;
+  reportType: ReportType;
   generatedAt: string;
+  dateRangeText: string;
+  startDateStr: string;
+  endDateStr: string;
+  employeeInfo: {
+    id: string;
+    name: string;
+    department: string;
+    designation: string;
+  };
   recordCount: number;
+  summaryMetrics: SummaryMetricItem[];
   headers: string[];
   rows: (string | number)[][];
 }

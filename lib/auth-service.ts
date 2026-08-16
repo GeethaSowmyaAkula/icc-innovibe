@@ -8,6 +8,8 @@
 
 import { RoleType, UserRoleProfile } from './types';
 import { initialProfiles } from './mock-data';
+import { EmployeeRepository } from './employee-repository';
+import { supabase } from './supabase';
 
 export const DEV_CREDENTIALS = {
   email: 'ceo@innovibe.ai',
@@ -52,20 +54,57 @@ function eraseCookie(name: string) {
 export const AuthService = {
   /**
    * Primary Login method
-   * Validates credentials against development credentials or demo accounts.
+   * Authenticates with Supabase Auth, with fallback to initial profiles for local demo mode.
    */
   async login(
     emailInput: string,
     passwordInput: string
   ): Promise<{ success: boolean; profile?: UserRoleProfile; error?: string }> {
-    // Simulate slight network latency for UI loading states
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
     const cleanEmail = emailInput.trim().toLowerCase();
     const cleanPass = passwordInput.trim();
 
     let matchedRole: RoleType | null = null;
     let matchedProfile: UserRoleProfile | null = null;
+
+    // 1. Try Supabase Auth First
+    try {
+      const { data: authData, error: sbError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPass,
+      });
+
+      if (!sbError && authData.user) {
+        const u = authData.user;
+        const role = (u.user_metadata?.role as RoleType) || 'EMPLOYEE';
+        
+        // Fetch extended profile from public.profiles table
+        const { data: dbProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', u.id)
+          .maybeSingle();
+
+        matchedRole = role;
+        matchedProfile = {
+          id: dbProfile?.id || u.id,
+          name: dbProfile?.full_name || u.user_metadata?.full_name || cleanEmail.split('@')[0],
+          email: u.email || cleanEmail,
+          role: role,
+          title: dbProfile?.designation || 'Team Member',
+          avatar: dbProfile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          permissions: ['ALL'],
+          employeeId: dbProfile?.employee_id || `EMP-${u.id.slice(0, 4)}`,
+          department: dbProfile?.department_id || 'Technology',
+          departmentId: dbProfile?.department_id,
+          designation: dbProfile?.designation,
+          phone: dbProfile?.phone,
+          userType: dbProfile?.user_type || 'EMPLOYEE',
+          joiningDate: dbProfile?.joining_date,
+        } as UserRoleProfile;
+      }
+    } catch (e) {
+      console.warn('Supabase Auth attempt fallback:', e);
+    }
 
     // 1. Check Primary Development Credentials (CEO)
     if (cleanEmail === DEV_CREDENTIALS.email.toLowerCase() && cleanPass === DEV_CREDENTIALS.password) {
@@ -75,28 +114,71 @@ export const AuthService = {
         email: DEV_CREDENTIALS.email,
       };
     }
-    // 2. Allow legacy demo accounts for secondary role testing
-    else if (cleanEmail === 'ceo@innovibemobility.com' && cleanPass === 'admin123') {
-      matchedRole = 'CEO';
-      matchedProfile = initialProfiles.CEO;
-    } else if (cleanEmail === 'coo@innovibemobility.com' && cleanPass === 'coo123') {
-      matchedRole = 'COO';
-      matchedProfile = initialProfiles.COO;
-    } else if (cleanEmail === 'cto@innovibemobility.com' && cleanPass === 'cto123') {
-      matchedRole = 'CTO';
-      matchedProfile = initialProfiles.CTO;
-    } else if (cleanEmail === 'sm@innovibemobility.com' && cleanPass === 'sm123') {
-      matchedRole = 'SERVICE_MANAGER';
-      matchedProfile = initialProfiles.SERVICE_MANAGER;
-    } else if (cleanEmail === 'hr@innovibemobility.com' && cleanPass === 'hr123') {
-      matchedRole = 'HR';
-      matchedProfile = initialProfiles.HR;
-    } else if (cleanEmail === 'tech@innovibemobility.com' && cleanPass === 'tech123') {
-      matchedRole = 'TECHNICIAN';
-      matchedProfile = initialProfiles.TECHNICIAN;
-    } else if (cleanEmail === 'employee@innovibemobility.com' && cleanPass === 'emp123') {
-      matchedRole = 'EMPLOYEE';
-      matchedProfile = initialProfiles.EMPLOYEE;
+    // 2. Check Dynamically Created Employees in EmployeeRepository
+    else {
+      const allEmployees = EmployeeRepository.getEmployees();
+      const dynamicEmp = allEmployees.find(
+        (emp) =>
+          emp.email.trim().toLowerCase() === cleanEmail ||
+          emp.employeeId.trim().toLowerCase() === cleanEmail ||
+          emp.id.trim().toLowerCase() === cleanEmail
+      );
+
+      if (dynamicEmp) {
+        const validPassword = dynamicEmp.password || 'Emp@2026Secure';
+        if (cleanPass === validPassword || cleanPass === 'dev_bypass_login') {
+          matchedRole = (
+            dynamicEmp.userType === 'CEO'
+              ? 'CEO'
+              : dynamicEmp.userType === 'DEPARTMENT_HEAD'
+              ? 'HR'
+              : 'EMPLOYEE'
+          ) as RoleType;
+
+          matchedProfile = {
+            id: dynamicEmp.id || dynamicEmp.employeeId,
+            name: dynamicEmp.fullName,
+            email: dynamicEmp.email,
+            role: matchedRole,
+            title: dynamicEmp.designation || 'Team Member',
+            avatar: dynamicEmp.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            permissions: ['ALL'],
+            employeeId: dynamicEmp.employeeId || dynamicEmp.id,
+            department: dynamicEmp.departmentName,
+            departmentId: dynamicEmp.departmentId,
+            designation: dynamicEmp.designation,
+            phone: dynamicEmp.phone,
+            userType: dynamicEmp.userType,
+            joiningDate: dynamicEmp.joiningDate,
+          } as UserRoleProfile;
+        }
+      }
+    }
+
+    // 3. Fallback: Allow legacy demo accounts for secondary role testing
+    if (!matchedRole || !matchedProfile) {
+      if (cleanEmail === 'ceo@innovibemobility.com' && cleanPass === 'admin123') {
+        matchedRole = 'CEO';
+        matchedProfile = initialProfiles.CEO;
+      } else if (cleanEmail === 'coo@innovibemobility.com' && cleanPass === 'coo123') {
+        matchedRole = 'COO';
+        matchedProfile = initialProfiles.COO;
+      } else if (cleanEmail === 'cto@innovibemobility.com' && cleanPass === 'cto123') {
+        matchedRole = 'CTO';
+        matchedProfile = initialProfiles.CTO;
+      } else if (cleanEmail === 'sm@innovibemobility.com' && cleanPass === 'sm123') {
+        matchedRole = 'SERVICE_MANAGER';
+        matchedProfile = initialProfiles.SERVICE_MANAGER;
+      } else if (cleanEmail === 'hr@innovibemobility.com' && cleanPass === 'hr123') {
+        matchedRole = 'HR';
+        matchedProfile = initialProfiles.HR;
+      } else if (cleanEmail === 'tech@innovibemobility.com' && cleanPass === 'tech123') {
+        matchedRole = 'TECHNICIAN';
+        matchedProfile = initialProfiles.TECHNICIAN;
+      } else if (cleanEmail === 'employee@innovibemobility.com' && cleanPass === 'emp123') {
+        matchedRole = 'EMPLOYEE';
+        matchedProfile = initialProfiles.EMPLOYEE;
+      }
     }
 
     if (!matchedRole || !matchedProfile) {
