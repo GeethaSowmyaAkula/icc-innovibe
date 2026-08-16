@@ -4,8 +4,50 @@
  */
 
 import { WorkSession, SubmitWorkReportPayload, LogoutFilterParams, LogoutKpis } from './logout-models';
+import { NotificationRepository } from './notification-repository';
 
-const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V2';
+const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V4';
+
+function formatIstTime(d: Date = new Date()): string {
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const istDate = new Date(utc + 5.5 * 3600000);
+  let hours = istDate.getHours();
+  const minutes = istDate.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+  return `${hours.toString().padStart(2, '0')}:${strMinutes} ${ampm}`;
+}
+
+function formatIstDate(d: Date = new Date()): string {
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const istDate = new Date(utc + 5.5 * 3600000);
+  return istDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function parseTimeToMs(timeStr?: string, dateStr?: string): number | undefined {
+  if (!timeStr) return undefined;
+  try {
+    const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+    if (!match) return undefined;
+    let hours = parseInt(match[1], 10);
+    const mins = parseInt(match[2], 10);
+    const period = match[3] ? match[3].toLowerCase() : null;
+
+    if (period === 'pm' && hours < 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+
+    const baseDate = dateStr ? new Date(dateStr) : new Date();
+    if (isNaN(baseDate.getTime())) return undefined;
+
+    const resultDate = new Date(baseDate);
+    resultDate.setHours(hours, mins, 0, 0);
+    return resultDate.getTime();
+  } catch (e) {
+    return undefined;
+  }
+}
 
 const seedWorkSessions: WorkSession[] = [
   {
@@ -16,14 +58,14 @@ const seedWorkSessions: WorkSession[] = [
     departmentId: 'DEP-1',
     departmentName: 'Technology',
     role: 'Information Technology Intern',
-    loginTime: '10:39 pm',
-    logoutTime: undefined,
+    loginTime: '09:00 am',
+    loginTimestamp: Date.now() - 2 * 3600 * 1000 - 15 * 60 * 1000,
     status: 'ACTIVE',
-    duration: 'Active Shift',
-    date: '13 Aug 2026',
+    duration: 'Active Session',
+    date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
     reportSubmitted: false,
-    createdAt: '13 Aug 2026',
-    updatedAt: '13 Aug 2026',
+    createdAt: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+    updatedAt: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
   },
   {
     id: 'SES-1002',
@@ -33,24 +75,26 @@ const seedWorkSessions: WorkSession[] = [
     departmentId: 'DEP-1',
     departmentName: 'Technology',
     role: 'Information Technology Intern',
-    loginTime: '10:03 am',
-    logoutTime: '11:06 am',
-    status: 'LOGGED_OUT',
-    duration: '1.05 hrs',
-    date: '23 Jul 2026',
+    loginTime: '10:00 am',
+    logoutTime: '11:05 am',
+    loginTimestamp: new Date('2026-08-15T10:00:00').getTime(),
+    logoutTimestamp: new Date('2026-08-15T11:05:00').getTime(),
+    status: 'COMPLETED',
+    duration: '1h 5m',
+    date: '15 Aug 2026',
     reportSubmitted: true,
     workReport: {
-      workSummary: 'No report was sent due to forced logout.',
-      tasksCompleted: ['None reported'],
-      pendingTasks: ['None reported'],
-      challengesBlockers: 'None reported',
-      timeNotes: 'None reported',
-      additionalNotes: 'System-generated report due to user closing browser without logging out.',
-      submittedAt: '11:06 am',
-      logoutMethod: 'FORCE_LOGOUT',
+      workSummary: 'Evaluated Next.js Turbopack build telemetry and verified TMS modules.',
+      tasksCompleted: ['Verified Next.js build compilation', 'Tested role-based permissions'],
+      pendingTasks: ['Complete Employee session history views'],
+      challengesBlockers: 'None experienced.',
+      timeNotes: '1h 5m focused testing.',
+      additionalNotes: 'Session completed cleanly.',
+      submittedAt: '11:05 am',
+      logoutMethod: 'MANUAL_LOGOUT',
     },
-    createdAt: '23 Jul 2026',
-    updatedAt: '23 Jul 2026',
+    createdAt: '15 Aug 2026',
+    updatedAt: '15 Aug 2026',
   },
   {
     id: 'SES-1003',
@@ -60,72 +104,58 @@ const seedWorkSessions: WorkSession[] = [
     departmentId: 'DEP-1',
     departmentName: 'Technology',
     role: 'Information Technology Intern',
-    loginTime: '09:56 am',
-    logoutTime: '09:57 am',
-    status: 'LOGGED_OUT',
-    duration: '0.02 hrs',
-    date: '23 Jul 2026',
+    loginTime: '09:00 am',
+    logoutTime: '05:30 pm',
+    loginTimestamp: new Date('2026-08-14T09:00:00').getTime(),
+    logoutTimestamp: new Date('2026-08-14T17:30:00').getTime(),
+    status: 'COMPLETED',
+    duration: '8h 30m',
+    date: '14 Aug 2026',
     reportSubmitted: true,
     workReport: {
-      workSummary: 'Tested app screens and verified responsive layout for internal tools.',
-      tasksCompleted: ['Updated screens for ICC app', 'Verified login card scaling'],
-      pendingTasks: ['Complete task hub integration'],
-      challengesBlockers: 'None experienced.',
-      timeNotes: 'Logged 1 min shift check.',
-      additionalNotes: 'Session completed cleanly.',
-      submittedAt: '09:57 am',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: '23 Jul 2026',
-    updatedAt: '23 Jul 2026',
-  },
-  {
-    id: 'SES-1004',
-    employeeId: 'EMP-102',
-    employeeName: 'Sri Varun Tej Chavitina',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-1',
-    departmentName: 'Technology',
-    role: 'Information Technology Intern',
-    loginTime: '04:59 pm',
-    logoutTime: '08:51 pm',
-    status: 'LOGGED_OUT',
-    duration: '3.87 hrs',
-    date: '22 Jul 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Refined employee dashboard UI and updated attendance logs.',
-      tasksCompleted: ['Employee dashboard visual alignment', 'Verified Next.js build server compilation'],
-      pendingTasks: ['TMS module migration'],
+      workSummary: 'Implemented Announcements section in CEO DMS and integrated with Employee Dashboard.',
+      tasksCompleted: ['CEO Announcements creation with voice note recorder', 'Employee Announcements feed'],
+      pendingTasks: ['Reports export implementation'],
       challengesBlockers: 'None.',
-      timeNotes: '3.87 hrs focused coding.',
-      additionalNotes: 'All components updated to enterprise design tokens.',
-      submittedAt: '08:51 pm',
+      timeNotes: '8.5 hrs development.',
+      additionalNotes: 'All components tested and passing.',
+      submittedAt: '05:30 pm',
       logoutMethod: 'MANUAL_LOGOUT',
     },
-    createdAt: '22 Jul 2026',
-    updatedAt: '22 Jul 2026',
+    createdAt: '14 Aug 2026',
+    updatedAt: '14 Aug 2026',
   },
 ];
 
 export const EVENT_LOGOUT_UPDATED = 'innovibe:logout_updated';
-import { NotificationRepository } from './notification-repository';
 
 export class LogoutRepository {
   private static loadFromStorage(): WorkSession[] {
     if (typeof window === 'undefined') return seedWorkSessions;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw || raw.trim() === '' || raw === 'undefined' || raw === 'null') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seedWorkSessions));
-        return seedWorkSessions;
+      let sessions: WorkSession[] = seedWorkSessions;
+      if (raw && raw.trim() !== '' && raw !== 'undefined' && raw !== 'null') {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          sessions = parsed;
+        }
       }
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seedWorkSessions));
-        return seedWorkSessions;
-      }
-      return parsed;
+
+      // Re-verify and fix durations for all completed sessions
+      sessions.forEach((s) => {
+        if ((s.status === 'COMPLETED' || s.status === 'LOGGED_OUT') && s.loginTime && s.logoutTime) {
+          s.duration = LogoutRepository.calculateDuration(
+            s.loginTimestamp,
+            s.logoutTimestamp,
+            s.loginTime,
+            s.logoutTime,
+            s.date
+          );
+        }
+      });
+
+      return sessions;
     } catch (e) {
       console.error('Failed to read work sessions from localStorage, re-seeding:', e);
       try {
@@ -215,14 +245,38 @@ export class LogoutRepository {
     return list.find((s) => (s.employeeId === employeeId || s.employeeId === 'EMP-102') && s.status === 'ACTIVE') || null;
   }
 
-  static calculateDuration(loginMs?: number, logoutMs?: number): string {
-    if (!loginMs) return '8.0 hrs';
-    const endMs = logoutMs || Date.now();
-    const diffMs = Math.max(0, endMs - loginMs);
+  static calculateDuration(
+    loginMs?: number,
+    logoutMs?: number,
+    loginTimeStr?: string,
+    logoutTimeStr?: string,
+    dateStr?: string
+  ): string {
+    let startMs = loginMs;
+    let endMs = logoutMs || Date.now();
+
+    if (!startMs && loginTimeStr) {
+      startMs = parseTimeToMs(loginTimeStr, dateStr);
+    }
+
+    if (!logoutMs && logoutTimeStr) {
+      const parsedEnd = parseTimeToMs(logoutTimeStr, dateStr);
+      if (parsedEnd) endMs = parsedEnd;
+    }
+
+    if (!startMs) return '0m';
+
+    // Handle overnight shifts (e.g. 10:39 PM to 11:29 AM next day)
+    if (endMs < startMs) {
+      endMs += 24 * 3600 * 1000;
+    }
+
+    const diffMs = Math.max(0, endMs - startMs);
     const totalMins = Math.floor(diffMs / (1000 * 60));
     const hours = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
-    if (hours === 0 && mins === 0) return '1m';
+
+    if (hours === 0 && mins === 0) return '0m';
     if (hours === 0) return `${mins}m`;
     if (mins === 0) return `${hours}h`;
     return `${hours}h ${mins}m`;
@@ -261,8 +315,8 @@ export class LogoutRepository {
     });
 
     const newId = `SES-${Math.floor(100000 + Math.random() * 900000)}`;
-    const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const currentDate = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const currentTime = formatIstTime(now);
+    const currentDate = formatIstDate(now);
 
     const newSession: WorkSession = {
       id: newId,
@@ -301,11 +355,24 @@ export class LogoutRepository {
 
     const now = new Date();
     const nowMs = now.getTime();
-    const logoutTimeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const currentDate = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const logoutTimeStr = formatIstTime(now);
+    const currentDate = formatIstDate(now);
 
-    const loginMs = list[idx].loginTimestamp || (nowMs - 8 * 3600 * 1000);
-    const computedDuration = this.calculateDuration(loginMs, nowMs);
+    let loginMs = list[idx].loginTimestamp;
+    if (!loginMs && list[idx].loginTime) {
+      loginMs = parseTimeToMs(list[idx].loginTime, list[idx].date);
+    }
+    if (!loginMs) {
+      loginMs = nowMs;
+    }
+
+    const computedDuration = this.calculateDuration(
+      loginMs,
+      nowMs,
+      list[idx].loginTime,
+      logoutTimeStr,
+      list[idx].date
+    );
 
     const updated: WorkSession = {
       ...list[idx],

@@ -1358,7 +1358,7 @@ function EmployeeDashboardContent() {
                     type="button"
                     onClick={() => {
                       if (isClockedIn) {
-                        setIsLogoutReportModalOpen(true);
+                        setIsLogoutModalOpen(true);
                       } else {
                         setIsClockedIn(true);
                       }
@@ -1372,7 +1372,7 @@ function EmployeeDashboardContent() {
                   {/* Button 2: Submit Logout Report */}
                   <button
                     type="button"
-                    onClick={() => setIsLogoutReportModalOpen(true)}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-600 hover:to-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-between transition cursor-pointer"
                   >
                     <span>Submit Logout Report</span>
@@ -1769,7 +1769,7 @@ function EmployeeDashboardContent() {
                   {/* Row 1, Col 2: Check Out */}
                   <button
                     type="button"
-                    onClick={() => setIsLogoutReportModalOpen(true)}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="p-3 rounded-2xl bg-slate-50 hover:bg-rose-50 hover:border-rose-200 border border-slate-200/80 transition flex flex-col items-center justify-center text-center group cursor-pointer"
                   >
                     <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
@@ -1781,7 +1781,7 @@ function EmployeeDashboardContent() {
                   {/* Row 1, Col 3: Logout Report */}
                   <button
                     type="button"
-                    onClick={() => setIsLogoutReportModalOpen(true)}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:border-blue-200 border border-slate-200/80 transition flex flex-col items-center justify-center text-center group cursor-pointer"
                   >
                     <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
@@ -1879,7 +1879,7 @@ function EmployeeDashboardContent() {
               <span className="font-mono font-bold text-[#0F172A]">{workingDuration}</span>
             </div>
             <button
-              onClick={() => setIsLogoutReportModalOpen(true)}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
             >
               Logout Report
@@ -4142,87 +4142,22 @@ function EmployeeDashboardContent() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: SUBMIT LOGOUT REPORT */}
-      {/* ========================================================================= */}
+      {/* MODAL 2: SUBMIT LOGOUT REPORT DELEGATE */}
       {isLogoutReportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 border border-slate-200 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-50 rounded-xl text-blue-600 border border-blue-100">
-                  <ClipboardCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-[#0F172A]">End-of-Day Logout Report</h3>
-                  <p className="text-[11px] text-slate-500">Auto-collected on shift checkout — fill & submit to clock out</p>
-                </div>
-              </div>
-              <button onClick={() => setIsLogoutReportModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {logoutReportSuccess ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <span>Logout report submitted! Shift closed and recorded.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitLogoutReport} className="space-y-3.5 text-xs">
-                <div>
-                  <label className="font-bold text-[#0F172A] block mb-1">Today's Completed Work *</label>
-                  <textarea
-                    rows={3}
-                    value={logoutWorkDone}
-                    onChange={(e) => setLogoutWorkDone(e.target.value)}
-                    placeholder="List all key deliverables and tasks completed today..."
-                    required
-                    className="w-full p-2.5 border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB] resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-[#0F172A] block mb-1">Issues / Blockers Encountered</label>
-                  <input
-                    type="text"
-                    value={logoutBlockers}
-                    onChange={(e) => setLogoutBlockers(e.target.value)}
-                    placeholder="e.g. Awaiting spare parts from supplier (or None)"
-                    className="w-full p-2.5 border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-[#0F172A] block mb-1">Tomorrow's Priorities</label>
-                  <input
-                    type="text"
-                    value={logoutTomorrowPlan}
-                    onChange={(e) => setLogoutTomorrowPlan(e.target.value)}
-                    placeholder="Key items planned for next shift..."
-                    className="w-full p-2.5 border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsLogoutReportModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#475569] rounded-xl font-bold transition cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition cursor-pointer shadow-xs flex items-center gap-2"
-                  >
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Submit EOD & Clock Out</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
+        <DailyWorkReportModal
+          isOpen={true}
+          sessionId={activeSession?.id || 'SES-1005'}
+          employeeId={activeEmpId}
+          onClose={() => {
+            setIsLogoutReportModalOpen(false);
+            setIsLogoutModalOpen(false);
+          }}
+          onSubmitted={() => {
+            setIsLogoutReportModalOpen(false);
+            setActiveSession(null);
+            setIsClockedIn(false);
+          }}
+        />
       )}
 
       {/* ========================================================================= */}

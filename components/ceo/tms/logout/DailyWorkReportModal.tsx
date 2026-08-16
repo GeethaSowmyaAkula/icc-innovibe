@@ -23,6 +23,7 @@ export function DailyWorkReportModal({ isOpen, sessionId, employeeId, onClose, o
   const [attachments, setAttachments] = useState<ReportAttachment[]>([]);
   const [availableTasks, setAvailableTasks] = useState<Array<{ id: string; title: string; status: string }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccessAnimating, setIsSuccessAnimating] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,6 +66,7 @@ export function DailyWorkReportModal({ isOpen, sessionId, employeeId, onClose, o
     }
 
     setIsSubmitting(true);
+    setIsSuccessAnimating(true);
 
     const tasksCompleted = tasksCompletedRaw
       .split('\n')
@@ -88,21 +90,55 @@ export function DailyWorkReportModal({ isOpen, sessionId, employeeId, onClose, o
       logoutMethod: 'MANUAL_LOGOUT',
     };
 
+    // Save report via Service
     await LogoutService.submitReport(payload);
-    setIsSubmitting(false);
     onSubmitted();
-    onClose();
 
-    // Clear auth session and redirect
-    AuthService.logout();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login';
-    }
+    // Trigger smooth 2.2-second submission animation before redirecting
+    setTimeout(() => {
+      AuthService.logout();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    }, 2200);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 lg:p-6 overflow-y-auto animate-in fade-in duration-200 font-sans">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl text-left space-y-6 text-slate-100">
+    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 lg:p-6 overflow-y-auto animate-in fade-in duration-200 font-sans">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl text-left space-y-6 text-slate-100 relative overflow-hidden">
+        
+        {/* SUBMISSION SUCCESS ANIMATION OVERLAY */}
+        {isSuccessAnimating && (
+          <div className="absolute inset-0 z-20 bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center space-y-5 animate-in zoom-in-95 fade-in duration-300">
+            <div className="relative flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/40 animate-ping absolute" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 z-10">
+                <CheckCircle2 className="w-9 h-9 stroke-[2.5]" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-sm">
+              <h3 className="font-gotham text-xl font-black text-white tracking-tight">
+                Work Report Submitted!
+              </h3>
+              <p className="text-xs text-emerald-400 font-bold">
+                Shift Checked Out & Recorded in IST Telemetry
+              </p>
+              <p className="text-[11px] text-slate-400 font-medium pt-1">
+                Your login & logout times, duration, and report have been delivered to the CEO TMS Logout Reports module.
+              </p>
+            </div>
+
+            {/* Animated Loading Bar */}
+            <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+              <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full animate-[pulse_1s_infinite] w-full transition-all duration-1000" />
+            </div>
+
+            <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+              Logging Out & Syncing Session...
+            </span>
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
