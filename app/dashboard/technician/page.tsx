@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useRole } from '../../../components/RoleContext';
-import { crossDashboardStore, LiveSpareRequest } from '../../../lib/cross-dashboard-store';
+import { ApiGateway } from '../../../lib/api-client';
 
 function TechnicianPortalContent() {
   const { currentProfile } = useRole();
@@ -56,6 +56,66 @@ function TechnicianPortalContent() {
   useEffect(() => {
     setActiveTab(activeTabParam);
   }, [activeTabParam]);
+
+  // Sync assigned jobs from FastAPI backend every 5 seconds
+  useEffect(() => {
+    const fetchLiveJobs = async () => {
+      const liveJobs = await ApiGateway.getTechnicianJobs('tech_1');
+      if (liveJobs && liveJobs.length > 0) {
+        setJobCardsList((prev) => {
+          const existingIds = new Set(prev.map((j) => j.id || j.ticketId));
+          const newFormattedJobs = liveJobs
+            .filter((j) => !existingIds.has(j.id) && !existingIds.has(j.ticketNumber))
+            .map((j) => ({
+              id: j.ticketNumber || j.id,
+              ticketId: j.id,
+              customerName: j.customerName || 'Customer',
+              customerContact: j.customerPhone || '+91 9000000000',
+              customerEmail: 'customer@innovibemobility.com',
+              vehicleModel: 'Ather 450X Apex',
+              vehicleReg: 'AP39AB1234',
+              vin: 'AT45XAP98239012389',
+              odometer: 12500,
+              complaintDesc: j.serviceType || 'Periodic Maintenance Diagnostic',
+              priority: j.priority || 'High',
+              assignedTech: 'Rahul Sharma',
+              assignedHub: 'Kakinada Main Hub',
+              scheduledTime: new Date().toISOString(),
+              startedTime: '',
+              completedTime: '',
+              estDuration: '60 mins',
+              actDuration: '45 mins',
+              status: j.status === 'TECHNICIAN_ASSIGNED' ? 'Assigned' : j.status,
+              vehicleBrand: 'Ather',
+              complaintHistory: [],
+              aiDiagnosis: 'BMS Diagnostic Check Completed',
+              techNotes: '',
+              repairsPerformed: '',
+              sparesUsed: [],
+              consumablesUsed: [],
+              checklist: [
+                { task: 'Inspect battery casing for physical damage or swelling', checked: false },
+                { task: 'Check connector pins for corrosion or carbon buildup', checked: false },
+              ],
+              photosBefore: [],
+              photosAfter: [],
+              customerSignature: '',
+              techSignature: '',
+              qaApproval: { approved: false, inspector: 'QA Inspector', timestamp: '' },
+              warrantyInfo: 'Standard Warranty',
+              finalSummary: 'Pending Service Inspection',
+              feedback: { rating: 0, review: '' },
+            }));
+
+          return [...newFormattedJobs, ...prev];
+        });
+      }
+    };
+
+    fetchLiveJobs();
+    const interval = setInterval(fetchLiveJobs, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleTabChange = (tabId: string) => {
     router.push(`/dashboard/technician?view=${tabId}`);
@@ -90,17 +150,12 @@ function TechnicianPortalContent() {
     { id: '8', label: 'Road test throttle response & regenerative braking', checked: false, category: 'Test' },
   ]);
 
-  // Live Spare Parts Requests connected to CrossDashboardStore
-  const [spareRequests, setSpareRequests] = useState<LiveSpareRequest[]>(() => crossDashboardStore.getSpareRequests());
-
-  useEffect(() => {
-    setSpareRequests(crossDashboardStore.getSpareRequests());
-    const unsubscribe = crossDashboardStore.onSparesUpdated((spares) => {
-      setSpareRequests(spares);
-    });
-    return () => unsubscribe();
-  }, []);
-
+  // Spare Parts Requests
+  const [spareRequests, setSpareRequests] = useState([
+    { id: 'REQ-409', part: 'Ather 450X Front Brake Caliper Set', qty: 1, priority: 'HIGH', status: 'APPROVED', date: 'Today, 10:15 AM' },
+    { id: 'REQ-398', part: 'Ola S1 Pro Battery BMS Board v2', qty: 1, priority: 'CRITICAL', status: 'ISSUED', date: '22 Jul 2026' },
+    { id: 'REQ-382', part: 'TVS iQube Throttle Position Sensor', qty: 2, priority: 'MEDIUM', status: 'COMPLETED', date: '15 Jul 2026' },
+  ]);
   const [newPartName, setNewPartName] = useState('');
   const [newPartQty, setNewPartQty] = useState(1);
   const [newPartPriority, setNewPartPriority] = useState('HIGH');
@@ -440,18 +495,18 @@ function TechnicianPortalContent() {
       showToast('Please specify spare part name', 'warning');
       return;
     }
-    const created = crossDashboardStore.addSpareRequest({
+    const newReq = {
+      id: `REQ-${Math.floor(Math.random() * 500) + 400}`,
       part: newPartName,
       qty: newPartQty,
-      priority: newPartPriority as any,
-      technicianName: currentProfile?.name || 'Rahul Sharma (Senior EV Tech)',
-      jobId: activeJobId || 'BK-2026-0001',
-      vehicleModel: 'Ather 450X Apex',
-      depotLocation: 'Bengaluru Central Hub',
-    });
+      priority: newPartPriority,
+      status: 'PENDING',
+      date: 'Just now',
+    };
+    setSpareRequests([newReq, ...spareRequests]);
     setNewPartName('');
     setNewPartQty(1);
-    showToast(`Requisition ${created.id} submitted! Synced live to COO Procurement Queue.`, 'success');
+    showToast(`Requested ${newPartQty}x ${newPartName} successfully.`, 'success');
   };
 
   const handleAddLeave = (e: React.FormEvent) => {

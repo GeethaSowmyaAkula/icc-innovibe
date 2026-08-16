@@ -42,7 +42,6 @@ export function Navbar() {
     if (pathname.startsWith('/dashboard/coo')) return 'COO';
     if (pathname.startsWith('/dashboard/service-manager')) return 'SERVICE_MANAGER';
     if (pathname.startsWith('/dashboard/technician')) return 'TECHNICIAN';
-    if (pathname.startsWith('/dashboard/employee')) return 'EMPLOYEE';
     if (pathname.startsWith('/dashboard/ceo')) return 'CEO';
     return activeRole;
   };
@@ -50,10 +49,6 @@ export function Navbar() {
   const effectiveRole = getEffectiveRole();
 
   const handleLogout = () => {
-    if (effectiveRole === 'EMPLOYEE' || pathname.includes('/dashboard/employee')) {
-      window.dispatchEvent(new CustomEvent('innovibe:open_logout_modal'));
-      return;
-    }
     logout();
     router.push('/auth/login');
   };
@@ -194,7 +189,7 @@ export function Navbar() {
       {/* Left Branding & Role Indicator */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="flex items-center gap-1.5 group">
-          <img src="/logo.jpeg" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
+          <img src="/innovibe-official-logo.png" alt="InnoVibe Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-gotham font-black text-lg tracking-tight text-slate-900 leading-none">INNOVIBE</span>
@@ -209,8 +204,8 @@ export function Navbar() {
         <div className="h-5 w-px bg-slate-200 mx-1 hidden md:block" />
 
         {/* Active Designation Badge */}
-        <div className="hidden lg:flex items-center gap-2">
-          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`}>
+        <div className="hidden lg:flex items-center gap-2" suppressHydrationWarning>
+          <span className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${roleLabels[effectiveRole]?.badgeColor || roleLabels.CEO.badgeColor} flex items-center gap-1.5 shadow-xs`} suppressHydrationWarning>
             <Sparkles className="h-3.5 w-3.5" />
             {roleLabels[effectiveRole]?.title || roleLabels.CEO.title}
           </span>
@@ -222,7 +217,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Center Search Bar with Dropdown */}
       {/* Center Search Bar with Dropdown */}
       <div className="relative hidden md:block z-[60]">
         <form 
@@ -236,7 +230,6 @@ export function Navbar() {
           <Search className="h-4 w-4 text-slate-400 shrink-0" />
           <input
             type="text"
-            suppressHydrationWarning
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchFocused(true)}
@@ -335,8 +328,6 @@ export function Navbar() {
 
         {/* Notifications Bell */}
         <button
-          type="button"
-          suppressHydrationWarning
           onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
           className={`relative p-2 rounded-xl transition-all cursor-pointer ${isNotificationsOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-indigo-600 hover:bg-indigo-50'}`}
           title="Notifications"
@@ -406,7 +397,9 @@ export function Navbar() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-500">All caught up!</p>
-                    <p className="text-xs text-slate-400 mt-1">No notifications for {roleLabels[activeRole]?.title || activeRole}</p>
+                    <p className="text-xs text-slate-400 mt-1" suppressHydrationWarning>
+                      No notifications for {roleLabels[effectiveRole]?.title || effectiveRole}
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -479,6 +472,7 @@ export function Navbar() {
         </>
 
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+        <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
         {/* User Profile & Logout */}
         <div className="flex items-center gap-3 pl-1" suppressHydrationWarning>
@@ -495,8 +489,6 @@ export function Navbar() {
         </div>
 
         <button
-          type="button"
-          suppressHydrationWarning
           onClick={handleLogout}
           title="Log Out"
           className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 transition-all ml-1"

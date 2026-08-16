@@ -25,6 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       CTO: '/dashboard/cto',
       SERVICE_MANAGER: '/dashboard/service-manager',
       HR: '/dashboard/hr',
+      EMPLOYEE: '/dashboard/employee',
     };
 
     // If not Super Admin (CEO), prevent accessing CEO dashboard or Role & Access Control Matrix

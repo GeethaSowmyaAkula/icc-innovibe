@@ -23,6 +23,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 function getInitialRole(): RoleType {
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
+    if (path.includes('/dashboard/employee')) return 'EMPLOYEE';
     if (path.includes('/dashboard/hr')) return 'HR';
     if (path.includes('/dashboard/cto')) return 'CTO';
     if (path.includes('/dashboard/coo')) return 'COO';
@@ -50,11 +51,14 @@ function getInitialProfile(role: RoleType): UserRoleProfile {
 }
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [activeRole, setActiveRoleState] = useState<RoleType>('CEO');
+  const [activeRole, setActiveRoleState] = useState<RoleType>(getInitialRole);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [profiles, setProfiles] = useState(initialProfiles);
   const [roleConfigs, setRoleConfigs] = useState(defaultRoleConfigs);
-  const [currentProfileState, setCurrentProfileState] = useState<UserRoleProfile>(initialProfiles.CEO);
+  const [currentProfileState, setCurrentProfileState] = useState<UserRoleProfile>(() => {
+    const role = getInitialRole();
+    return getInitialProfile(role);
+  });
 
   // Restore Session on Client Mount
   useEffect(() => {
@@ -64,7 +68,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
       let detectedRole: RoleType | null = null;
-      if (path.includes('/dashboard/hr')) detectedRole = 'HR';
+      if (path.includes('/dashboard/employee')) detectedRole = 'EMPLOYEE';
+      else if (path.includes('/dashboard/hr')) detectedRole = 'HR';
       else if (path.includes('/dashboard/cto')) detectedRole = 'CTO';
       else if (path.includes('/dashboard/coo')) detectedRole = 'COO';
       else if (path.includes('/dashboard/service-manager')) detectedRole = 'SERVICE_MANAGER';

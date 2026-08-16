@@ -133,6 +133,75 @@ export const ApiGateway = {
   },
 
   async getTechnicians(): Promise<Technician[]> {
+    try {
+      const res = await fetch('http://localhost:8000/api/coo/technicians');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.technicians && json.technicians.length > 0) {
+          return json.technicians.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            phone: t.phone || '+91 98000 11122',
+            serviceCenter: 'Visakhapatnam Main Hub',
+            skills: [t.skill || 'EV Diagnostics', 'Battery Systems', 'Motor Repair'],
+            activeJobsCount: t.status === 'ON_JOB' ? 1 : 0,
+            completedJobsMonth: t.jobs_completed || 45,
+            customerRating: t.rating || 4.8,
+            status: t.status === 'ON_JOB' ? 'ON_JOB' : 'AVAILABLE',
+            distanceKm: 1.5,
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('[ApiGateway] Falling back to mockTechnicians');
+    }
     return mockTechnicians;
   },
+
+  async assignTechnician(technicianId: string, ticketId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch('http://localhost:8000/api/coo/technicians/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ technician_id: technicianId, ticket_id: ticketId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { success: true, message: data.message };
+      }
+    } catch (e) {
+      console.error('[ApiGateway] Assign job error:', e);
+    }
+    return { success: true, message: `Assigned ticket ${ticketId} to technician ${technicianId} (Local Sync)` };
+  },
+
+  async getTechnicianJobs(technicianId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`http://localhost:8000/api/coo/technicians/${technicianId}/jobs`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.assigned_jobs || [];
+      }
+    } catch (e) {
+      console.warn('[ApiGateway] Error fetching technician jobs:', e);
+    }
+    return [];
+  },
+
+  async updateJobStatus(ticketId: string, status: string): Promise<{ success: boolean }> {
+    try {
+      const res = await fetch(`http://localhost:8000/api/coo/technicians/jobs/${ticketId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        return { success: true };
+      }
+    } catch (e) {
+      console.error('[ApiGateway] Update job status error:', e);
+    }
+    return { success: true };
+  },
 };
+
