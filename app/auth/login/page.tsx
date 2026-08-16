@@ -118,14 +118,6 @@ export default function LoginPage() {
       icon: User,
       iconBgClass: 'bg-blue-100 text-blue-600',
     },
-    {
-      role: 'EMPLOYEE' as RoleType,
-      label: 'Employee',
-      email: 'employee@innovibemobility.com',
-      pass: 'emp123',
-      badge: 'Tasks & Timesheets',
-      badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-    },
   ];
 
   const currentPortal = portals.find((p) => p.role === selectedRole) || portals[0];
