@@ -10,6 +10,8 @@ import {
   AttendanceProfileDetails,
   ExportJob,
 } from './attendance-models';
+import { LogoutRepository } from './logout-repository';
+import { WorkSession } from './logout-models';
 
 const mockAttendanceRecords: AttendanceRecord[] = [
   {
@@ -272,7 +274,40 @@ export class AttendanceService {
    * Fetch attendance records with multi-dimensional filtering
    */
   static async getAttendanceRecords(filters?: AttendanceFilterParams): Promise<AttendanceRecord[]> {
-    let result = getStoredAttendanceRecords();
+    let list = getStoredAttendanceRecords();
+
+    try {
+      const liveSessions = await LogoutRepository.getWorkSessions();
+      liveSessions.forEach((sess: WorkSession) => {
+        const idx = list.findIndex((r) => r.employeeId === sess.employeeId || r.employeeName.includes(sess.employeeName));
+        if (idx !== -1) {
+          list[idx].status = sess.status === 'ACTIVE' ? 'PRESENT' : sess.status === 'COMPLETED' ? 'PRESENT' : list[idx].status;
+          list[idx].firstCheckIn = sess.loginTime || list[idx].firstCheckIn;
+          if (sess.logoutTime && sess.logoutTime !== '--') {
+            list[idx].lastCheckOut = sess.logoutTime;
+          }
+        } else {
+          list.unshift({
+            id: `ATT-${sess.id}`,
+            employeeId: sess.employeeId,
+            employeeName: sess.employeeName,
+            avatar: sess.avatar,
+            role: sess.role,
+            department: sess.departmentName,
+            status: 'PRESENT',
+            firstCheckIn: sess.loginTime,
+            lastCheckOut: sess.logoutTime || '--:--',
+            totalWorkingHours: 8.0,
+            attendancePercentage: 100,
+            date: sess.date,
+            shiftName: 'General Shift (09:00 AM - 06:00 PM)',
+            sessions: [],
+          });
+        }
+      });
+    } catch (e) {}
+
+    let result = [...list];
 
     if (!filters) return result;
 

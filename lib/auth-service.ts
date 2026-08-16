@@ -206,6 +206,22 @@ export const AuthService = {
       localStorage.setItem('icc_profile', JSON.stringify(matchedProfile));
     }
 
+    // Automatically record active work session in Supabase & repository
+    try {
+      const { LogoutService } = await import('./logout-service');
+      const empId = matchedProfile.employeeId || matchedProfile.id || 'EMP-102';
+      await LogoutService.startSession(
+        empId,
+        matchedProfile.name,
+        matchedProfile.avatar || '',
+        matchedProfile.departmentId || 'DEP-1',
+        matchedProfile.department || 'Technology',
+        matchedProfile.title || 'Staff Member'
+      );
+    } catch (e) {
+      console.warn('Start session notification error:', e);
+    }
+
     return {
       success: true,
       profile: matchedProfile,

@@ -1,14 +1,15 @@
 /**
- * Task Management System (TMS) - Logout Reports Repository & Browser Storage Persistence Layer
- * Implements local persistence using browser localStorage with work session seed data.
+ * Task Management System (TMS) - Logout Reports Repository & Supabase Backend Layer
+ * Implements persistent work sessions and mandatory End-of-Day (EOD) logout reports.
  */
 
 import { WorkSession, SubmitWorkReportPayload, LogoutFilterParams, LogoutKpis } from './logout-models';
 import { NotificationRepository } from './notification-repository';
+import { supabase } from './supabase';
 
-const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V4';
+const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V5';
 
-function formatIstTime(d: Date = new Date()): string {
+export function formatIstTime(d: Date = new Date()): string {
   const utc = d.getTime() + d.getTimezoneOffset() * 60000;
   const istDate = new Date(utc + 5.5 * 3600000);
   let hours = istDate.getHours();
@@ -20,7 +21,7 @@ function formatIstTime(d: Date = new Date()): string {
   return `${hours.toString().padStart(2, '0')}:${strMinutes} ${ampm}`;
 }
 
-function formatIstDate(d: Date = new Date()): string {
+export function formatIstDate(d: Date = new Date()): string {
   const utc = d.getTime() + d.getTimezoneOffset() * 60000;
   const istDate = new Date(utc + 5.5 * 3600000);
   return istDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -58,14 +59,14 @@ const seedWorkSessions: WorkSession[] = [
     departmentId: 'DEP-1',
     departmentName: 'Technology',
     role: 'Information Technology Intern',
-    loginTime: '09:00 am',
+    loginTime: '09:00 AM',
     loginTimestamp: Date.now() - 2 * 3600 * 1000 - 15 * 60 * 1000,
     status: 'ACTIVE',
     duration: 'Active Session',
-    date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+    date: formatIstDate(new Date()),
     reportSubmitted: false,
-    createdAt: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
-    updatedAt: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+    createdAt: formatIstDate(new Date()),
+    updatedAt: formatIstDate(new Date()),
   },
   {
     id: 'SES-1002',
@@ -75,8 +76,8 @@ const seedWorkSessions: WorkSession[] = [
     departmentId: 'DEP-1',
     departmentName: 'Technology',
     role: 'Information Technology Intern',
-    loginTime: '10:00 am',
-    logoutTime: '11:05 am',
+    loginTime: '10:00 AM',
+    logoutTime: '11:05 AM',
     loginTimestamp: new Date('2026-08-15T10:00:00').getTime(),
     logoutTimestamp: new Date('2026-08-15T11:05:00').getTime(),
     status: 'COMPLETED',
@@ -90,40 +91,11 @@ const seedWorkSessions: WorkSession[] = [
       challengesBlockers: 'None experienced.',
       timeNotes: '1h 5m focused testing.',
       additionalNotes: 'Session completed cleanly.',
-      submittedAt: '11:05 am',
+      submittedAt: '11:05 AM',
       logoutMethod: 'MANUAL_LOGOUT',
     },
     createdAt: '15 Aug 2026',
     updatedAt: '15 Aug 2026',
-  },
-  {
-    id: 'SES-1003',
-    employeeId: 'EMP-102',
-    employeeName: 'Sri Varun Tej Chavitina',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-1',
-    departmentName: 'Technology',
-    role: 'Information Technology Intern',
-    loginTime: '09:00 am',
-    logoutTime: '05:30 pm',
-    loginTimestamp: new Date('2026-08-14T09:00:00').getTime(),
-    logoutTimestamp: new Date('2026-08-14T17:30:00').getTime(),
-    status: 'COMPLETED',
-    duration: '8h 30m',
-    date: '14 Aug 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Implemented Announcements section in CEO DMS and integrated with Employee Dashboard.',
-      tasksCompleted: ['CEO Announcements creation with voice note recorder', 'Employee Announcements feed'],
-      pendingTasks: ['Reports export implementation'],
-      challengesBlockers: 'None.',
-      timeNotes: '8.5 hrs development.',
-      additionalNotes: 'All components tested and passing.',
-      submittedAt: '05:30 pm',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: '14 Aug 2026',
-    updatedAt: '14 Aug 2026',
   },
 ];
 
@@ -142,7 +114,6 @@ export class LogoutRepository {
         }
       }
 
-      // Re-verify and fix durations for all completed sessions
       sessions.forEach((s) => {
         if ((s.status === 'COMPLETED' || s.status === 'LOGGED_OUT') && s.loginTime && s.logoutTime) {
           s.duration = LogoutRepository.calculateDuration(
@@ -157,10 +128,7 @@ export class LogoutRepository {
 
       return sessions;
     } catch (e) {
-      console.error('Failed to read work sessions from localStorage, re-seeding:', e);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seedWorkSessions));
-      } catch (err) {}
+      console.error('Failed to read work sessions from localStorage:', e);
       return seedWorkSessions;
     }
   }
@@ -178,7 +146,7 @@ export class LogoutRepository {
   static onLogoutUpdated(callback: (sessions: WorkSession[]) => void): () => void {
     if (typeof window === 'undefined') return () => {};
     const handler = () => {
-      callback(LogoutRepository.getWorkSessions());
+      LogoutRepository.getWorkSessions().then((data) => callback(data));
     };
     window.addEventListener(EVENT_LOGOUT_UPDATED, handler);
     window.addEventListener('storage', handler);
@@ -188,8 +156,64 @@ export class LogoutRepository {
     };
   }
 
-  static getWorkSessions(filters?: LogoutFilterParams): WorkSession[] {
+  static async getWorkSessions(filters?: LogoutFilterParams): Promise<WorkSession[]> {
     let list = this.loadFromStorage();
+
+    // Supabase query attempt with 2.5s timeout fallback
+    try {
+      const fetchWithTimeout = Promise.race([
+        supabase
+          .from('work_sessions')
+          .select(`*, work_session_reports (*)`)
+          .order('login_timestamp', { ascending: false }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 2500))
+      ]) as Promise<any>;
+
+      const { data: dbSessions, error } = await fetchWithTimeout;
+
+      if (!error && dbSessions && Array.isArray(dbSessions) && dbSessions.length > 0) {
+        const mappedFromDb: WorkSession[] = dbSessions.map((row: any) => {
+          const reportRow = Array.isArray(row.work_session_reports) ? row.work_session_reports[0] : row.work_session_reports || null;
+          return {
+            id: row.id,
+            employeeId: row.employee_id || 'EMP-102',
+            employeeName: row.employee_name || 'Sri Varun Tej Chavitina',
+            avatar: row.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+            departmentId: row.department_id || 'DEP-1',
+            departmentName: row.department_name || 'Technology',
+            role: row.role || 'Information Technology Intern',
+            loginTime: row.login_time,
+            logoutTime: row.logout_time,
+            loginTimestamp: row.login_timestamp ? new Date(row.login_timestamp).getTime() : Date.now(),
+            logoutTimestamp: row.logout_timestamp ? new Date(row.logout_timestamp).getTime() : undefined,
+            status: row.status,
+            duration: row.duration,
+            date: row.date_str,
+            reportSubmitted: row.report_submitted,
+            workReport: reportRow ? {
+              workSummary: reportRow.work_summary,
+              tasksCompleted: reportRow.tasks_completed || [],
+              pendingTasks: reportRow.pending_tasks || [],
+              challengesBlockers: reportRow.challenges_blockers || 'None',
+              timeNotes: reportRow.time_notes || 'Standard hours',
+              additionalNotes: reportRow.additional_notes || undefined,
+              attachments: reportRow.attachments || undefined,
+              submittedAt: row.logout_time || formatIstTime(new Date()),
+              logoutMethod: reportRow.logout_method || 'MANUAL_LOGOUT',
+            } : undefined,
+            createdAt: row.created_at || row.date_str,
+            updatedAt: row.created_at || row.date_str,
+          };
+        });
+
+        // Merge DB records with local seeds ensuring unique IDs
+        const existingIds = new Set(mappedFromDb.map((s) => s.id));
+        const missingLocal = list.filter((s) => !existingIds.has(s.id));
+        list = [...mappedFromDb, ...missingLocal];
+      }
+    } catch (e) {
+      // Instant fallback to local storage
+    }
 
     if (!filters) return list;
 
@@ -214,22 +238,6 @@ export class LogoutRepository {
 
     if (filters.status && filters.status !== 'ALL') {
       list = list.filter((s) => s.status === filters.status);
-    }
-
-    if (filters.startDate) {
-      const sDate = new Date(filters.startDate).getTime();
-      list = list.filter((s) => {
-        const d = new Date(s.date).getTime();
-        return isNaN(d) || d >= sDate;
-      });
-    }
-
-    if (filters.endDate) {
-      const eDate = new Date(filters.endDate).getTime();
-      list = list.filter((s) => {
-        const d = new Date(s.date).getTime();
-        return isNaN(d) || d <= eDate;
-      });
     }
 
     return list;
@@ -266,7 +274,6 @@ export class LogoutRepository {
 
     if (!startMs) return '0m';
 
-    // Handle overnight shifts (e.g. 10:39 PM to 11:29 AM next day)
     if (endMs < startMs) {
       endMs += 24 * 3600 * 1000;
     }
@@ -282,37 +289,23 @@ export class LogoutRepository {
     return `${hours}h ${mins}m`;
   }
 
-  static startWorkSession(
+  static async startWorkSession(
     employeeId: string,
     employeeName: string,
     avatar: string,
     departmentId: string,
     departmentName: string,
     role: string
-  ): WorkSession {
+  ): Promise<WorkSession> {
     const list = this.loadFromStorage();
     const now = new Date();
     const nowMs = now.getTime();
 
-    // 1. Reconcile any existing active sessions for this employee to prevent duplicates
-    list.forEach((s) => {
-      if (s.employeeId === employeeId && s.status === 'ACTIVE') {
-        s.status = 'INTERRUPTED';
-        s.logoutTime = '--';
-        s.duration = 'Interrupted';
-        s.updatedAt = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-        s.workReport = {
-          workSummary: 'Session interrupted due to unexpected tab closure or forced logout.',
-          tasksCompleted: ['None reported'],
-          pendingTasks: ['None reported'],
-          challengesBlockers: 'Browser closed without logging out.',
-          timeNotes: 'Unscheduled session interruption.',
-          additionalNotes: 'System reconciled previous unclosed session on next check-in.',
-          submittedAt: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          logoutMethod: 'SYSTEM_RECONCILED',
-        };
-      }
-    });
+    // Check if an active session already exists for this employee
+    const existingActive = list.find((s) => s.employeeId === employeeId && s.status === 'ACTIVE');
+    if (existingActive) {
+      return existingActive;
+    }
 
     const newId = `SES-${Math.floor(100000 + Math.random() * 900000)}`;
     const currentTime = formatIstTime(now);
@@ -345,22 +338,54 @@ export class LogoutRepository {
       } catch (e) {}
     }
 
+    // Insert to Supabase DB with employee metadata and grab DB session ID
+    try {
+      const { data: dbRes } = await supabase
+        .from('work_sessions')
+        .insert({
+          employee_id: employeeId,
+          employee_name: employeeName,
+          avatar: avatar,
+          department_id: departmentId,
+          department_name: departmentName,
+          role: role,
+          login_time: currentTime,
+          date_str: currentDate,
+          status: 'ACTIVE',
+          duration: 'Active Session',
+          report_submitted: false,
+          login_timestamp: new Date().toISOString(),
+        })
+        .select('id')
+        .maybeSingle();
+
+      if (dbRes?.id) {
+        newSession.id = dbRes.id;
+      }
+    } catch (e) {
+      console.warn('Could not insert session to Supabase:', e);
+    }
+
     return newSession;
   }
 
-  static endWorkSession(payload: SubmitWorkReportPayload): WorkSession | null {
+  static async endWorkSession(payload: SubmitWorkReportPayload): Promise<WorkSession | null> {
     const list = this.loadFromStorage();
     const idx = list.findIndex((s) => s.id === payload.sessionId);
-    if (idx === -1) return null;
+    
+    // Fallback search if id lost
+    const activeIdx = idx !== -1 ? idx : list.findIndex((s) => s.status === 'ACTIVE');
+    if (activeIdx === -1 && list.length === 0) return null;
 
+    const targetIdx = activeIdx !== -1 ? activeIdx : 0;
     const now = new Date();
     const nowMs = now.getTime();
     const logoutTimeStr = formatIstTime(now);
     const currentDate = formatIstDate(now);
 
-    let loginMs = list[idx].loginTimestamp;
-    if (!loginMs && list[idx].loginTime) {
-      loginMs = parseTimeToMs(list[idx].loginTime, list[idx].date);
+    let loginMs = list[targetIdx].loginTimestamp;
+    if (!loginMs && list[targetIdx].loginTime) {
+      loginMs = parseTimeToMs(list[targetIdx].loginTime, list[targetIdx].date);
     }
     if (!loginMs) {
       loginMs = nowMs;
@@ -369,13 +394,13 @@ export class LogoutRepository {
     const computedDuration = this.calculateDuration(
       loginMs,
       nowMs,
-      list[idx].loginTime,
+      list[targetIdx].loginTime,
       logoutTimeStr,
-      list[idx].date
+      list[targetIdx].date
     );
 
     const updated: WorkSession = {
-      ...list[idx],
+      ...list[targetIdx],
       logoutTime: logoutTimeStr,
       logoutTimestamp: nowMs,
       status: 'COMPLETED',
@@ -395,13 +420,52 @@ export class LogoutRepository {
       updatedAt: currentDate,
     };
 
-    list[idx] = updated;
+    list[targetIdx] = updated;
     this.saveToStorage(list);
 
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem('ICC_ACTIVE_SESSION');
       } catch (e) {}
+    }
+
+    // Persist Report & Session Closure in Supabase
+    try {
+      const targetSession = list[targetIdx];
+
+      // 1. Update work_sessions table in Supabase
+      const { data: updatedDb } = await supabase
+        .from('work_sessions')
+        .update({
+          logout_time: logoutTimeStr,
+          logout_timestamp: new Date().toISOString(),
+          status: 'COMPLETED',
+          duration: computedDuration,
+          report_submitted: true,
+        })
+        .or(`id.eq.${targetSession.id},and(employee_id.eq.${targetSession.employeeId},status.eq.ACTIVE)`)
+        .select('id, employee_id')
+        .maybeSingle();
+
+      const dbSessionId = updatedDb?.id || targetSession.id;
+      const dbEmpId = updatedDb?.employee_id || targetSession.employeeId;
+
+      // 2. Insert into work_session_reports linking session_id and employee_id
+      await supabase.from('work_session_reports').insert({
+        session_id: dbSessionId,
+        employee_id: dbEmpId,
+        work_summary: payload.workSummary,
+        tasks_completed: payload.tasksCompleted,
+        pending_tasks: payload.pendingTasks,
+        challenges_blockers: payload.challengesBlockers,
+        time_notes: payload.timeNotes,
+        additional_notes: payload.additionalNotes,
+        logout_method: payload.logoutMethod || 'MANUAL_LOGOUT',
+        attachments: payload.attachments || [],
+        submitted_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Supabase work_session_reports insert note:', e);
     }
 
     try {
@@ -424,7 +488,7 @@ export class LogoutRepository {
     const idx = list.findIndex((s) => s.id === id);
     if (idx === -1) return null;
 
-    const currentDate = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const currentDate = formatIstDate(new Date());
 
     const updated: WorkSession = {
       ...list[idx],
@@ -432,13 +496,13 @@ export class LogoutRepository {
       duration: 'Interrupted',
       reportSubmitted: false,
       workReport: {
-        workSummary: 'No report was sent due to browser tab closure.',
+        workSummary: 'Session interrupted due to unexpected tab closure or forced logout.',
         tasksCompleted: ['None reported'],
         pendingTasks: ['None reported'],
         challengesBlockers: 'Browser closed without normal logout.',
         timeNotes: 'Unscheduled session interruption.',
         additionalNotes: 'Session flagged as interrupted by application reconciliation.',
-        submittedAt: '06:00 PM',
+        submittedAt: '--',
         logoutMethod: 'FORCE_LOGOUT',
       },
       updatedAt: currentDate,
@@ -449,11 +513,8 @@ export class LogoutRepository {
     return updated;
   }
 
-  static getKpis(employeeId?: string): LogoutKpis {
-    let list = this.loadFromStorage();
-    if (employeeId) {
-      list = list.filter((s) => s.employeeId === employeeId || s.employeeName.includes('Sri Varun'));
-    }
+  static async getKpis(employeeId?: string): Promise<LogoutKpis> {
+    const list = await this.getWorkSessions({ employeeId });
     return {
       totalSessionsToday: list.length,
       activeSessions: list.filter((s) => s.status === 'ACTIVE').length,

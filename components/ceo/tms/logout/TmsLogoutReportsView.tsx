@@ -53,17 +53,31 @@ export function TmsLogoutReportsView() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
-    setIsLoading(true);
-    const list = await LogoutService.getAll();
-    const depts = await DepartmentService.getAll();
-    const summary = await LogoutService.getKpis();
-    const emps = EmployeeRepository.getEmployees();
+    try {
+      setIsLoading(true);
+      const [list, depts, summary] = await Promise.all([
+        LogoutService.getAll().catch(() => []),
+        DepartmentService.getAll().catch(() => []),
+        LogoutService.getKpis().catch(() => ({
+          totalSessionsToday: 0,
+          activeSessions: 0,
+          reportsSubmittedToday: 0,
+          interruptedCount: 0,
+          autoClosedCount: 0,
+          averageWorkingHours: 8.0,
+        })),
+      ]);
+      const emps = EmployeeRepository.getEmployees();
 
-    setSessions(list);
-    setDepartments(depts);
-    setKpis(summary);
-    setEmployeesList(emps.map((e) => ({ id: e.employeeId || e.id, name: e.fullName })));
-    setIsLoading(false);
+      setSessions(list);
+      setDepartments(depts);
+      setKpis(summary);
+      setEmployeesList(emps.map((e) => ({ id: e.employeeId || e.id, name: e.fullName })));
+    } catch (err) {
+      console.error('Error loading logout reports:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

@@ -42,15 +42,22 @@ export function TmsEmployeesView() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
-    setIsLoading(true);
-    const empList = await EmployeeService.getAll();
-    const deptList = await DepartmentService.getAll();
-    const kpiSummary = await EmployeeService.getKpis();
+    try {
+      setIsLoading(true);
+      const [empList, deptList, kpiSummary] = await Promise.all([
+        EmployeeService.getAll().catch(() => []),
+        DepartmentService.getAll().catch(() => []),
+        EmployeeService.getKpis().catch(() => null),
+      ]);
 
-    setEmployees(empList);
-    setDepartments(deptList);
-    setKpis(kpiSummary);
-    setIsLoading(false);
+      setEmployees(empList);
+      setDepartments(deptList);
+      if (kpiSummary) setKpis(kpiSummary);
+    } catch (e) {
+      console.error('Error loading employee directory:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

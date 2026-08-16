@@ -45,15 +45,22 @@ export function TmsLeaveApprovalsView() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
-    setIsLoading(true);
-    const list = await LeaveService.getAll();
-    const depts = await DepartmentService.getAll();
-    const summary = await LeaveService.getKpis();
+    try {
+      setIsLoading(true);
+      const [list, depts, summary] = await Promise.all([
+        LeaveService.getAll().catch(() => []),
+        DepartmentService.getAll().catch(() => []),
+        LeaveService.getKpis().catch(() => null),
+      ]);
 
-    setLeaves(list);
-    setDepartments(depts);
-    setKpis(summary);
-    setIsLoading(false);
+      setLeaves(list);
+      setDepartments(depts);
+      if (summary) setKpis(summary);
+    } catch (e) {
+      console.error('Error loading leave approvals:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

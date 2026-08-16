@@ -4,6 +4,7 @@
  */
 
 import { LeaveRequest, CreateLeaveRequestPayload, LeaveKpis, LeaveFilterParams } from './leave-models';
+import { supabase } from './supabase';
 
 const STORAGE_KEY = 'ICC_TMS_LEAVES_PERSISTENCE_V3';
 
@@ -237,6 +238,20 @@ export class LeaveRepository {
 
     list.unshift(newReq);
     this.saveToStorage(list);
+
+    // Supabase Backend Sync
+    try {
+      Promise.resolve(
+        supabase.from('leave_requests').insert({
+          leave_type: payload.leaveType,
+          reason: payload.reason,
+          start_date: payload.startDate,
+          end_date: payload.endDate,
+          total_days: payload.totalDays,
+          status: 'PENDING',
+        })
+      ).catch(() => {});
+    } catch (e) {}
 
     try {
       NotificationRepository.addNotification({

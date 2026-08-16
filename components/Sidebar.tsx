@@ -271,9 +271,22 @@ const roleNavigationMap: Record<RoleType, WorkspaceConfig> = {
         title: 'Workspace & Communication',
         items: [
           { name: 'Notice Board', path: '/dashboard/employee?view=announcements', exactQuery: 'announcements', icon: Bell, color: 'text-orange-500' },
-          { name: 'Internal Helpdesk', path: '/dashboard/employee?view=helpdesk', exactQuery: 'helpdesk', icon: HelpCircle, color: 'text-purple-600' },
           { name: 'Notifications', path: '/dashboard/employee?view=notifications', exactQuery: 'notifications', icon: Inbox, color: 'text-rose-500' },
           { name: 'My Profile', path: '/dashboard/employee?view=profile', exactQuery: 'profile', icon: User, color: 'text-slate-600' },
+        ],
+      },
+      {
+        title: 'TMS MANAGEMENT SUITE',
+        items: [
+          {
+            name: 'TMS Operations & Staff',
+            path: '/dashboard/ceo?module=tms-dashboard',
+            icon: CheckSquare,
+            badge: 'TMS',
+            badgeType: 'live',
+            isExpandable: true,
+            children: tmsSubmenuItems,
+          },
         ],
       },
     ],

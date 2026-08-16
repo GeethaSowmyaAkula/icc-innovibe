@@ -4,6 +4,7 @@
  */
 
 import { AnnouncementRecord } from './announcement-models';
+import { supabase } from './supabase';
 
 const STORAGE_KEY = 'ICC_TMS_NOTIFICATIONS_PERSISTENCE_V2';
 const NOTIFICATION_EVENT = 'ICC_TMS_NOTIFICATIONS_CHANGED';
@@ -197,6 +198,20 @@ export class NotificationRepository {
     };
     list.unshift(record);
     this.saveToStorage(list);
+
+    try {
+      Promise.resolve(
+        supabase.from('notifications').insert({
+          title: record.title,
+          message_preview: record.messagePreview,
+          type: record.type,
+          is_read: false,
+          priority: record.priority || 'NORMAL',
+          link_tab: record.linkTab || null,
+        })
+      ).catch(() => {});
+    } catch (e) {}
+
     return record;
   }
 

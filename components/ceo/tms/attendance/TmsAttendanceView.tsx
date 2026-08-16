@@ -26,6 +26,8 @@ import {
   FileCode,
 } from 'lucide-react';
 
+import { LogoutService } from '../../../../lib/logout-service';
+
 export function TmsAttendanceView() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [kpis, setKpis] = useState<AttendanceKpis>({
@@ -53,29 +55,42 @@ export function TmsAttendanceView() {
 
   // Load Data via AttendanceService
   const loadAttendanceData = async () => {
-    setIsLoading(true);
-    const filters: AttendanceFilterParams = {
-      dateRangeSelection: dateSelection,
-      department: selectedDepartment,
-      role: selectedRole,
-      status: selectedStatus,
-      searchQuery,
-    };
+    try {
+      setIsLoading(true);
+      const filters: AttendanceFilterParams = {
+        dateRangeSelection: dateSelection,
+        department: selectedDepartment,
+        role: selectedRole,
+        status: selectedStatus,
+        searchQuery,
+      };
 
-    const dataList = await AttendanceService.getAttendanceRecords(filters);
-    const kpiSummary = await AttendanceService.getAttendanceKpis();
+      const [dataList, kpiSummary] = await Promise.all([
+        AttendanceService.getAttendanceRecords(filters).catch(() => []),
+        AttendanceService.getAttendanceKpis().catch(() => null),
+      ]);
 
-    setRecords(dataList);
-    setKpis(kpiSummary);
-    setIsLoading(false);
+      setRecords(dataList);
+      if (kpiSummary) setKpis(kpiSummary);
+    } catch (e) {
+      console.error('Error loading attendance data:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     loadAttendanceData();
-    const unsubscribe = AttendanceService.onAttendanceUpdated(() => {
+    const unsubscribeAttendance = AttendanceService.onAttendanceUpdated(() => {
       loadAttendanceData();
     });
-    return () => unsubscribe();
+    const unsubscribeLogout = LogoutService.onLogoutUpdated(() => {
+      loadAttendanceData();
+    });
+    return () => {
+      unsubscribeAttendance();
+      unsubscribeLogout();
+    };
   }, [dateSelection, selectedDepartment, selectedRole, selectedStatus, searchQuery]);
 
   const handleExport = async (format: 'PDF' | 'EXCEL' | 'CSV') => {

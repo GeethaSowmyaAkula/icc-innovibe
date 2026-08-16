@@ -181,7 +181,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Update Fleet Dashboard - Add new telemetry widgets"
               required
-              className="w-full px-4 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white placeholder-slate-600 outline-none focus:border-blue-500 font-semibold"
+              style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+              className="w-full px-4 py-3 rounded-2xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-blue-500 font-semibold shadow-inner"
             />
           </div>
 
@@ -193,7 +194,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Detail the scope of work, technical requirements, or expected deliverables..."
-              className="w-full px-4 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white placeholder-slate-600 outline-none focus:border-blue-500 font-normal leading-relaxed resize-none"
+              style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+              className="w-full px-4 py-3 rounded-2xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-blue-500 font-normal leading-relaxed resize-none shadow-inner"
             />
           </div>
 
@@ -204,7 +206,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               <select
                 value={assigneeRole}
                 onChange={(e) => setAssigneeRole(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
+                style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+                className="w-full px-4 py-3 rounded-2xl border border-slate-700 !text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
               >
                 <option value="All Workforce">All Workforce (Everyone)</option>
                 <option value="Employee">Staff & Employees</option>
@@ -217,13 +220,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
             <div>
               <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">SEARCH EMPLOYEES</label>
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by employee name or role..."
-                  className="w-full pl-9 pr-4 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white placeholder-slate-600 outline-none focus:border-blue-500 font-medium"
+                  style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+                  className="w-full pl-9 pr-4 py-3 rounded-2xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-blue-500 font-medium"
                 />
               </div>
             </div>
@@ -239,14 +243,17 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
             </div>
 
             {/* Selected Assignee Pills */}
-            <div className="flex flex-wrap gap-2 p-3 bg-[#030712] border border-slate-800 rounded-2xl min-h-[46px] mb-2">
+            <div
+              style={{ backgroundColor: '#090d16' }}
+              className="flex flex-wrap gap-2 p-3 border border-slate-700 rounded-2xl min-h-[46px] mb-2"
+            >
               {selectedEmployeesList.length === 0 ? (
-                <span className="text-slate-600 text-xs italic py-1">No assignees selected yet. Click employees below to add.</span>
+                <span className="text-slate-500 text-xs italic py-1">No assignees selected yet. Click employees below to add.</span>
               ) : (
                 selectedEmployeesList.map((emp) => (
                   <span
                     key={emp.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600/20 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold animate-in fade-in"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600/30 border border-blue-500/50 text-blue-200 rounded-xl text-xs font-bold animate-in fade-in"
                   >
                     <img src={emp.avatar} alt={emp.name} className="w-4 h-4 rounded-full object-cover" />
                     <span>{emp.name}</span>
@@ -263,7 +270,10 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
             </div>
 
             {/* Multi-Select Employee List Options */}
-            <div className="max-h-36 overflow-y-auto bg-[#030712]/90 border border-slate-800 rounded-2xl p-2 space-y-1 divide-y divide-slate-800/40">
+            <div
+              style={{ backgroundColor: '#090d16' }}
+              className="max-h-36 overflow-y-auto border border-slate-700 rounded-2xl p-2 space-y-1 divide-y divide-slate-800/60"
+            >
               {searchFilteredEmployees.length === 0 ? (
                 <p className="p-3 text-center text-slate-500 text-xs">No matching employees found.</p>
               ) : (
@@ -274,13 +284,13 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
                       key={emp.id}
                       onClick={() => handleToggleAssignee(emp.id)}
                       className={`p-2 rounded-xl flex items-center justify-between cursor-pointer transition ${
-                        isSelected ? 'bg-blue-600/20 text-white border border-blue-500/30' : 'hover:bg-slate-800/60 text-slate-300'
+                        isSelected ? 'bg-blue-600/30 text-white border border-blue-500/50' : 'hover:bg-slate-800/80 text-slate-200'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <img src={emp.avatar} alt={emp.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
                         <div>
-                          <p className="font-bold text-xs leading-none">{emp.name}</p>
+                          <p className="font-bold text-xs leading-none text-white">{emp.name}</p>
                           <p className="text-[10px] text-slate-400 mt-0.5">{emp.role} • {emp.department}</p>
                         </div>
                       </div>
@@ -303,7 +313,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                className="w-full px-3 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
+                style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+                className="w-full px-3 py-3 rounded-2xl border border-slate-700 !text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
               >
                 <option value="LOW">🟢 Low Priority</option>
                 <option value="MEDIUM">🔵 Medium Priority</option>
@@ -317,7 +328,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TaskCategory)}
-                className="w-full px-3 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
+                style={{ backgroundColor: '#090d16', color: '#ffffff' }}
+                className="w-full px-3 py-3 rounded-2xl border border-slate-700 !text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
               >
                 <option value="OPERATIONS">Operations</option>
                 <option value="TECH_INFRA">IT & Tech</option>
@@ -328,14 +340,16 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, creatorProfile
               </select>
             </div>
 
+            {/* VISUAL CALENDAR DATE PICKER */}
             <div>
               <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1.5">DEADLINE TARGET</label>
               <input
-                type="text"
+                type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                placeholder="25 Aug 2026"
-                className="w-full px-3 py-3 rounded-2xl bg-[#030712] border border-slate-800 text-white placeholder-slate-600 outline-none focus:border-blue-500 font-medium"
+                min={new Date().toISOString().split('T')[0]}
+                style={{ backgroundColor: '#090d16', color: '#ffffff', colorScheme: 'dark' }}
+                className="w-full px-3 py-3 rounded-2xl border border-slate-700 !text-white outline-none focus:border-blue-500 font-bold cursor-pointer"
               />
             </div>
           </div>

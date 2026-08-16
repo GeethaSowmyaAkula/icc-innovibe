@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { DepartmentItem } from '../../../../lib/department-models';
 import { DepartmentService } from '../../../../lib/department-service';
 import { CreateDepartmentModal } from './CreateDepartmentModal';
+import { EditDepartmentModal } from './EditDepartmentModal';
+import { DepartmentDetailModal } from './DepartmentDetailModal';
 import {
   Building2,
   Plus,
@@ -12,7 +14,7 @@ import {
   Clock,
   Shield,
   Trash2,
-  Edit,
+  Edit3,
   Eye,
   EyeOff,
   Key,
@@ -20,6 +22,8 @@ import {
   Mail,
   UserCheck,
   Sparkles,
+  ArrowRight,
+  Crown,
 } from 'lucide-react';
 
 export function TmsDepartmentsView() {
@@ -27,15 +31,27 @@ export function TmsDepartmentsView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<DepartmentItem | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [selectedDepartmentDetail, setSelectedDepartmentDetail] = useState<DepartmentItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load departments from local persistence repository
+  // Load departments from Supabase / DepartmentService
   const loadDepartments = async () => {
-    setIsLoading(true);
-    const list = await DepartmentService.getAll();
-    setDepartments(list);
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const list = await DepartmentService.getAll().catch(() => []);
+      setDepartments(list);
+    } catch (e) {
+      console.error('Error loading departments:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -47,7 +63,7 @@ export function TmsDepartmentsView() {
   }, []);
 
   const handleDeleteDepartment = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete department "${name}"? This action persists across sessions.`)) {
+    if (confirm(`Are you sure you want to deactivate department "${name}"? This updates your organizational hierarchy.`)) {
       await DepartmentService.delete(id);
       loadDepartments();
     }
@@ -55,6 +71,17 @@ export function TmsDepartmentsView() {
 
   const togglePasswordVisibility = (id: string) => {
     setVisiblePasswords((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenEdit = (dept: DepartmentItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingDepartment(dept);
+    setIsEditModalOpen(true);
+  };
+
+  const handleOpenDetail = (dept: DepartmentItem) => {
+    setSelectedDepartmentDetail(dept);
+    setIsDetailModalOpen(true);
   };
 
   const filteredDepartments = departments.filter((d) => {
@@ -70,7 +97,8 @@ export function TmsDepartmentsView() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalPersonnel = departments.reduce((acc, curr) => acc + curr.employeeCount, 0);
+  const totalPersonnel = departments.reduce((acc, curr) => acc + (curr.employeeCount || 0), 0);
+  const activeUnits = departments.filter((d) => d.isActive).length;
 
   return (
     <div className="space-y-6 text-left font-sans animate-in fade-in duration-300">
@@ -96,7 +124,7 @@ export function TmsDepartmentsView() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#78350f] text-white font-apfel font-extrabold text-xs shadow-md shadow-amber-900/10 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#78350f] text-white font-apfel font-extrabold text-xs shadow-md shadow-amber-900/10 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>+ Add Department</span>
@@ -122,8 +150,8 @@ export function TmsDepartmentsView() {
             </div>
           </div>
           <div className="flex items-center justify-between mt-4 pt-2 border-t border-slate-50 font-apfel text-xs">
-            <span className="font-bold text-amber-700">Persisted in Repository</span>
-            <span className="text-slate-400">Live Sync</span>
+            <span className="font-bold text-amber-700">Supabase Backend</span>
+            <span className="text-slate-400">Realtime Sync</span>
           </div>
         </div>
 
@@ -135,7 +163,7 @@ export function TmsDepartmentsView() {
                 ACTIVE UNITS
               </span>
               <p className="font-apfel text-2xl font-black text-emerald-600 tracking-tight leading-none mt-1">
-                {departments.filter((d) => d.isActive).length}
+                {activeUnits}
               </p>
             </div>
             <div className="h-9 w-9 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
@@ -155,17 +183,17 @@ export function TmsDepartmentsView() {
               <span className="font-montserrat text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
                 TOTAL PERSONNEL
               </span>
-              <p className="font-apfel text-2xl font-black text-slate-900 tracking-tight leading-none mt-1">
-                {totalPersonnel}
+              <p className="font-apfel text-2xl font-black text-[#b45309] tracking-tight leading-none mt-1">
+                {totalPersonnel} Staff
               </p>
             </div>
-            <div className="h-9 w-9 rounded-full bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-full bg-amber-50 text-[#b45309] border border-amber-100 flex items-center justify-center shrink-0">
               <Users className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="flex items-center justify-between mt-4 pt-2 border-t border-slate-50 font-apfel text-xs">
-            <span className="font-bold text-sky-700">Enrolled Workforce</span>
-            <span className="text-slate-400">Across Units</span>
+            <span className="font-bold text-amber-700">Relational Mapping</span>
+            <span className="text-slate-400">All Departments</span>
           </div>
         </div>
 
@@ -176,24 +204,24 @@ export function TmsDepartmentsView() {
               <span className="font-montserrat text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
                 AVG CUTOFF TIME
               </span>
-              <p className="font-apfel text-2xl font-black text-[#b45309] tracking-tight leading-none mt-1">
+              <p className="font-apfel text-2xl font-black text-sky-600 tracking-tight leading-none mt-1">
                 09:15 AM
               </p>
             </div>
-            <div className="h-9 w-9 rounded-full bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-full bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
               <Clock className="h-4.5 w-4.5" />
             </div>
           </div>
           <div className="flex items-center justify-between mt-4 pt-2 border-t border-slate-50 font-apfel text-xs">
-            <span className="font-bold text-amber-700">Biometric Gatekeeper</span>
-            <span className="text-slate-400">Enforced</span>
+            <span className="font-bold text-sky-700">Attendance Standard</span>
+            <span className="text-slate-400">IST Schedule</span>
           </div>
         </div>
       </div>
 
       {/* 3. Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2 w-full sm:w-96 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 w-full sm:w-80">
           <Search className="h-4 w-4 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -209,7 +237,7 @@ export function TmsDepartmentsView() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-semibold text-slate-800 outline-none"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-semibold text-slate-800 outline-none cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active Units</option>
@@ -221,7 +249,7 @@ export function TmsDepartmentsView() {
       {/* 4. Departments Grid / Cards List */}
       {isLoading ? (
         <div className="p-12 bg-white rounded-3xl border border-slate-100 text-center text-slate-400 font-apfel text-xs">
-          Loading Department Repository...
+          Loading Department Repository from Supabase...
         </div>
       ) : filteredDepartments.length === 0 ? (
         <div className="p-12 bg-white rounded-3xl border border-slate-100 text-center space-y-3">
@@ -230,7 +258,7 @@ export function TmsDepartmentsView() {
           </div>
           <h3 className="font-gotham text-sm font-bold text-slate-800">No Departments Found</h3>
           <p className="font-sans text-xs text-slate-500 max-w-sm mx-auto">
-            No department records match your search filter or repository storage.
+            No department records match your search filter. Click "+ Add Department" above to create one.
           </p>
         </div>
       ) : (
@@ -241,7 +269,8 @@ export function TmsDepartmentsView() {
             return (
               <div
                 key={dept.id}
-                className="bg-white rounded-3xl p-6 border border-slate-100 shadow-2xs hover:shadow-md hover:border-amber-300 transition-all hover:-translate-y-1 flex flex-col justify-between space-y-5 text-left group"
+                onClick={() => handleOpenDetail(dept)}
+                className="bg-white rounded-3xl p-6 border border-slate-100 shadow-2xs hover:shadow-md hover:border-amber-300 transition-all hover:-translate-y-1 flex flex-col justify-between space-y-5 text-left group cursor-pointer"
               >
                 {/* Header Row */}
                 <div className="flex items-start justify-between">
@@ -257,8 +286,10 @@ export function TmsDepartmentsView() {
                     </h3>
                   </div>
 
-                  <span className="font-apfel text-[9px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    ACTIVE
+                  <span className={`font-apfel text-[9px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    dept.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}>
+                    {dept.status}
                   </span>
                 </div>
 
@@ -266,7 +297,7 @@ export function TmsDepartmentsView() {
                 <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100 font-apfel text-xs">
                   <div>
                     <span className="text-[9px] text-slate-400 font-sans block">Department Head</span>
-                    <p className="font-bold text-slate-900">{dept.departmentHead}</p>
+                    <p className="font-bold text-slate-900 truncate">{dept.departmentHead}</p>
                   </div>
                   <div>
                     <span className="text-[9px] text-slate-400 font-sans block">Personnel</span>
@@ -275,14 +306,17 @@ export function TmsDepartmentsView() {
                 </div>
 
                 {/* Portal Credentials Box */}
-                <div className="p-3.5 rounded-2xl bg-slate-950 text-white space-y-2 border border-slate-800 text-xs">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-3.5 rounded-2xl bg-slate-950 text-white space-y-2 border border-slate-800 text-xs"
+                >
                   <div className="flex items-center justify-between font-apfel">
                     <span className="text-[9px] text-amber-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
                       <Key className="h-3 w-3" /> Portal Credentials
                     </span>
                     <button
                       onClick={() => togglePasswordVisibility(dept.id)}
-                      className="text-slate-400 hover:text-white transition-colors p-1"
+                      className="text-slate-400 hover:text-white transition-colors p-1 cursor-pointer"
                       title={isPasswordShown ? 'Hide Password' : 'Show Password'}
                     >
                       {isPasswordShown ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -301,18 +335,26 @@ export function TmsDepartmentsView() {
                   </div>
                 </div>
 
-                {/* Footer Info & Delete Action */}
+                {/* Footer Info & Actions */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-50 font-apfel text-xs">
                   <div className="flex items-center gap-1 text-slate-500 text-[11px]">
                     <Clock className="h-3.5 w-3.5 text-slate-400" />
                     <span>Cutoff: <strong className="text-slate-800">{dept.checkInCutoffTime}</strong></span>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => handleOpenEdit(dept, e)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                      title="Edit Department Details"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </button>
+
                     <button
                       onClick={() => handleDeleteDepartment(dept.id, dept.departmentName)}
-                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                      title="Delete Department from Storage"
+                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      title="Deactivate Department"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -324,11 +366,27 @@ export function TmsDepartmentsView() {
         </div>
       )}
 
-      {/* Create Department Modal Dialog */}
+      {/* Create Department Modal */}
       <CreateDepartmentModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onDepartmentCreated={loadDepartments}
+      />
+
+      {/* Edit Department Modal */}
+      <EditDepartmentModal
+        department={editingDepartment}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onDepartmentUpdated={loadDepartments}
+      />
+
+      {/* Department Detail Modal */}
+      <DepartmentDetailModal
+        department={selectedDepartmentDetail}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onDepartmentUpdated={loadDepartments}
       />
     </div>
   );

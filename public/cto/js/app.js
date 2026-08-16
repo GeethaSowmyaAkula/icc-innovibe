@@ -3,7 +3,907 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- ELEMENTS CACHE ---
+
+  // --- EXECUTIVE TOAST & MODAL SYSTEM ---
+  window.showToast = function(message, type = 'info') {
+    let container = document.getElementById('cto-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'cto-toast-container';
+      container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 2147483647; display: flex; flex-direction: column; gap: 8px; max-width: 400px; pointer-events: none;';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    const borderCol = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#2563eb';
+    const iconClass = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+    
+    toast.style.cssText = `
+      background: var(--bg-surface, #ffffff);
+      color: var(--text-primary, #1e293b);
+      border: 1px solid var(--border-color, #cbd5e1);
+      border-left: 4px solid ${borderCol};
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      pointer-events: auto;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    `;
+
+    toast.innerHTML = `
+      <i class="fa-solid ${iconClass}" style="color: ${borderCol}; font-size: 1.1rem; flex-shrink: 0;"></i>
+      <div style="flex: 1; line-height: 1.3;">${message}</div>
+      <button style="background: none; border: none; color: var(--text-muted, #64748b); cursor: pointer; font-size: 1.1rem; padding: 0 4px; line-height: 1;" onclick="this.parentElement.remove()">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  };
+
+  // Override window.alert to capture any legacy alerts
+  window.alert = function(msg) {
+    if (!msg) return;
+    const msgStr = String(msg);
+    if (msgStr.includes('Create Project') || msgStr.includes('Create Project wizard')) {
+      window.openCreateProjectModal();
+    } else if (msgStr.includes('Architecture') || msgStr.includes('View Architecture')) {
+      window.openArchitectureModal();
+    } else if (msgStr.includes('Export') || msgStr.includes('REPORT:') || msgStr.includes('EXPORT:')) {
+      window.openExportReportModal(msgStr.replace(/^(ACTION:|EXPORT:|REPORT:)\s*/i, ''));
+    } else if (msgStr.includes('Submit Config') || msgStr.includes('configuration request')) {
+      window.openSubmitConfigModal();
+    } else if (msgStr.includes('Audit Drift')) {
+      window.openAuditDriftModal();
+    } else if (msgStr.includes('Settings') || msgStr.includes('SETTINGS:')) {
+      window.openDashboardSettingsModal();
+    } else {
+      window.showToast(msgStr.replace(/^(CTO ACTION:|CTO DIRECTION:|ACTION:|CTO Control:)\s*/i, ''), 'info');
+    }
+  };
+
+  window.closeCustomModal = function() {
+    const modalEl = document.getElementById('cto-custom-modal');
+    if (modalEl) modalEl.classList.remove('active');
+  };
+
+  // --- UNIVERSAL CREATION MODAL BUILDER ---
+  window.openCreationModal = function(opts = {}) {
+    const {
+      title = 'Create New Item',
+      icon = 'fa-plus',
+      fields = [],
+      onSubmit = null
+    } = opts;
+
+    let modalEl = document.getElementById('cto-custom-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'cto-custom-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) { if (e.target === modalEl) window.closeCustomModal(); };
+      document.body.appendChild(modalEl);
+    }
+
+    const fieldsHTML = fields.map(f => {
+      if (f.type === 'select') {
+        return `
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">${f.label}</label>
+            <select id="${f.id}" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; background: var(--bg-surface); color: var(--text-primary);">
+              ${(f.options || []).map(opt => {
+                const val = typeof opt === 'object' ? opt.value : opt;
+                const lbl = typeof opt === 'object' ? opt.label : opt;
+                return `<option value="${val}">${lbl}</option>`;
+              }).join('')}
+            </select>
+          </div>
+        `;
+      } else if (f.type === 'textarea') {
+        return `
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">${f.label}</label>
+            <textarea id="${f.id}" rows="3" placeholder="${f.placeholder || ''}" ${f.required ? 'required' : ''} style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; background: var(--bg-surface); color: var(--text-primary); font-family: inherit;"></textarea>
+          </div>
+        `;
+      } else {
+        return `
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">${f.label}</label>
+            <input type="${f.type || 'text'}" id="${f.id}" value="${f.defaultValue || ''}" placeholder="${f.placeholder || ''}" ${f.required ? 'required' : ''} style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; background: var(--bg-surface); color: var(--text-primary);">
+          </div>
+        `;
+      }
+    }).join('');
+
+    modalEl.innerHTML = `
+      <div class="exec-modal-card" style="width: 520px; max-width: 95vw;" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+          <span style="font-weight: 800; color: var(--text-primary); font-size: 1.0rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid ${icon}" style="color: var(--color-blue, #2563eb);"></i> ${title}
+          </span>
+          <button type="button" onclick="window.closeCustomModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <form id="creationModalForm">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${fieldsHTML}
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.closeCustomModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid ${icon}"></i> Create & Save</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    modalEl.classList.add('active');
+
+    const form = document.getElementById('creationModalForm');
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const data = {};
+      fields.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (el) data[f.id] = el.value;
+      });
+
+      if (typeof onSubmit === 'function') {
+        onSubmit(data);
+      } else {
+        window.showToast(`${title} created successfully!`, 'success');
+      }
+      window.closeCustomModal();
+    };
+  };
+
+  // --- ITEM DELETION HELPER ---
+  window.deleteItemFromModule = function(pathStr, itemId, refreshFnName) {
+    try {
+      const keys = pathStr.split('.');
+      let current = window.portalData;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (current) current = current[keys[i]];
+      }
+      const lastKey = keys[keys.length - 1];
+      if (current && Array.isArray(current[lastKey])) {
+        current[lastKey] = current[lastKey].filter(item => {
+          const idVal = item.id || item.name || item.title || item.serial || item.key;
+          return String(idVal) !== String(itemId);
+        });
+        window.showToast('Item deleted successfully from section.', 'info');
+        if (refreshFnName && typeof window[refreshFnName] === 'function') {
+          window[refreshFnName]();
+        }
+      }
+    } catch (err) {
+      console.error('Delete item error:', err);
+    }
+  };
+
+  // --- DEDICATED MODULE CREATION MODALS ---
+  window.openCreateProjectModal = function() {
+    window.openCreationModal({
+      title: 'Create New Software Project',
+      icon: 'fa-folder-plus',
+      fields: [
+        { id: 'projName', label: 'Project Name', type: 'text', placeholder: 'e.g. Connected Vehicle Telemetry Gateway v4', required: true },
+        { id: 'projOwner', label: 'Engineering Lead / Team', type: 'text', placeholder: 'Backend & AI Team', required: true },
+        { id: 'projTech', label: 'Technology Stack', type: 'text', placeholder: 'React, Flutter, Python, Go', required: true },
+        { id: 'projStatus', label: 'Initial Status', type: 'select', options: ['Healthy', 'Needs Attention', 'Critical'] },
+        { id: 'projVersion', label: 'Target Release Version', type: 'text', defaultValue: 'v1.0.0' }
+      ],
+      onSubmit: function(data) {
+        if (window.portalData && window.portalData.softwareDev && window.portalData.softwareDev.projects) {
+          // Check for duplicate name
+          const exists = window.portalData.softwareDev.projects.some(p => p.name.toLowerCase() === data.projName.toLowerCase());
+          if (exists) {
+            window.showToast(`Project "${data.projName}" already exists! Duplicate prevented.`, 'error');
+            return;
+          }
+          window.portalData.softwareDev.projects.unshift({
+            id: 'proj-' + Date.now(),
+            name: data.projName,
+            owner: data.projOwner,
+            techStack: data.projTech.split(',').map(s => s.trim()),
+            status: data.projStatus,
+            progress: 15,
+            version: data.projVersion,
+            actions: 'View Details'
+          });
+        }
+        window.showToast(`Software Project "${data.projName}" created successfully!`, 'success');
+        if (typeof renderSoftwareDevelopmentModule === 'function') renderSoftwareDevelopmentModule();
+      }
+    });
+  };
+
+  window.openCreateRoadmapModal = function() {
+    window.openCreationModal({
+      title: 'Add New Roadmap Initiative',
+      icon: 'fa-map-location-dot',
+      fields: [
+        { id: 'initName', label: 'Initiative Title', type: 'text', placeholder: 'e.g. Next-Gen EV Charging Network Protocol', required: true },
+        { id: 'initDomain', label: 'Strategic Domain', type: 'select', options: ['Core Platform', 'Mobility & IoT', 'AI & ML', 'Security'] },
+        { id: 'initQuarter', label: 'Target Quarter Horizon', type: 'select', options: ['Q3 2026', 'Q4 2026', 'Q1 2027', 'Q2 2027'] },
+        { id: 'initOwner', label: 'Lead Owner', type: 'text', placeholder: 'Dr. Elena Rostova', required: true },
+        { id: 'initPriority', label: 'Strategic Priority', type: 'select', options: ['High Impact', 'Critical Roadmap', 'Medium Priority'] }
+      ],
+      onSubmit: function(data) {
+        if (window.portalData && window.portalData.roadmap && window.portalData.roadmap.initiatives) {
+          window.portalData.roadmap.initiatives.unshift({
+            id: 'road-' + Date.now(),
+            name: data.initName,
+            domain: data.initDomain,
+            quarter: data.initQuarter,
+            owner: data.initOwner,
+            priority: data.initPriority,
+            status: 'On Track'
+          });
+        }
+        window.showToast(`Roadmap Initiative "${data.initName}" created!`, 'success');
+        if (typeof renderProductRoadmapModule === 'function') renderProductRoadmapModule();
+      }
+    });
+  };
+
+  window.openCreateSprintModal = function() {
+    window.openCreationModal({
+      title: 'Create New Engineering Sprint',
+      icon: 'fa-clock',
+      fields: [
+        { id: 'sprintName', label: 'Sprint Name', type: 'text', placeholder: 'e.g. Sprint 43 - EVcare Telematics Hardening', required: true },
+        { id: 'sprintGoal', label: 'Sprint Goal', type: 'textarea', placeholder: 'Complete gRPC gateway migration and reduced CAN-bus latency to < 10ms.' },
+        { id: 'sprintPoints', label: 'Committed Capacity Points', type: 'number', defaultValue: '120' },
+        { id: 'sprintLead', label: 'Sprint Lead / Squad', type: 'text', placeholder: 'Mobile & Backend Squad' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Sprint "${data.sprintName}" created and initialized!`, 'success');
+        if (typeof renderSprintManagementModule === 'function') renderSprintManagementModule();
+      }
+    });
+  };
+
+  window.openReportBugModal = function() {
+    window.openCreationModal({
+      title: 'Report New Bug / Technical Issue',
+      icon: 'fa-bug',
+      fields: [
+        { id: 'bugTitle', label: 'Issue Title', type: 'text', placeholder: 'e.g. MQTT Re-connection Timeout on EV Charging Node', required: true },
+        { id: 'bugService', label: 'Affected Service / Module', type: 'select', options: ['IoT Gateway', 'EVcare Mobile App', 'TimescaleDB Pipeline', 'Billing API'] },
+        { id: 'bugSeverity', label: 'Severity Level', type: 'select', options: ['Critical (P0)', 'High (P1)', 'Medium (P2)', 'Low (P3)'] },
+        { id: 'bugAssignee', label: 'Assignee Lead', type: 'text', placeholder: 'Core Infra Team' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Bug Ticket "${data.bugTitle}" logged successfully!`, 'success');
+        if (typeof renderBugTrackingModule === 'function') renderBugTrackingModule();
+      }
+    });
+  };
+
+  window.openSubmitFeatureRequestModal = function() {
+    window.openCreationModal({
+      title: 'Submit Feature Request',
+      icon: 'fa-lightbulb',
+      fields: [
+        { id: 'featTitle', label: 'Feature Title', type: 'text', placeholder: 'e.g. Dynamic Vehicle Range Prediction AI Overlay', required: true },
+        { id: 'featDept', label: 'Requesting Department', type: 'text', placeholder: 'Fleet Operations & Product Team' },
+        { id: 'featImpact', label: 'Expected Strategic Value', type: 'select', options: ['High Revenue Impact', 'Customer Experience', 'Performance Optimization'] },
+        { id: 'featDesc', label: 'Detailed Requirement', type: 'textarea', placeholder: 'Provide detailed feature specifications and ROI parameters.' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Feature Request "${data.featTitle}" submitted for CTO evaluation!`, 'success');
+        if (typeof renderFeatureRequestsModule === 'function') renderFeatureRequestsModule();
+      }
+    });
+  };
+
+  window.openCreateAPIModal = function() {
+    window.openCreationModal({
+      title: 'Register New API Endpoint',
+      icon: 'fa-network-wired',
+      fields: [
+        { id: 'apiName', label: 'API Service Name', type: 'text', placeholder: 'e.g. Telemetry Ingress Gateway API v2', required: true },
+        { id: 'apiRoute', label: 'Endpoint Path', type: 'text', placeholder: '/api/v2/telemetry/stream', required: true },
+        { id: 'apiMethod', label: 'HTTP Method', type: 'select', options: ['POST', 'GET', 'PUT', 'DELETE', 'gRPC Stream'] },
+        { id: 'apiSLA', label: 'Target Latency SLA', type: 'text', defaultValue: '15ms' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`API Endpoint "${data.apiRoute}" registered in API Gateway!`, 'success');
+        if (typeof renderAPIManagementModule === 'function') renderAPIManagementModule();
+      }
+    });
+  };
+
+  window.openCreateDatabaseModal = function() {
+    window.openCreationModal({
+      title: 'Provision Database Cluster',
+      icon: 'fa-database',
+      fields: [
+        { id: 'dbName', label: 'Cluster Name', type: 'text', placeholder: 'e.g. TimescaleDB Analytics Cluster 04', required: true },
+        { id: 'dbEngine', label: 'Database Engine', type: 'select', options: ['PostgreSQL 16', 'TimescaleDB 2.14', 'Redis Enterprise', 'MongoDB Atlas'] },
+        { id: 'dbReplicas', label: 'Replica Count', type: 'select', options: ['3 Nodes (HA)', '5 Nodes (Multi-Region)', 'Single Node (Dev)'] },
+        { id: 'dbSize', label: 'Initial Storage Allocation', type: 'text', defaultValue: '500 GB NVMe' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Database Cluster "${data.dbName}" provisioning initiated!`, 'success');
+        if (typeof renderDatabaseManagementModule === 'function') renderDatabaseManagementModule();
+      }
+    });
+  };
+
+  window.openDeployCloudModal = function() {
+    window.openCreationModal({
+      title: 'Provision Cloud Infrastructure Cluster',
+      icon: 'fa-cloud',
+      fields: [
+        { id: 'cloudName', label: 'Resource / Service Name', type: 'text', placeholder: 'e.g. AWS EKS Telemetry Worker Node Group', required: true },
+        { id: 'cloudProvider', label: 'Cloud Provider & Region', type: 'select', options: ['AWS us-east-1 (Primary)', 'AWS eu-west-1 (EMEA)', 'Azure Central US', 'GCP us-central1'] },
+        { id: 'cloudInstances', label: 'Node Instance Type', type: 'text', defaultValue: 'c6i.4xlarge (Auto-Scaling)' },
+        { id: 'cloudCapacity', label: 'Target Pod Capacity', type: 'number', defaultValue: '128' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Cloud Resource "${data.cloudName}" deployed to Cluster!`, 'success');
+        if (typeof renderCloudInfrastructureModule === 'function') renderCloudInfrastructureModule();
+      }
+    });
+  };
+
+  window.openCreatePipelineModal = function() {
+    window.openCreationModal({
+      title: 'Create CI/CD DevOps Pipeline',
+      icon: 'fa-infinity',
+      fields: [
+        { id: 'pipeName', label: 'Pipeline Name', type: 'text', placeholder: 'e.g. Automated E2E Vehicle Telemetry Build Pipeline', required: true },
+        { id: 'pipeRepo', label: 'Git Repository', type: 'text', placeholder: 'innovibe/mobility-core-backend', required: true },
+        { id: 'pipeTrigger', label: 'Trigger Policy', type: 'select', options: ['Pull Request & Merge to Main', 'Scheduled Daily Sprint Build', 'Manual CTO Dispatch'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`DevOps Pipeline "${data.pipeName}" created and active!`, 'success');
+        if (typeof renderDevOpsPipelinesModule === 'function') renderDevOpsPipelinesModule();
+      }
+    });
+  };
+
+  window.openCreateLogAlertModal = function() {
+    window.openCreationModal({
+      title: 'Add System Log Alert Rule',
+      icon: 'fa-scroll',
+      fields: [
+        { id: 'logRule', label: 'Alert Rule Name', type: 'text', placeholder: 'e.g. High Ingress Latency Warning (>200ms)', required: true },
+        { id: 'logPattern', label: 'Filter Log Query', type: 'text', placeholder: 'status_code >= 500 AND latency > 200ms' },
+        { id: 'logChannel', label: 'Notification Dispatch', type: 'select', options: ['CTO PagerDuty Alert', 'Slack Executive Channel', 'Email & Webhook'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Log Alert Rule "${data.logRule}" configured!`, 'success');
+        if (typeof renderSystemLogsModule === 'function') renderSystemLogsModule();
+      }
+    });
+  };
+
+  window.openProvisionIoTDeviceModal = function() {
+    window.openCreationModal({
+      title: 'Provision Telematics Hardware Unit',
+      icon: 'fa-car-battery',
+      fields: [
+        { id: 'devSerial', label: 'Hardware Serial Number', type: 'text', placeholder: 'e.g. IV-EV-8842-X9', required: true },
+        { id: 'devVehicle', label: 'Vehicle Fleet Unit ID', type: 'text', placeholder: 'Fleet EV Unit #142', required: true },
+        { id: 'devFW', label: 'Firmware Baseline', type: 'text', defaultValue: 'v4.2.1-Automotive-OS' },
+        { id: 'devProtocol', label: 'Cellular Connectivity', type: 'select', options: ['5G Dual-SIM (AT&T/T-Mobile)', '4G LTE Fallback', 'Satellite Emergency Ingress'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`IoT Hardware Unit "${data.devSerial}" provisioned and synced!`, 'success');
+        if (typeof renderIoTDeviceManagementModule === 'function') renderIoTDeviceManagementModule();
+      }
+    });
+  };
+
+  window.openCreateTelemetryStreamModal = function() {
+    window.openCreationModal({
+      title: 'Create Telemetry Data Ingress Stream',
+      icon: 'fa-tower-broadcast',
+      fields: [
+        { id: 'streamName', label: 'Stream Identifier', type: 'text', placeholder: 'e.g. High-Frequency Battery Cell Ingress Stream', required: true },
+        { id: 'streamProtocol', label: 'Protocol Broker', type: 'select', options: ['Apache Kafka Cluster', 'EMQX MQTT Broker', 'CAN-bus Gateway'] },
+        { id: 'streamRate', label: 'Target Message Rate', type: 'text', defaultValue: '50,000 Msg/sec' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Telemetry Ingress Stream "${data.streamName}" online!`, 'success');
+        if (typeof renderTelemetryPlatformModule === 'function') renderTelemetryPlatformModule();
+      }
+    });
+  };
+
+  window.openDeployEVcareAIModal = function() {
+    window.openCreationModal({
+      title: 'Deploy EVcare.AI Model Endpoint',
+      icon: 'fa-wand-magic-sparkles',
+      fields: [
+        { id: 'aiName', label: 'AI Model Identifier', type: 'text', placeholder: 'e.g. EVcare Thermal Anomaly Predictor v3.5', required: true },
+        { id: 'aiTarget', label: 'Fleet Scope Target', type: 'select', options: ['Entire Active EV Fleet (14.2K Vehicles)', 'Commercial Heavy-Duty Fleet', 'Passenger EV Squad'] },
+        { id: 'aiThreshold', label: 'Diagnostic Confidence Trigger', type: 'text', defaultValue: '99.4% Accuracy Threshold' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`EVcare.AI Model "${data.aiName}" deployed to fleet engine!`, 'success');
+        if (typeof renderEVcareAIDashboardModule === 'function') renderEVcareAIDashboardModule();
+      }
+    });
+  };
+
+  window.openCreateAIDiagnosticsModal = function() {
+    window.openCreationModal({
+      title: 'Create Predictive AI Diagnostic Rule',
+      icon: 'fa-heart-pulse',
+      fields: [
+        { id: 'diagRule', label: 'Diagnostic Rule Title', type: 'text', placeholder: 'e.g. Early Battery Thermal Runway Early Warning', required: true },
+        { id: 'diagSystem', label: 'Target Subsystem', type: 'select', options: ['High-Voltage Battery Array', 'Electric Drive Motor', 'Power Inverter & Converters', 'Brake Energy Recoup'] },
+        { id: 'diagSensitivity', label: 'Detection Sensitivity', type: 'select', options: ['Strict (Zero False Positives)', 'Balanced Sensitivity', 'High Frequency Early Alert'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`AI Diagnostic Rule "${data.diagRule}" created!`, 'success');
+        if (typeof renderAIDiagnosticsModule === 'function') renderAIDiagnosticsModule();
+      }
+    });
+  };
+
+  window.openReleaseMobileBuildModal = function() {
+    window.openCreationModal({
+      title: 'Publish Mobile Application Release',
+      icon: 'fa-mobile-screen-button',
+      fields: [
+        { id: 'mobileName', label: 'Release Name / Version', type: 'text', placeholder: 'e.g. EVcare Mobile iOS/Android v3.8.0', required: true },
+        { id: 'mobilePlatform', label: 'Target Platform', type: 'select', options: ['iOS App Store & Android Google Play', 'iOS App Store Only', 'Android Google Play Only'] },
+        { id: 'mobileRollout', label: 'Initial Rollout Percentage', type: 'select', options: ['10% Phased Rollout', '50% Staged Release', '100% Full Immediate Production'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Mobile App Release "${data.mobileName}" published to Stores!`, 'success');
+        if (typeof renderMobileAppManagementModule === 'function') renderMobileAppManagementModule();
+      }
+    });
+  };
+
+  window.openDeployWebPortalModal = function() {
+    window.openCreationModal({
+      title: 'Deploy Web Portal Module / Asset',
+      icon: 'fa-globe',
+      fields: [
+        { id: 'webName', label: 'Portal Module Name', type: 'text', placeholder: 'e.g. Executive Technology Portal v2.4', required: true },
+        { id: 'webTarget', label: 'Target Audience', type: 'select', options: ['Executive Leadership & CTO', 'Fleet Manager Console', 'Driver Web Portal'] },
+        { id: 'webCDN', label: 'CDN Cache Strategy', type: 'select', options: ['Cloudflare Edge Cache', 'AWS CloudFront Dynamic', 'Origin Only'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Web Portal Module "${data.webName}" deployed successfully!`, 'success');
+        if (typeof renderWebPortalManagementModule === 'function') renderWebPortalManagementModule();
+      }
+    });
+  };
+
+  window.openRegisterAIModelModal = function() {
+    window.openCreationModal({
+      title: 'Register AI Perception & LLM Model',
+      icon: 'fa-brain',
+      fields: [
+        { id: 'modelName', label: 'AI Model Name', type: 'text', placeholder: 'e.g. InnoVibe Vision Perception Model v4', required: true },
+        { id: 'modelType', label: 'Model Architecture', type: 'select', options: ['Computer Vision Perception', 'Predictive Battery LLM', 'Autonomous Driving Agent'] },
+        { id: 'modelHW', label: 'Target Inference Hardware', type: 'select', options: ['NVIDIA H100 GPU Cluster', 'On-Vehicle ECU Chipset', 'AWS SageMaker Endpoint'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`AI Model "${data.modelName}" registered in Registry!`, 'success');
+        if (typeof renderAIModelsModule === 'function') renderAIModelsModule();
+      }
+    });
+  };
+
+  window.openCreateMLExperimentModal = function() {
+    window.openCreationModal({
+      title: 'Create Machine Learning Experiment',
+      icon: 'fa-gears',
+      fields: [
+        { id: 'mlName', label: 'Experiment Name', type: 'text', placeholder: 'e.g. Battery Degradation Neural Net Training', required: true },
+        { id: 'mlDataset', label: 'Training Dataset Source', type: 'select', options: ['Historical 14.2M Telemetry Dump', 'Synthetic Thermal Battery Logs', 'Real-Time Telemetry Stream'] },
+        { id: 'mlCompute', label: 'GPU Capacity Cluster', type: 'select', options: ['8x NVIDIA H100 Tensor Core', '4x NVIDIA A100 GPU Cluster', 'Auto-Scale Cloud Node'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`ML Training Experiment "${data.mlName}" launched!`, 'success');
+        if (typeof renderMachineLearningPlatformModule === 'function') renderMachineLearningPlatformModule();
+      }
+    });
+  };
+
+  window.openAddSecurityPolicyModal = function() {
+    window.openCreationModal({
+      title: 'Add Zero-Trust Security Policy',
+      icon: 'fa-user-shield',
+      fields: [
+        { id: 'secTitle', label: 'Policy Title', type: 'text', placeholder: 'e.g. Enforce Passkey Hardware SSO for Microservices Ingress', required: true },
+        { id: 'secDomain', label: 'Security Domain Scope', type: 'select', options: ['Automotive Functional Safety (ISO 26262)', 'Zero-Trust Identity Access', 'API Gateway Encryption'] },
+        { id: 'secAction', label: 'Enforcement Policy Action', type: 'select', options: ['Block Non-Compliant Traffic', 'Flag & Escalate to CTO', 'Mandatory SSO Re-Auth'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Cybersecurity Policy "${data.secTitle}" enforced!`, 'success');
+        if (typeof renderCybersecurityModule === 'function') renderCybersecurityModule();
+      }
+    });
+  };
+
+  window.openAddIntegrationModal = function() {
+    window.openCreationModal({
+      title: 'Connect External Integration / Webhook',
+      icon: 'fa-plug',
+      fields: [
+        { id: 'intName', label: 'Integration Partner / Name', type: 'text', placeholder: 'e.g. ChargePoint OpenADR EV Grid Integration', required: true },
+        { id: 'intCategory', label: 'Integration Domain', type: 'select', options: ['EV Charging Network', 'Billing & Stripe Financials', 'Mapping & Mapbox Telematics', 'Telemetry Cloud'] },
+        { id: 'intAuth', label: 'Authentication Standard', type: 'select', options: ['OAuth 2.0 Mutual TLS', 'API Token Key', 'Webhook HMAC Signature'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Integration "${data.intName}" connected and online!`, 'success');
+        if (typeof renderIntegrationsModule === 'function') renderIntegrationsModule();
+      }
+    });
+  };
+
+  window.openCreateReportModal = function() {
+    window.openCreationModal({
+      title: 'Create Custom Executive Analytics Report',
+      icon: 'fa-file-invoice-dollar',
+      fields: [
+        { id: 'repTitle', label: 'Report Name', type: 'text', placeholder: 'e.g. Quarterly EV Telematics & Engineering Cost Audit', required: true },
+        { id: 'repHorizon', label: 'Reporting Horizon', type: 'select', options: ['Monthly Financial Audit', 'Quarterly Board Presentation', 'Sprint Delivery Velocity'] },
+        { id: 'repFormat', label: 'Output Document Format', type: 'select', options: ['PDF Executive Briefing', 'Excel / CSV Spreadsheet', 'Interactive Dashboard Link'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Custom Report "${data.repTitle}" generated!`, 'success');
+        if (typeof renderReportsAnalyticsModule === 'function') renderReportsAnalyticsModule();
+      }
+    });
+  };
+
+  window.openUploadDocumentModal = function() {
+    window.openCreationModal({
+      title: 'Upload Engineering Architecture Document',
+      icon: 'fa-folder-open',
+      fields: [
+        { id: 'docTitle', label: 'Document Title', type: 'text', placeholder: 'e.g. InnoVibe Core Architecture Specification v4.0', required: true },
+        { id: 'docCategory', label: 'Document Vault Category', type: 'select', options: ['Architecture & Design', 'Compliance & ISO 26262', 'API Runbooks & Specs', 'Security Protocols'] },
+        { id: 'docAuthor', label: 'Author / Owner', type: 'text', defaultValue: 'Dr. Elena Rostova' }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Document "${data.docTitle}" uploaded to Repository!`, 'success');
+        if (typeof renderDocumentRepositoryModule === 'function') renderDocumentRepositoryModule();
+      }
+    });
+  };
+
+  window.openCreateNotificationModal = function() {
+    window.openCreationModal({
+      title: 'Broadcast Executive Notification / Alert',
+      icon: 'fa-bell',
+      fields: [
+        { id: 'notifTitle', label: 'Notification Title', type: 'text', placeholder: 'e.g. Scheduled System Upgrade Window Reminder', required: true },
+        { id: 'notifTarget', label: 'Recipient Target Group', type: 'select', options: ['All Engineering & Product Leads', 'CTO Executive Board', 'DevOps & On-Call Team'] },
+        { id: 'notifPriority', label: 'Priority Level', type: 'select', options: ['High Priority (Push + Alert)', 'Medium Priority Briefing', 'Informational Notice'] },
+        { id: 'notifMsg', label: 'Notification Message Body', type: 'textarea', placeholder: 'Enter broadcast announcement message.' }
+      ],
+      onSubmit: function(data) {
+        if (window.portalData && window.portalData.notifications) {
+          window.portalData.notifications.unshift({
+            id: 'notif-' + Date.now(),
+            title: data.notifTitle,
+            type: data.notifPriority.includes('High') ? 'critical' : 'info',
+            desc: data.notifMsg || data.notifTitle,
+            time: 'Just now',
+            read: false
+          });
+        }
+        window.showToast(`Notification Broadcast "${data.notifTitle}" dispatched!`, 'success');
+        if (typeof renderNotificationsModule === 'function') renderNotificationsModule();
+      }
+    });
+  };
+
+  window.openAddUserModal = function() {
+    window.openCreationModal({
+      title: 'Add New Team Member / Executive User',
+      icon: 'fa-user-plus',
+      fields: [
+        { id: 'userName', label: 'Full Name', type: 'text', placeholder: 'e.g. Alex Vance', required: true },
+        { id: 'userEmail', label: 'Work Email Address', type: 'text', placeholder: 'alex.vance@innovibe.mobility', required: true },
+        { id: 'userRole', label: 'Executive Role & Access Level', type: 'select', options: ['Senior Software Architect', 'Principal AI Engineer', 'DevOps Team Lead', 'Engineering Manager'] },
+        { id: 'userDept', label: 'Department Squad', type: 'select', options: ['Core Platform Team', 'EV Telematics Squad', 'AI Diagnostics Team', 'Cybersecurity Squad'] }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`New Team Member "${data.userName}" added to User Directory!`, 'success');
+        if (typeof renderUserManagementModule === 'function') renderUserManagementModule();
+      }
+    });
+  };
+
+  window.openArchitectureModal = function() {
+    let modalEl = document.getElementById('cto-custom-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'cto-custom-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) { if (e.target === modalEl) window.closeCustomModal(); };
+      document.body.appendChild(modalEl);
+    }
+    modalEl.innerHTML = `
+      <div class="exec-modal-card" style="width: 780px; max-width: 95vw;" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+          <span style="font-weight: 800; color: var(--text-primary); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-sitemap" style="color: var(--color-blue, #2563eb);"></i> Application Ecosystem Architecture Review
+          </span>
+          <button type="button" onclick="window.closeCustomModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 14px;">
+          Executive visualization of active system connections, API gateways, microservices nodes, and telemetry pipelines.
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; overflow-x: auto; padding: 18px 12px; background: var(--bg-app); border-radius: 12px; border: 1px solid var(--border-color);">
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); min-width: 110px;">
+            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1.5rem; color: #2563eb; margin-bottom: 6px;"></i>
+            <span style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary);">Mobile Apps</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">EVcare iOS & Android</span>
+            <span class="badge badge-success" style="font-size: 0.55rem; margin-top: 4px;">99.98% Online</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); min-width: 110px;">
+            <i class="fa-solid fa-server" style="font-size: 1.5rem; color: #8b5cf6; margin-bottom: 6px;"></i>
+            <span style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary);">Backend Gateway</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">FastAPI & Go</span>
+            <span class="badge badge-success" style="font-size: 0.55rem; margin-top: 4px;">14ms Latency</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); min-width: 110px;">
+            <i class="fa-solid fa-database" style="font-size: 1.5rem; color: #10b981; margin-bottom: 6px;"></i>
+            <span style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary);">Database Layer</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">PostgreSQL & Timescale</span>
+            <span class="badge badge-success" style="font-size: 0.55rem; margin-top: 4px;">Primary Sync</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); min-width: 110px;">
+            <i class="fa-solid fa-cloud" style="font-size: 1.5rem; color: #0284c7; margin-bottom: 6px;"></i>
+            <span style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary);">Cloud Infra</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">AWS EKS & Azure</span>
+            <span class="badge badge-success" style="font-size: 0.55rem; margin-top: 4px;">128 Pods</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); min-width: 110px;">
+            <i class="fa-solid fa-tower-broadcast" style="font-size: 1.5rem; color: #f59e0b; margin-bottom: 6px;"></i>
+            <span style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary);">IoT Telemetry</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">MQTT / Kafka</span>
+            <span class="badge badge-success" style="font-size: 0.55rem; margin-top: 4px;">14.2M msg/s</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;">
+          <div style="background: var(--bg-app); padding: 12px; border-radius: 8px; font-size: 0.78rem;">
+            <div style="font-weight: 700; margin-bottom: 4px; color: var(--text-primary);">Node Uptime & Health</div>
+            <div style="color: var(--text-secondary);">Core Gateway Uptime: <strong>99.99%</strong></div>
+            <div style="color: var(--text-secondary);">Active Cluster Pods: <strong>128 / 128 Online</strong></div>
+          </div>
+          <div style="background: var(--bg-app); padding: 12px; border-radius: 8px; font-size: 0.78rem;">
+            <div style="font-weight: 700; margin-bottom: 4px; color: var(--text-primary);">Automotive Compliance</div>
+            <div style="color: var(--text-secondary);">ISO 26262 & ISO 27001 Verified</div>
+            <div style="color: var(--text-secondary);">Zero Critical Security Vulnerabilities</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.closeCustomModal()">Close Architecture Map</button>
+        </div>
+      </div>
+    `;
+    modalEl.classList.add('active');
+  };
+
+  window.openExportReportModal = function(title = 'Executive Engineering Report') {
+    let modalEl = document.getElementById('cto-custom-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'cto-custom-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) { if (e.target === modalEl) window.closeCustomModal(); };
+      document.body.appendChild(modalEl);
+    }
+    modalEl.innerHTML = `
+      <div class="exec-modal-card" style="width: 480px; max-width: 95vw;" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+          <span style="font-weight: 800; color: var(--text-primary); font-size: 1.0rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-export" style="color: var(--color-blue, #2563eb);"></i> Export Executive Report
+          </span>
+          <button type="button" onclick="window.closeCustomModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 10px;">${title}</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.8rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Export Format</label>
+            <select id="exportFormat" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; background: var(--bg-surface); color: var(--text-primary);">
+              <option value="pdf">PDF Executive Briefing (.pdf)</option>
+              <option value="csv">CSV Data Dump (.csv)</option>
+              <option value="json">JSON API Metrics (.json)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 4px;">Reporting Horizon</label>
+            <select style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; background: var(--bg-surface); color: var(--text-primary);">
+              <option>Current Sprint (Q3 2026)</option>
+              <option>Last 30 Days</option>
+              <option>Full Year to Date</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.closeCustomModal()">Cancel</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.triggerDownload('${title}')"><i class="fa-solid fa-download"></i> Generate & Download</button>
+        </div>
+      </div>
+    `;
+    modalEl.classList.add('active');
+  };
+
+  window.triggerDownload = function(title) {
+    const format = document.getElementById('exportFormat') ? document.getElementById('exportFormat').value : 'pdf';
+    const blob = new Blob([`InnoVibe CTO Executive Portal - ${title}
+Exported: ${new Date().toLocaleString()}
+Platform Health: 99.98% SLA`], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_export.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    window.closeCustomModal();
+    window.showToast(`"${title}" exported as .${format} successfully!`, 'success');
+  };
+
+  window.openSubmitConfigModal = function() {
+    window.openCreationModal({
+      title: 'Submit Configuration Change Request',
+      icon: 'fa-sliders',
+      fields: [
+        { id: 'cfgEnv', label: 'Target Environment', type: 'select', options: ['Production Cluster (US-East)', 'Staging Environment', 'Development Sandbox'] },
+        { id: 'cfgKey', label: 'Parameter Key', type: 'text', placeholder: 'e.g. TELEMETRY_INGRESS_RATE_LIMIT', required: true },
+        { id: 'cfgVal', label: 'New Target Value', type: 'text', placeholder: 'e.g. 50000_MSG_PER_SEC', required: true }
+      ],
+      onSubmit: function(data) {
+        window.showToast(`Configuration Change "${data.cfgKey}" submitted for CTO review!`, 'success');
+        if (typeof renderSystemConfigurationModule === 'function') renderSystemConfigurationModule();
+      }
+    });
+  };
+
+  window.openAuditDriftModal = function() {
+    let modalEl = document.getElementById('cto-custom-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'cto-custom-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) { if (e.target === modalEl) window.closeCustomModal(); };
+      document.body.appendChild(modalEl);
+    }
+    modalEl.innerHTML = `
+      <div class="exec-modal-card" style="width: 540px; max-width: 95vw;" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+          <span style="font-weight: 800; color: var(--text-primary); font-size: 1.0rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrows-rotate" style="color: var(--color-blue, #2563eb);"></i> Cross-Environment Drift Audit Sprint
+          </span>
+          <button type="button" onclick="window.closeCustomModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+          Scanning Production, Staging, and Dev environment configurations for policy drift...
+        </div>
+
+        <div style="background: var(--bg-app); border: 1px solid var(--border-color); padding: 14px; border-radius: 10px; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; margin-bottom: 6px;">
+            <span>Audit Progress</span>
+            <span style="color: #10b981;">100% Complete</span>
+          </div>
+          <div style="height: 8px; width: 100%; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: 100%; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 4px;"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.78rem; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: var(--bg-app); border-radius: 6px;">
+            <span>Production Cluster (US-East)</span>
+            <span class="badge badge-success" style="font-size: 0.6rem;">0 Drift Detected</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: var(--bg-app); border-radius: 6px;">
+            <span>Staging Cluster (EU-West)</span>
+            <span class="badge badge-success" style="font-size: 0.6rem;">0 Drift Detected</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 10px; background: var(--bg-app); border-radius: 6px;">
+            <span>Development Sandbox</span>
+            <span class="badge badge-success" style="font-size: 0.6rem;">Fully Synchronized</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.closeCustomModal(); window.showToast('Drift Audit completed successfully. All environments synchronized!', 'success');">Done</button>
+        </div>
+      </div>
+    `;
+    modalEl.classList.add('active');
+  };
+
+  window.openDashboardSettingsModal = function() {
+    let modalEl = document.getElementById('cto-custom-modal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'cto-custom-modal';
+      modalEl.className = 'exec-modal-overlay';
+      modalEl.onclick = function(e) { if (e.target === modalEl) window.closeCustomModal(); };
+      document.body.appendChild(modalEl);
+    }
+    modalEl.innerHTML = `
+      <div class="exec-modal-card" style="width: 480px; max-width: 95vw;" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+          <span style="font-weight: 800; color: var(--text-primary); font-size: 1.0rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-gear" style="color: var(--color-blue, #2563eb);"></i> CTO Dashboard Settings
+          </span>
+          <button type="button" onclick="window.closeCustomModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.8rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-primary); font-weight: 600;">Real-time Telemetry Refresh Rate</span>
+            <select style="border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; background: var(--bg-surface); color: var(--text-primary);">
+              <option>5 Seconds (Live)</option>
+              <option>15 Seconds</option>
+              <option>1 Minute</option>
+            </select>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-primary); font-weight: 600;">Executive AI Insights Overlay</span>
+            <input type="checkbox" checked style="accent-color: #2563eb;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-primary); font-weight: 600;">Critical System Alerts Audio</span>
+            <input type="checkbox" style="accent-color: #2563eb;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.closeCustomModal(); window.showToast('CTO preferences saved!', 'success');">Save Preferences</button>
+        </div>
+      </div>
+    `;
+    modalEl.classList.add('active');
+  };
+
+  // --- CARD REDIRECTION / STOP EVENT BUBBLING ---
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    const interactive = target.closest('button, .btn, .kpi-info-btn, .exec-insight-trigger, input, select, textarea, .badge, a');
+    if (interactive) {
+      const parentWithRoute = target.closest('[onclick*="switchRoute"]');
+      if (parentWithRoute && parentWithRoute !== interactive) {
+        e.stopPropagation();
+      }
+    }
+  }, true);
+
+
   const sidebar = document.getElementById('sidebar');
   const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
   const toggleIcon = document.getElementById('toggleIcon');
@@ -738,13 +1638,12 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- PAGE HEADER TOOLBAR -->
       <div class="tech-exec-toolbar">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('REPORT: Generating executive report...')"><i class="fa-solid fa-file-pdf"></i> Generate Executive Report</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('EXPORT: Dashboard view exported.')"><i class="fa-solid fa-download"></i> Export Dashboard</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('AI: Generating executive summary report...')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Executive Summary</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openExportReportModal('Executive Report')"><i class="fa-solid fa-file-pdf"></i> Generate Executive Report</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('Executive Dashboard View')"><i class="fa-solid fa-download"></i> Export Dashboard</button>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-outline btn-sm" onclick="renderDashboard()"><i class="fa-solid fa-arrows-rotate"></i> Refresh Dashboard</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('SETTINGS: Opening executive dashboard settings...')"><i class="fa-solid fa-gear"></i> Dashboard Settings</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openDashboardSettingsModal()"><i class="fa-solid fa-gear"></i> Dashboard Settings</button>
         </div>
       </div>
 
@@ -1419,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">
                 Reconstructed workspace layout placeholder. Specific metrics and components for the ${module.name} dashboard will be configured in subsequent development iterations.
               </p>
-              <button class="btn btn-outline btn-sm" onclick="alert('Workspace configuration workflow triggered.')">Configure Workspace</button>
+              <button class="btn btn-outline btn-sm" onclick="window.openDashboardSettingsModal()">Configure Workspace</button>
             </div>
           </div>
         </div>
@@ -1434,9 +2333,9 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('ACTION: Create Project wizard initiated.')"><i class="fa-solid fa-plus"></i> Create Project</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('ACTION: Dynamic Architecture Review Map opened.')"><i class="fa-solid fa-sitemap"></i> View Architecture</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('ACTION: Exporting Engineering Health Report PDF...')"><i class="fa-solid fa-download"></i> Export Report</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCreateProjectModal()"><i class="fa-solid fa-plus"></i> Create Project</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openArchitectureModal()"><i class="fa-solid fa-sitemap"></i> View Architecture</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('Software Engineering Health Report')"><i class="fa-solid fa-download"></i> Export Report</button>
       </section>
 
       <!-- MULTI-DIMENSIONAL FILTERS ROW (cto2.mp4 style) -->
@@ -1811,8 +2710,8 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Create new configuration request wizard opened.')"><i class="fa-solid fa-plus"></i> Submit Config Change</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('Triggering Cross-Environment Drift Audit Sprint...')"><i class="fa-solid fa-arrows-rotate"></i> Audit Drift Sprint</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openSubmitConfigModal()"><i class="fa-solid fa-plus"></i> Submit Config Change</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openAuditDriftModal()"><i class="fa-solid fa-arrows-rotate"></i> Audit Drift Sprint</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Sharing technology policy compliance matrix...')"><i class="fa-solid fa-share-nodes"></i> Share Policy Matrix</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Generating configuration compliance audit report...')"><i class="fa-solid fa-download"></i> Export Config Audit</button>
       </section>
@@ -2223,7 +3122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Create new user workspace profile wizard opened.')"><i class="fa-solid fa-plus"></i> Create User Request</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openAddUserModal()"><i class="fa-solid fa-plus"></i> Create User Request</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Enforcing security sync parameters across local domain clusters...')"><i class="fa-solid fa-shield-halved"></i> Request Security Audit</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Generating user log audit report...')"><i class="fa-solid fa-download"></i> Export User Audit</button>
       </section>
@@ -2311,7 +3210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="card-title"><i class="fa-solid fa-network-wired"></i> Role & Permission Architecture</span>
             <span class="card-subtitle">Structured organizational role hierarchy defining system access, permissions, and privilege levels</span>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Create new organizational role wizard opened.')">+ Create Role</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openAddUserModal()">+ Create Role</button>
         </div>
         <div class="card-body">
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
@@ -2665,7 +3564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Identity Governance Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO GOVERNANCE: Initiating role configuration change for ${u.name}...')">Update Role</button>
+          <button class="btn btn-primary" onclick="window.openAddUserModal()">Update Role</button>
           <button class="btn btn-outline" onclick="alert('CTO GOVERNANCE: Launching system permission modifier console...')">Modify Access</button>
           <button class="btn btn-outline" style="color: var(--color-red); border-color: var(--color-red);" onclick="alert('CTO SECURITY ACTION: Account ${u.name} has been disabled in SSO directory.')">Disable Account</button>
           <button class="btn btn-outline" onclick="closeDrawer()">Close Details</button>
@@ -2683,7 +3582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Launching document upload interface...')"><i class="fa-solid fa-plus"></i> Upload Document</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openUploadDocumentModal()"><i class="fa-solid fa-plus"></i> Upload Document</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Enforcing document verification audit...')"><i class="fa-solid fa-shield-halved"></i> Request Doc Audit</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Exporting document index metrics...')"><i class="fa-solid fa-download"></i> Export Doc Matrix</button>
       </section>
@@ -3020,7 +3919,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Governance Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO GOVERNANCE: Approved technology record baseline: ${doc.name}')">Approve Document</button>
+          <button class="btn btn-primary" onclick="window.openUploadDocumentModal()">Approve Document</button>
           <button class="btn btn-outline" onclick="alert('CTO GOVERNANCE: Requested changes notification sent to owners.')">Request Changes</button>
           <button class="btn btn-outline" style="color: var(--color-red); border-color: var(--color-red);" onclick="alert('CTO GOVERNANCE: Document archived.')">Archive</button>
           <button class="btn btn-outline" onclick="closeDrawer()">Close Details</button>
@@ -3038,7 +3937,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Launching report creation wizard...')"><i class="fa-solid fa-plus"></i> Create Report</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCreateReportModal()"><i class="fa-solid fa-plus"></i> Create Report</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Triggering system-wide diagnostics run...')"><i class="fa-solid fa-flask"></i> Run Diagnostics</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Exporting analytical summary metrics report...')"><i class="fa-solid fa-download"></i> Export Analytics</button>
       </section>
@@ -3519,7 +4418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Executive Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO INTEL ACTION: Approved report baseline parameters: ${rep.title}')">Approve Report Summary</button>
+          <button class="btn btn-primary" onclick="window.openCreateReportModal()">Approve Report Summary</button>
           <button class="btn btn-outline" onclick="alert('CTO INTEL ACTION: PDF report generated successfully.')">Export as PDF</button>
           <button class="btn btn-outline" onclick="alert('CTO INTEL ACTION: Requesting updates from lead authors...')">Request Revision</button>
           <button class="btn btn-outline" onclick="closeDrawer()">Close Details</button>
@@ -3537,7 +4436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Launching integration setup wizard...')"><i class="fa-solid fa-plus"></i> Create Integration</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openAddIntegrationModal()"><i class="fa-solid fa-plus"></i> Create Integration</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Displaying integration architectural model...')"><i class="fa-solid fa-sitemap"></i> Integration Architecture</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Exporting system integration matrix...')"><i class="fa-solid fa-download"></i> Export Integration Matrix</button>
       </section>
@@ -3892,7 +4791,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Executive Governance Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO CONNECTIVITY: Approved gateway change settings for ${item.name}')">Approve Change</button>
+          <button class="btn btn-primary" onclick="window.openAddIntegrationModal()">Approve Change</button>
           <button class="btn btn-outline" onclick="alert('CTO CONNECTIVITY: Technical baseline review log triggered.')">Review Connection</button>
           <button class="btn btn-outline" style="color: var(--color-red); border-color: var(--color-red);" onclick="alert('CTO CONNECTIVITY: Disabled connection endpoint: ${item.name}')">Disable Connection</button>
           <button class="btn btn-outline" onclick="closeDrawer()">Close Details</button>
@@ -3910,7 +4809,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewSubpage.innerHTML = `
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO ACTION: Create new incident form opened.')"><i class="fa-solid fa-plus"></i> Create Incident</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openCreateIncidentModal()"><i class="fa-solid fa-plus"></i> Create Incident</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Triggering system-wide vulnerability and compliance audit scan...')"><i class="fa-solid fa-shield-halved"></i> Request Security Audit</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Enforcing security patch rollouts to staging clusters...')"><i class="fa-solid fa-cloud-arrow-up"></i> Approve Security Update</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO ACTION: Exporting zero-trust access log parameters...')"><i class="fa-solid fa-download"></i> Export Audit Log</button>
@@ -4048,7 +4947,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="card-title"><i class="fa-solid fa-shield-virus"></i> Security Incident Response</span>
             <span class="card-subtitle">Incident workflow timeline and CTO management decision triggers</span>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="alert('CTO Decision: Opening new security incident reporting form...')"><i class="fa-solid fa-plus"></i> Create Incident</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateIncidentModal()"><i class="fa-solid fa-plus"></i> Create Incident</button>
         </div>
         <div class="card-body">
           <!-- Timeline Header -->
@@ -4316,7 +5215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Executive Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO CYBERSECURITY: Active domain-wide vulnerability scan dispatched...')">Run Domain Scan</button>
+          <button class="btn btn-primary" onclick="window.openAddSecurityPolicyModal()">Run Domain Scan</button>
           <button class="btn btn-outline" onclick="alert('CTO CYBERSECURITY: Domain status acknowledged.')">Acknowledge Status</button>
           <button class="btn btn-outline" onclick="alert('CTO CYBERSECURITY: Security patch verification completed.')">Approve Security Fix</button>
                 <button class="btn btn-outline" onclick="closeDrawer()">Close Details</button>
@@ -7102,7 +8001,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Executive Control Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO BUG: Dispatched authorization for Emergency Hotfix rollout on ${item.relRelease}.')">Approve Emergency Hotfix</button>
+          <button class="btn btn-primary" onclick="window.openReportBugModal()">Approve Emergency Hotfix</button>
           <button class="btn btn-outline" onclick="alert('CTO BUG: Opening Sprint Workspace for ${item.sprint}...')">Open Sprint</button>
           <button class="btn btn-outline" onclick="alert('CTO BUG: Directing to DevOps Release Center pipelines...')">Open DevOps</button>
           <button class="btn btn-outline" onclick="alert('CTO BUG: Sending slack alert dispatch override to Engineering Manager.')">Notify Engineering Manager</button>
@@ -7578,7 +8477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             <div style="display: flex; gap: 4px; margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 8px;">
               <button class="btn btn-outline btn-sm" style="flex: 1; font-size: 0.65rem; padding: 2px; justify-content: center;" onclick="event.stopPropagation(); window.openFeatureDetailDrawer('${feat.id}')">View Details</button>
-              <button class="btn btn-primary btn-sm" style="flex: 1; font-size: 0.65rem; padding: 2px; justify-content: center;" onclick="event.stopPropagation(); alert('CTO FEATURE: Feature ${feat.name} approved.')">Approve</button>
+              <button class="btn btn-primary btn-sm" style="flex: 1; font-size: 0.65rem; padding: 2px; justify-content: center;" onclick="event.stopPropagation(); window.openSubmitFeatureRequestModal()">Approve</button>
             </div>
           </div>
         `).join('');
@@ -7694,7 +8593,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Executive Actions -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <button class="btn btn-primary" onclick="alert('CTO FEATURE: Feature ${item.name} approved for Q3 release.')">Approve Feature</button>
+          <button class="btn btn-primary" onclick="window.openSubmitFeatureRequestModal()">Approve Feature</button>
           <button class="btn btn-outline" onclick="alert('CTO FEATURE: Requested additional product analysis for ${item.name}.')">Request More Analysis</button>
           <button class="btn btn-outline" onclick="alert('CTO FEATURE: Merging similar requests with ${item.name}...')">Merge with Existing Request</button>
           <button class="btn btn-outline" onclick="alert('CTO FEATURE: Deferring feature planning to next fiscal quarter.')">Defer</button>
@@ -7838,7 +8737,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 1.0rem;">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('CTO SPRINT: Initializing sprint builder wizard...')"><i class="fa-solid fa-plus"></i> Create Sprint</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateSprintModal()"><i class="fa-solid fa-plus"></i> Create Sprint</button>
           <button class="btn btn-outline btn-sm" onclick="alert('CTO SPRINT: Starting sprint review run...')"><i class="fa-solid fa-clipboard-check"></i> Start Sprint Review</button>
           <button class="btn btn-outline btn-sm" onclick="alert('CTO SPRINT: Generated Sprint Intelligence Report.')"><i class="fa-solid fa-file-invoice"></i> Generate Sprint Intelligence Report</button>
         </div>
@@ -8303,7 +9202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-            <button class="btn btn-primary" onclick="alert('CTO SPRINT: Gate override authorized for ${phase.name}.')">Override Quality Gate</button>
+            <button class="btn btn-primary" onclick="window.openCreateSprintModal()">Override Quality Gate</button>
             <button class="btn btn-outline" onclick="closeDrawer()">Close Drawer</button>
           </div>
         </div>
@@ -8547,9 +9446,9 @@ function renderProductRoadmapModule() {
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 1.0rem;">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('CTO ROADMAP: Initiating strategic initiative wizard...')"><i class="fa-solid fa-plus"></i> Create Strategic Initiative</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('CTO ROADMAP: Launching product vision dashboard...')"><i class="fa-solid fa-lightbulb"></i> Create Product Vision</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('CTO ROADMAP: Generated Roadmap Report.')"><i class="fa-solid fa-file-invoice"></i> Generate Roadmap Report</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateRoadmapModal()"><i class="fa-solid fa-plus"></i> Create Strategic Initiative</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openCreateRoadmapModal()"><i class="fa-solid fa-lightbulb"></i> Create Product Vision</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openExportReportModal('Product Roadmap Report')"><i class="fa-solid fa-file-invoice"></i> Generate Roadmap Report</button>
         </div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           <button class="btn btn-outline btn-sm" onclick="alert('CTO ROADMAP: Opening portfolio review workspace...')"><i class="fa-solid fa-cubes"></i> Review Portfolio</button>
@@ -9333,10 +10232,10 @@ function renderProductRoadmapModule() {
 
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <section style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 1.0rem;">
-        <button class="btn btn-primary btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Device registration initialized.')"><i class="fa-solid fa-plus"></i> Register Device</button>
+        <button class="btn btn-primary btn-sm" onclick="window.openProvisionIoTDeviceModal()"><i class="fa-solid fa-plus"></i> Register Device</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: OTA update deployment console opened.')"><i class="fa-solid fa-rocket"></i> Deploy OTA Update</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Remote diagnostics command sweeps triggered.')"><i class="fa-solid fa-wifi"></i> Run Remote Diagnostics</button>
-        <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Create Device Group wizard opened.')"><i class="fa-solid fa-folder-plus"></i> Create Device Group</button>
+        <button class="btn btn-outline btn-sm" onclick="window.openProvisionIoTDeviceModal()"><i class="fa-solid fa-folder-plus"></i> Create Device Group</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Exporting device inventory database CSV...')"><i class="fa-solid fa-download"></i> Export Inventory</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Opening firmware versions repository dashboard...')"><i class="fa-solid fa-code-branch"></i> Firmware Repository</button>
         <button class="btn btn-outline btn-sm" onclick="alert('CTO DEVICE OPERATIONS: Cellular telemetry connectivity analytics charts opened.')"><i class="fa-solid fa-chart-line"></i> Connectivity Analytics</button>
@@ -10034,7 +10933,7 @@ function renderProductRoadmapModule() {
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('TELEMETRY COMMAND: Open core configuration console.')"><i class="fa-solid fa-sliders"></i> Configure Telemetry</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateTelemetryStreamModal()"><i class="fa-solid fa-sliders"></i> Configure Telemetry</button>
           <button class="btn btn-outline btn-sm" onclick="alert('TELEMETRY COMMAND: Open alert rule manager.')"><i class="fa-solid fa-bell-plus"></i> Create Alert Rule</button>
           <button class="btn btn-outline btn-sm" onclick="alert('TELEMETRY COMMAND: Launch pipeline stream processor controller.')"><i class="fa-solid fa-network-wired"></i> Manage Data Pipeline</button>
         </div>
@@ -10685,7 +11584,7 @@ function renderProductRoadmapModule() {
       <!-- EXECUTIVE TOOLBAR: PRIMARY / SECONDARY ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('PRODUCT CONTROL: Deployment approved.')"><i class="fa-solid fa-cloud-arrow-up"></i> Approve Deployment</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openDeployEVcareAIModal()"><i class="fa-solid fa-cloud-arrow-up"></i> Approve Deployment</button>
           <button class="btn btn-outline btn-sm" onclick="alert('REPORTS: Executive PDF Summary created.')"><i class="fa-solid fa-file-pdf"></i> Generate Executive Report</button>
           <button class="btn btn-outline btn-sm" onclick="alert('PRODUCT CONTROL: Launching KPI Tracker console.')"><i class="fa-solid fa-gauge-high"></i> Track Product KPIs</button>
         </div>
@@ -11268,7 +12167,7 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('DIAGNOSTICS: Instantly triggered active failure diagnostic sweeps...')"><i class="fa-solid fa-bolt"></i> Trigger Diagnostics</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateAIDiagnosticsModal()"><i class="fa-solid fa-bolt"></i> Trigger Diagnostics</button>
           <button class="btn btn-outline btn-sm" onclick="alert('DIAGNOSTICS: Commenced automated scans across all fleets...')"><i class="fa-solid fa-truck-ramp-box"></i> Run Fleet Diagnosis</button>
           <button class="btn btn-outline btn-sm" onclick="alert('REPORTS: Exporting diagnostic evaluation PDF...')"><i class="fa-solid fa-file-invoice"></i> Generate AI Report</button>
         </div>
@@ -11884,7 +12783,7 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('RELEASE: Publish update triggered...')"><i class="fa-solid fa-cloud-arrow-up"></i> Publish Update</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openReleaseMobileBuildModal()"><i class="fa-solid fa-cloud-arrow-up"></i> Publish Update</button>
           <button class="btn btn-outline btn-sm" onclick="alert('CONFIG: Opening App Settings layout...')"><i class="fa-solid fa-sliders"></i> Configure App Settings</button>
           <button class="btn btn-outline btn-sm" onclick="alert('FLAGS: Commencing feature flags edit console...')"><i class="fa-solid fa-toggle-on"></i> Enable / Disable Features</button>
         </div>
@@ -12142,7 +13041,7 @@ function renderProductRoadmapModule() {
             </div>
 
             <div style="margin-top: 6px; display: flex; gap: 8px;">
-              <button class="btn btn-primary btn-sm" onclick="alert('NOTIFICATIONS: Launching push dialog wizard.')">Create Notification</button>
+              <button class="btn btn-primary btn-sm" onclick="window.openReleaseMobileBuildModal()">Create Notification</button>
               <button class="btn btn-outline btn-sm" onclick="alert('NOTIFICATIONS: Opening weekly scheduler campaign.')">Schedule Campaign</button>
             </div>
           </div>
@@ -12452,7 +13351,7 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('CMS: Opening CMS management layout...')"><i class="fa-solid fa-list-check"></i> Manage CMS</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openDeployWebPortalModal()"><i class="fa-solid fa-list-check"></i> Manage CMS</button>
           <button class="btn btn-outline btn-sm" onclick="alert('UI: Triggering Portal UI layout editor...')"><i class="fa-solid fa-pen-to-square"></i> Update Portal UI</button>
           <button class="btn btn-outline btn-sm" onclick="alert('API: Opening API configurator panel...')"><i class="fa-solid fa-gear"></i> Configure APIs</button>
         </div>
@@ -12656,7 +13555,7 @@ function renderProductRoadmapModule() {
             </div>
 
             <div style="margin-top: 8px; display: flex; gap: 6px;">
-              <button class="btn btn-primary btn-sm" onclick="alert('CMS: Dispatched publish directive.')">Publish Content</button>
+              <button class="btn btn-primary btn-sm" onclick="window.openDeployWebPortalModal()">Publish Content</button>
               <button class="btn btn-outline btn-sm" onclick="alert('CMS: Opening homepage builder...')">Update Homepage</button>
             </div>
           </div>
@@ -13031,7 +13930,7 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('TRAIN: Commencing model training scheduler...')"><i class="fa-solid fa-play"></i> Train Model</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openRegisterAIModelModal()"><i class="fa-solid fa-play"></i> Train Model</button>
           <button class="btn btn-outline btn-sm" onclick="alert('VALIDATE: Loading validation pipeline logs...')"><i class="fa-solid fa-magnifying-glass"></i> Validate Model</button>
           <button class="btn btn-outline btn-sm" onclick="alert('DEPLOY: Deploying selected model to staging/prod environments...')"><i class="fa-solid fa-cloud-arrow-up"></i> Deploy Model</button>
         </div>
@@ -13540,7 +14439,7 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('IMPORT: Importing raw telemetry dataset from Data Lake...')"><i class="fa-solid fa-file-import"></i> Import Dataset</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateMLExperimentModal()"><i class="fa-solid fa-file-import"></i> Import Dataset</button>
           <button class="btn btn-outline btn-sm" onclick="alert('SCHEDULE: Training job scheduled for 18:00...')"><i class="fa-solid fa-calendar-plus"></i> Schedule Training</button>
           <button class="btn btn-outline btn-sm" onclick="alert('RETRAIN: Initiating model retraining pipeline...')"><i class="fa-solid fa-rotate-right"></i> Retrain Models</button>
         </div>
@@ -14084,9 +14983,9 @@ function renderProductRoadmapModule() {
       <!-- PAGE HEADER TOOLBAR ACTIONS -->
       <div style="background-color: var(--bg-surface); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary btn-sm" onclick="alert('ANNOUNCEMENT: Opening executive announcement composer...')"><i class="fa-solid fa-bullhorn"></i> Create Announcement</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('BROADCAST: Dispatched enterprise emergency broadcast dialog...')"><i class="fa-solid fa-tower-cell"></i> Send Broadcast</button>
-          <button class="btn btn-outline btn-sm" onclick="alert('ALERT: Creating executive high-priority alert trigger...')"><i class="fa-solid fa-bell-concierge"></i> Create Executive Alert</button>
+          <button class="btn btn-primary btn-sm" onclick="window.openCreateNotificationModal()"><i class="fa-solid fa-bullhorn"></i> Create Announcement</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openBroadcastModal()"><i class="fa-solid fa-tower-cell"></i> Send Broadcast</button>
+          <button class="btn btn-outline btn-sm" onclick="window.openCreateNotificationModal()"><i class="fa-solid fa-bell-concierge"></i> Create Executive Alert</button>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-outline btn-sm" onclick="alert('EXPORT: Exporting executive notifications audit PDF...')"><i class="fa-solid fa-file-pdf"></i> Export Notifications</button>

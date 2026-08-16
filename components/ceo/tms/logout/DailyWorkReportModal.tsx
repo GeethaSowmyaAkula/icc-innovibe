@@ -60,47 +60,60 @@ export function DailyWorkReportModal({ isOpen, sessionId, employeeId, onClose, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!workSummary.trim()) {
       alert('Please enter a brief summary of what you accomplished today.');
       return;
     }
 
     setIsSubmitting(true);
-    setIsSuccessAnimating(true);
 
-    const tasksCompleted = tasksCompletedRaw
-      .split('\n')
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
+    try {
+      const tasksCompleted = tasksCompletedRaw
+        .split('\n')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
 
-    const pendingTasks = pendingTasksRaw
-      .split('\n')
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
+      const pendingTasks = pendingTasksRaw
+        .split('\n')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
 
-    const payload: SubmitWorkReportPayload = {
-      sessionId,
-      workSummary: workSummary.trim(),
-      tasksCompleted: tasksCompleted.length > 0 ? tasksCompleted : ['General daily tasks completed'],
-      pendingTasks: pendingTasks.length > 0 ? pendingTasks : ['None reported'],
-      challengesBlockers: challenges.trim() || 'No major blockers encountered today.',
-      timeNotes: timeNotes.trim() || 'Standard business working hours.',
-      additionalNotes: additionalNotes.trim() || undefined,
-      attachments: attachments.length > 0 ? attachments : undefined,
-      logoutMethod: 'MANUAL_LOGOUT',
-    };
+      const payload: SubmitWorkReportPayload = {
+        sessionId,
+        workSummary: workSummary.trim(),
+        tasksCompleted: tasksCompleted.length > 0 ? tasksCompleted : ['General daily tasks completed'],
+        pendingTasks: pendingTasks.length > 0 ? pendingTasks : ['None reported'],
+        challengesBlockers: challenges.trim() || 'No major blockers encountered today.',
+        timeNotes: timeNotes.trim() || 'Standard business working hours.',
+        additionalNotes: additionalNotes.trim() || undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
+        logoutMethod: 'MANUAL_LOGOUT',
+      };
 
-    // Save report via Service
-    await LogoutService.submitReport(payload);
-    onSubmitted();
-
-    // Trigger smooth 2.2-second submission animation before redirecting
-    setTimeout(() => {
-      AuthService.logout();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
+      // 1. Transactionally record session end & EOD report
+      const res = await LogoutService.submitReport(payload);
+      if (!res) {
+        throw new Error('Failed to record work session completion in database.');
       }
-    }, 2200);
+
+      setIsSuccessAnimating(true);
+      onSubmitted();
+
+      // 2. ONLY AFTER successful persistence: trigger logout & redirect
+      setTimeout(() => {
+        AuthService.logout();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+      }, 2000);
+    } catch (err: any) {
+      console.error('Work report submission error:', err);
+      alert('Network or server issue saving your work report. Your session remains active. Please try again.');
+      setIsSubmitting(false);
+      setIsSuccessAnimating(false);
+    }
   };
 
   return (
