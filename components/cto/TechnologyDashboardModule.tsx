@@ -157,9 +157,6 @@ export function TechnologyDashboardModule() {
           <button onClick={() => alert('Exporting CTO Dashboard View...')} className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
             <Download className="h-4 w-4 text-purple-600" /> Export Dashboard
           </button>
-          <button onClick={() => alert('AI Assistant: Generating Executive Summary...')} className="px-3.5 py-2 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-purple-600" /> AI Executive Summary
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
