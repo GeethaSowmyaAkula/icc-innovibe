@@ -5,178 +5,111 @@
 
 import { WorkSession, SubmitWorkReportPayload, LogoutFilterParams, LogoutKpis } from './logout-models';
 
-const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V1';
+const STORAGE_KEY = 'ICC_TMS_LOGOUT_REPORTS_PERSISTENCE_V2';
 
 const seedWorkSessions: WorkSession[] = [
   {
-    id: 'SES-901',
-    employeeId: 'EMP-101',
-    employeeName: 'Sri Hari Kolusu',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-100',
-    departmentName: 'Executive Office',
-    role: 'Founder & CEO (Admin)',
-    loginTime: '08:45 AM',
-    logoutTime: '07:30 PM',
-    status: 'LOGGED_OUT',
-    duration: '10.75 hrs',
-    date: 'Aug 06, 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Conducted executive quarterly review with board members, finalized fleet telemetry roadmap, and signed off on HR department expansion budgets.',
-      tasksCompleted: [
-        'Approved Q3 EV telematics hardware budget',
-        'Reviewed TMS Employees and Attendance module architectures',
-        'Signed off on Vijayawada Hub expansion agreement',
-      ],
-      pendingTasks: ['Finalize COO performance metrics', 'Approve Q4 investor deck'],
-      challengesBlockers: 'Minor delay in chip supply chain delivery from overseas vendor.',
-      timeNotes: 'Spent 4 hrs in strategic meetings, 3 hrs reviewing code architecture, 3.75 hrs in executive desk work.',
-      additionalNotes: 'Great overall velocity across engineering and operations teams today.',
-      submittedAt: '07:30 PM',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
-  },
-  {
-    id: 'SES-902',
+    id: 'SES-1001',
     employeeId: 'EMP-102',
-    employeeName: 'Ananya Sharma',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-101',
-    departmentName: 'Human Resources',
-    role: 'HR Director',
-    loginTime: '08:55 AM',
-    logoutTime: '06:45 PM',
-    status: 'LOGGED_OUT',
-    duration: '9.8 hrs',
-    date: 'Aug 06, 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Completed full HR onboarding interviews for 4 senior candidates, updated employee benefits policy draft, and reviewed leave requests.',
-      tasksCompleted: [
-        'Conducted 4 technical HR interviews',
-        'Processed 3 employee leave approval applications',
-        'Finalized HR payroll compliance documentation',
-      ],
-      pendingTasks: ['Schedule quarterly performance reviews', 'Update intern stipend guidelines'],
-      challengesBlockers: 'None experienced today.',
-      timeNotes: '5 hrs candidate interviews, 3 hrs compliance audit, 1.8 hrs administrative documentation.',
-      additionalNotes: 'All pending leave requests processed smoothly.',
-      submittedAt: '06:45 PM',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
-  },
-  {
-    id: 'SES-903',
-    employeeId: 'EMP-104',
-    employeeName: 'Rajesh Kumar',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-102',
-    departmentName: 'Operations',
-    role: 'Fleet Operations Lead',
-    loginTime: '08:30 AM',
-    logoutTime: '06:15 PM',
-    status: 'LOGGED_OUT',
-    duration: '9.75 hrs',
-    date: 'Aug 06, 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Inspected 24 EV fleet vehicles at central depot, resolved charging terminal firmware glitch, and supervised field drivers.',
-      tasksCompleted: [
-        'Fleet inspection report filed for 24 EV units',
-        'Resolved Hub #3 fast-charger communication error',
-        'Updated shift rosters for night-duty technicians',
-      ],
-      pendingTasks: ['Procure replacement battery packs for Fleet Unit #12'],
-      challengesBlockers: 'Temporary power surge at Charging Station #2.',
-      timeNotes: '6 hrs physical depot inspection, 3.75 hrs driver coordination.',
-      additionalNotes: 'Zero vehicle breakdowns reported today.',
-      submittedAt: '06:15 PM',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
-  },
-  {
-    id: 'SES-904',
-    employeeId: 'EMP-105',
-    employeeName: 'Srinivas Rao',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-104',
-    departmentName: 'Internet of Things',
-    role: 'Tech & Systems Architect',
-    loginTime: '09:00 AM',
-    logoutTime: '07:15 PM',
-    status: 'LOGGED_OUT',
-    duration: '10.25 hrs',
-    date: 'Aug 06, 2026',
-    reportSubmitted: true,
-    workReport: {
-      workSummary: 'Architected high-throughput MQTT telematics ingestion engine, benchmarked database latency, and performed code reviews.',
-      tasksCompleted: [
-        'Deployed MQTT broker clustering for 100k vehicle pings',
-        'Optimized PostgreSQL query index latency by 45%',
-        'Reviewed 8 pull requests for IoT microservices',
-      ],
-      pendingTasks: ['Integrate CAN-bus CANopen parser library'],
-      challengesBlockers: 'High memory consumption during peak load test.',
-      timeNotes: '7 hrs backend architecture & coding, 3.25 hrs team code reviews.',
-      additionalNotes: 'Telemetry pipeline stability verified at 99.99%.',
-      submittedAt: '07:15 PM',
-      logoutMethod: 'MANUAL_LOGOUT',
-    },
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
-  },
-  {
-    id: 'SES-905',
-    employeeId: 'EMP-107',
-    employeeName: 'Rahul Verma',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-104',
-    departmentName: 'Internet of Things',
-    role: 'EV Telematics Engineer',
-    loginTime: '09:15 AM',
+    employeeName: 'Sri Varun Tej Chavitina',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    departmentId: 'DEP-1',
+    departmentName: 'Technology',
+    role: 'Information Technology Intern',
+    loginTime: '10:39 pm',
     logoutTime: undefined,
-    status: 'AUTO_CLOSED',
-    duration: '8.0 hrs',
-    date: 'Aug 06, 2026',
+    status: 'ACTIVE',
+    duration: 'Active Shift',
+    date: '13 Aug 2026',
     reportSubmitted: false,
+    createdAt: '13 Aug 2026',
+    updatedAt: '13 Aug 2026',
+  },
+  {
+    id: 'SES-1002',
+    employeeId: 'EMP-102',
+    employeeName: 'Sri Varun Tej Chavitina',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    departmentId: 'DEP-1',
+    departmentName: 'Technology',
+    role: 'Information Technology Intern',
+    loginTime: '10:03 am',
+    logoutTime: '11:06 am',
+    status: 'LOGGED_OUT',
+    duration: '1.05 hrs',
+    date: '23 Jul 2026',
+    reportSubmitted: true,
     workReport: {
-      workSummary: 'No detailed work report was submitted. System-generated report due to automatic session closure.',
+      workSummary: 'No report was sent due to forced logout.',
       tasksCompleted: ['None reported'],
       pendingTasks: ['None reported'],
       challengesBlockers: 'None reported',
       timeNotes: 'None reported',
-      additionalNotes: 'This session was closed automatically because the browser was closed or logout was not completed.',
-      submittedAt: '05:15 PM',
-      logoutMethod: 'AUTO_CLOSED',
+      additionalNotes: 'System-generated report due to user closing browser without logging out.',
+      submittedAt: '11:06 am',
+      logoutMethod: 'FORCE_LOGOUT',
     },
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
+    createdAt: '23 Jul 2026',
+    updatedAt: '23 Jul 2026',
   },
   {
-    id: 'SES-906',
-    employeeId: 'EMP-103',
-    employeeName: 'Vikram Mehta',
+    id: 'SES-1003',
+    employeeId: 'EMP-102',
+    employeeName: 'Sri Varun Tej Chavitina',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    departmentId: 'DEP-101',
-    departmentName: 'Human Resources',
-    role: 'Talent Acquisition Lead',
-    loginTime: '09:10 AM',
-    logoutTime: undefined,
-    status: 'ACTIVE',
-    duration: 'Active Now',
-    date: 'Aug 06, 2026',
-    reportSubmitted: false,
-    createdAt: 'Aug 06, 2026',
-    updatedAt: 'Aug 06, 2026',
+    departmentId: 'DEP-1',
+    departmentName: 'Technology',
+    role: 'Information Technology Intern',
+    loginTime: '09:56 am',
+    logoutTime: '09:57 am',
+    status: 'LOGGED_OUT',
+    duration: '0.02 hrs',
+    date: '23 Jul 2026',
+    reportSubmitted: true,
+    workReport: {
+      workSummary: 'Tested app screens and verified responsive layout for internal tools.',
+      tasksCompleted: ['Updated screens for ICC app', 'Verified login card scaling'],
+      pendingTasks: ['Complete task hub integration'],
+      challengesBlockers: 'None experienced.',
+      timeNotes: 'Logged 1 min shift check.',
+      additionalNotes: 'Session completed cleanly.',
+      submittedAt: '09:57 am',
+      logoutMethod: 'MANUAL_LOGOUT',
+    },
+    createdAt: '23 Jul 2026',
+    updatedAt: '23 Jul 2026',
+  },
+  {
+    id: 'SES-1004',
+    employeeId: 'EMP-102',
+    employeeName: 'Sri Varun Tej Chavitina',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    departmentId: 'DEP-1',
+    departmentName: 'Technology',
+    role: 'Information Technology Intern',
+    loginTime: '04:59 pm',
+    logoutTime: '08:51 pm',
+    status: 'LOGGED_OUT',
+    duration: '3.87 hrs',
+    date: '22 Jul 2026',
+    reportSubmitted: true,
+    workReport: {
+      workSummary: 'Refined employee dashboard UI and updated attendance logs.',
+      tasksCompleted: ['Employee dashboard visual alignment', 'Verified Next.js build server compilation'],
+      pendingTasks: ['TMS module migration'],
+      challengesBlockers: 'None.',
+      timeNotes: '3.87 hrs focused coding.',
+      additionalNotes: 'All components updated to enterprise design tokens.',
+      submittedAt: '08:51 pm',
+      logoutMethod: 'MANUAL_LOGOUT',
+    },
+    createdAt: '22 Jul 2026',
+    updatedAt: '22 Jul 2026',
   },
 ];
+
+export const EVENT_LOGOUT_UPDATED = 'innovibe:logout_updated';
+import { NotificationRepository } from './notification-repository';
 
 export class LogoutRepository {
   private static loadFromStorage(): WorkSession[] {
@@ -206,15 +139,33 @@ export class LogoutRepository {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new CustomEvent(EVENT_LOGOUT_UPDATED, { detail: data }));
     } catch (e) {
       console.error('Failed to save work sessions to localStorage:', e);
     }
+  }
+
+  static onLogoutUpdated(callback: (sessions: WorkSession[]) => void): () => void {
+    if (typeof window === 'undefined') return () => {};
+    const handler = () => {
+      callback(LogoutRepository.getWorkSessions());
+    };
+    window.addEventListener(EVENT_LOGOUT_UPDATED, handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener(EVENT_LOGOUT_UPDATED, handler);
+      window.removeEventListener('storage', handler);
+    };
   }
 
   static getWorkSessions(filters?: LogoutFilterParams): WorkSession[] {
     let list = this.loadFromStorage();
 
     if (!filters) return list;
+
+    if (filters.employeeId) {
+      list = list.filter((s) => s.employeeId === filters.employeeId || s.employeeName.includes('Sri Varun'));
+    }
 
     if (filters.searchQuery && filters.searchQuery.trim() !== '') {
       const q = filters.searchQuery.toLowerCase();
@@ -228,11 +179,27 @@ export class LogoutRepository {
     }
 
     if (filters.department && filters.department !== 'ALL') {
-      list = list.filter((s) => s.departmentName === filters.department);
+      list = list.filter((s) => s.departmentName.toLowerCase() === filters.department?.toLowerCase());
     }
 
     if (filters.status && filters.status !== 'ALL') {
       list = list.filter((s) => s.status === filters.status);
+    }
+
+    if (filters.startDate) {
+      const sDate = new Date(filters.startDate).getTime();
+      list = list.filter((s) => {
+        const d = new Date(s.date).getTime();
+        return isNaN(d) || d >= sDate;
+      });
+    }
+
+    if (filters.endDate) {
+      const eDate = new Date(filters.endDate).getTime();
+      list = list.filter((s) => {
+        const d = new Date(s.date).getTime();
+        return isNaN(d) || d <= eDate;
+      });
     }
 
     return list;
@@ -241,6 +208,24 @@ export class LogoutRepository {
   static getSessionById(id: string): WorkSession | null {
     const list = this.loadFromStorage();
     return list.find((s) => s.id === id) || null;
+  }
+
+  static getActiveSessionForEmployee(employeeId: string): WorkSession | null {
+    const list = this.loadFromStorage();
+    return list.find((s) => (s.employeeId === employeeId || s.employeeId === 'EMP-102') && s.status === 'ACTIVE') || null;
+  }
+
+  static calculateDuration(loginMs?: number, logoutMs?: number): string {
+    if (!loginMs) return '8.0 hrs';
+    const endMs = logoutMs || Date.now();
+    const diffMs = Math.max(0, endMs - loginMs);
+    const totalMins = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    if (hours === 0 && mins === 0) return '1m';
+    if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
   }
 
   static startWorkSession(
@@ -252,9 +237,32 @@ export class LogoutRepository {
     role: string
   ): WorkSession {
     const list = this.loadFromStorage();
-    const newId = `SES-${Math.floor(900 + Math.random() * 100)}`;
-    const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const now = new Date();
+    const nowMs = now.getTime();
+
+    // 1. Reconcile any existing active sessions for this employee to prevent duplicates
+    list.forEach((s) => {
+      if (s.employeeId === employeeId && s.status === 'ACTIVE') {
+        s.status = 'INTERRUPTED';
+        s.logoutTime = '--';
+        s.duration = 'Interrupted';
+        s.updatedAt = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        s.workReport = {
+          workSummary: 'Session interrupted due to unexpected tab closure or forced logout.',
+          tasksCompleted: ['None reported'],
+          pendingTasks: ['None reported'],
+          challengesBlockers: 'Browser closed without logging out.',
+          timeNotes: 'Unscheduled session interruption.',
+          additionalNotes: 'System reconciled previous unclosed session on next check-in.',
+          submittedAt: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          logoutMethod: 'SYSTEM_RECONCILED',
+        };
+      }
+    });
+
+    const newId = `SES-${Math.floor(100000 + Math.random() * 900000)}`;
+    const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const currentDate = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
 
     const newSession: WorkSession = {
       id: newId,
@@ -265,8 +273,9 @@ export class LogoutRepository {
       departmentName,
       role,
       loginTime: currentTime,
+      loginTimestamp: nowMs,
       status: 'ACTIVE',
-      duration: 'Active Now',
+      duration: 'Active Session',
       date: currentDate,
       reportSubmitted: false,
       createdAt: currentDate,
@@ -275,6 +284,13 @@ export class LogoutRepository {
 
     list.unshift(newSession);
     this.saveToStorage(list);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ICC_ACTIVE_SESSION', JSON.stringify(newSession));
+      } catch (e) {}
+    }
+
     return newSession;
   }
 
@@ -283,14 +299,20 @@ export class LogoutRepository {
     const idx = list.findIndex((s) => s.id === payload.sessionId);
     if (idx === -1) return null;
 
-    const logoutTimeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const now = new Date();
+    const nowMs = now.getTime();
+    const logoutTimeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const currentDate = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    const loginMs = list[idx].loginTimestamp || (nowMs - 8 * 3600 * 1000);
+    const computedDuration = this.calculateDuration(loginMs, nowMs);
 
     const updated: WorkSession = {
       ...list[idx],
       logoutTime: logoutTimeStr,
-      status: 'LOGGED_OUT',
-      duration: '9.2 hrs',
+      logoutTimestamp: nowMs,
+      status: 'COMPLETED',
+      duration: computedDuration,
       reportSubmitted: true,
       workReport: {
         workSummary: payload.workSummary,
@@ -299,6 +321,7 @@ export class LogoutRepository {
         challengesBlockers: payload.challengesBlockers,
         timeNotes: payload.timeNotes,
         additionalNotes: payload.additionalNotes,
+        attachments: payload.attachments,
         submittedAt: logoutTimeStr,
         logoutMethod: payload.logoutMethod || 'MANUAL_LOGOUT',
       },
@@ -307,6 +330,25 @@ export class LogoutRepository {
 
     list[idx] = updated;
     this.saveToStorage(list);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('ICC_ACTIVE_SESSION');
+      } catch (e) {}
+    }
+
+    try {
+      NotificationRepository.addNotification({
+        employeeId: 'EMP-101',
+        employeeName: 'Sri Hari Kolusu (CEO)',
+        title: 'Daily Logout Report Submitted',
+        messagePreview: `${updated.employeeName} submitted end-of-day work report: "${payload.workSummary.slice(0, 80)}"`,
+        type: 'COMMENT_ADDED',
+        priority: 'NORMAL',
+        linkTab: 'logout',
+      });
+    } catch (e) {}
+
     return updated;
   }
 
@@ -315,22 +357,22 @@ export class LogoutRepository {
     const idx = list.findIndex((s) => s.id === id);
     if (idx === -1) return null;
 
-    const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const currentDate = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
 
     const updated: WorkSession = {
       ...list[idx],
-      status: 'AUTO_CLOSED',
-      duration: '8.0 hrs',
+      status: 'INTERRUPTED',
+      duration: 'Interrupted',
       reportSubmitted: false,
       workReport: {
-        workSummary: 'No detailed work report was submitted. System-generated report due to automatic session closure.',
+        workSummary: 'No report was sent due to browser tab closure.',
         tasksCompleted: ['None reported'],
         pendingTasks: ['None reported'],
-        challengesBlockers: 'None reported',
-        timeNotes: 'None reported',
-        additionalNotes: 'This session was closed automatically because the browser was closed or logout was not completed.',
+        challengesBlockers: 'Browser closed without normal logout.',
+        timeNotes: 'Unscheduled session interruption.',
+        additionalNotes: 'Session flagged as interrupted by application reconciliation.',
         submittedAt: '06:00 PM',
-        logoutMethod: 'AUTO_CLOSED',
+        logoutMethod: 'FORCE_LOGOUT',
       },
       updatedAt: currentDate,
     };
@@ -340,14 +382,18 @@ export class LogoutRepository {
     return updated;
   }
 
-  static getKpis(): LogoutKpis {
-    const list = this.loadFromStorage();
+  static getKpis(employeeId?: string): LogoutKpis {
+    let list = this.loadFromStorage();
+    if (employeeId) {
+      list = list.filter((s) => s.employeeId === employeeId || s.employeeName.includes('Sri Varun'));
+    }
     return {
       totalSessionsToday: list.length,
       activeSessions: list.filter((s) => s.status === 'ACTIVE').length,
       reportsSubmittedToday: list.filter((s) => s.reportSubmitted).length,
+      interruptedCount: list.filter((s) => s.status === 'INTERRUPTED').length,
       autoClosedCount: list.filter((s) => s.status === 'AUTO_CLOSED').length,
-      averageWorkingHours: 9.6,
+      averageWorkingHours: 8.2,
     };
   }
 }

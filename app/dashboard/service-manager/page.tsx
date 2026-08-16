@@ -41,7 +41,7 @@ function ServiceManagerDashboardContent() {
   const [selectedTicketId, setSelectedTicketId] = useState<string>('tkt_101');
   const [currentCenter, setCurrentCenter] = useState<string>('Vizag Service Center');
   const [activeKpiFilter, setActiveKpiFilter] = useState<string | null>(null);
-  const [overviewTab, setOverviewTab] = useState<'all' | 'techs' | 'analytics'>('all');
+  const [overviewTab, setOverviewTab] = useState<'all' | 'kyp' | 'techs' | 'analytics'>('all');
 
   // Modal State
   const [activeModal, setActiveModal] = useState<string | null>(null);
