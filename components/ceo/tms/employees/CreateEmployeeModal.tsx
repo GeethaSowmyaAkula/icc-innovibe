@@ -11,9 +11,10 @@ interface CreateEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEmployeeCreated: () => void;
+  defaultDepartmentId?: string;
 }
 
-export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: CreateEmployeeModalProps) {
+export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated, defaultDepartmentId }: CreateEmployeeModalProps) {
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
 
   const [fullName, setFullName] = useState('');
@@ -33,13 +34,15 @@ export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: Crea
     const loadDepartments = async () => {
       const list = await DepartmentService.getAll();
       setDepartments(list);
-      if (list.length > 0 && !departmentId) {
+      if (defaultDepartmentId) {
+        setDepartmentId(defaultDepartmentId);
+      } else if (list.length > 0 && !departmentId) {
         setDepartmentId(list[0].id);
       }
     };
 
     loadDepartments();
-  }, [isOpen]);
+  }, [isOpen, defaultDepartmentId]);
 
   if (!isOpen) return null;
 

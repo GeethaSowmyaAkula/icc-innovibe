@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CreateDepartmentPayload } from '../../../../lib/department-models';
+import { DepartmentItem, UpdateDepartmentPayload } from '../../../../lib/department-models';
 import { DepartmentService } from '../../../../lib/department-service';
 import { EmployeeService } from '../../../../lib/employee-service';
 import { EmployeeRecord } from '../../../../lib/employee-models';
-import { X, Building2, Shield, Lock, Mail, User, Clock, Users, Check } from 'lucide-react';
+import { X, Building2, Shield, Mail, Clock, Check, UserCheck } from 'lucide-react';
 
-interface CreateDepartmentModalProps {
+interface EditDepartmentModalProps {
+  department: DepartmentItem | null;
   isOpen: boolean;
   onClose: () => void;
-  onDepartmentCreated: () => void;
+  onDepartmentUpdated: () => void;
 }
 
-export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: CreateDepartmentModalProps) {
+export function EditDepartmentModal({ department, isOpen, onClose, onDepartmentUpdated }: EditDepartmentModalProps) {
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
 
   const [departmentName, setDepartmentName] = useState('');
@@ -22,31 +23,31 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
   const [departmentHeadId, setDepartmentHeadId] = useState('');
   const [departmentHead, setDepartmentHead] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
   const [checkInCutoffTime, setCheckInCutoffTime] = useState('09:15 AM');
+  const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [departmentColor, setDepartmentColor] = useState('bg-amber-500');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!department || !isOpen) return;
+
+    setDepartmentName(department.departmentName);
+    setDepartmentCode(department.departmentCode);
+    setDescription(department.description || '');
+    setDepartmentHead(department.departmentHead);
+    setDepartmentHeadId(department.departmentHeadId || '');
+    setLoginEmail(department.loginEmail);
+    setCheckInCutoffTime(department.checkInCutoffTime || '09:15 AM');
+    setStatus(department.status);
+    setDepartmentColor(department.departmentColor || 'bg-amber-500');
+
+    // Fetch employee roster for head selector
     EmployeeService.getAll().then((list) => {
       setEmployees(list);
     });
-  }, [isOpen]);
+  }, [department, isOpen]);
 
-  if (!isOpen) return null;
-
-  const resetForm = () => {
-    setDepartmentName('');
-    setDepartmentCode('');
-    setDescription('');
-    setDepartmentHeadId('');
-    setDepartmentHead('');
-    setLoginEmail('');
-    setLoginPassword('');
-    setCheckInCutoffTime('09:15 AM');
-    setDepartmentColor('bg-amber-500');
-  };
+  if (!isOpen || !department) return null;
 
   const handleHeadChange = (headId: string) => {
     setDepartmentHeadId(headId);
@@ -62,30 +63,29 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!departmentName.trim() || !departmentCode.trim() || !loginEmail.trim()) {
-      alert('Please fill in all required department fields.');
+    if (!departmentName.trim() || !departmentCode.trim()) {
+      alert('Department Name and Code are required.');
       return;
     }
 
     setIsSubmitting(true);
 
-    const payload: CreateDepartmentPayload = {
+    const patch: UpdateDepartmentPayload = {
       departmentName: departmentName.trim(),
       departmentCode: departmentCode.trim().toUpperCase(),
       description: description.trim(),
       departmentHead: departmentHead.trim() || 'Unassigned',
       departmentHeadId: departmentHeadId || undefined,
       loginEmail: loginEmail.trim(),
-      loginPassword: loginPassword.trim() || 'Pass@2026Secure',
-      checkInCutoffTime: checkInCutoffTime.trim() || '09:15 AM',
+      checkInCutoffTime: checkInCutoffTime.trim(),
+      status,
+      isActive: status === 'ACTIVE',
       departmentColor,
-      status: 'ACTIVE',
     };
 
-    await DepartmentService.create(payload);
+    await DepartmentService.update(department.id, patch);
     setIsSubmitting(false);
-    resetForm();
-    onDepartmentCreated();
+    onDepartmentUpdated();
     onClose();
   };
 
@@ -99,8 +99,8 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-gotham text-lg font-extrabold text-white">Create New Department</h2>
-              <p className="font-sans text-xs text-slate-400">Enterprise organizational unit and portal credentials</p>
+              <h2 className="font-gotham text-lg font-extrabold text-white">Edit Department</h2>
+              <p className="font-sans text-xs text-slate-400">Modify organizational settings, head assignment, and cutoff rules</p>
             </div>
           </div>
 
@@ -121,10 +121,9 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
                 type="text"
                 value={departmentName}
                 onChange={(e) => setDepartmentName(e.target.value)}
-                placeholder="e.g. Telematics Engineering"
                 required
                 style={{ backgroundColor: '#090d16', color: '#ffffff' }}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-amber-500 font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white outline-none focus:border-amber-500 font-semibold"
               />
             </div>
 
@@ -136,10 +135,9 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
                 type="text"
                 value={departmentCode}
                 onChange={(e) => setDepartmentCode(e.target.value)}
-                placeholder="e.g. TEL"
                 required
                 style={{ backgroundColor: '#090d16', color: '#ffffff' }}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-amber-500 font-apfel font-bold uppercase"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white outline-none focus:border-amber-500 font-apfel font-bold uppercase"
               />
             </div>
           </div>
@@ -147,22 +145,22 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
           {/* Description */}
           <div>
             <label className="font-montserrat block text-[10px] font-extrabold uppercase text-slate-400 mb-1">
-              Description / Functional Scope
+              Department Scope & Description
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
-              placeholder="Outline department scope, responsibilities, or technical domain..."
+              placeholder="Primary responsibilities, technical domain, or operational scope..."
               style={{ backgroundColor: '#090d16', color: '#ffffff' }}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-amber-500 font-normal resize-none"
             />
           </div>
 
-          {/* Department Head Dropdown */}
+          {/* Department Head Selector */}
           <div>
             <label className="font-montserrat block text-[10px] font-extrabold uppercase text-slate-400 mb-1">
-              Assign Department Head
+              Assigned Department Head
             </label>
             <select
               value={departmentHeadId}
@@ -179,35 +177,34 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
             </select>
           </div>
 
-          {/* Credentials: Email & Password */}
+          {/* Email & Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="font-montserrat block text-[10px] font-extrabold uppercase text-slate-400 mb-1">
-                Official Department Email *
+                Official Department Email
               </label>
               <input
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="telematics@innovibe.in"
-                required
                 style={{ backgroundColor: '#090d16', color: '#ffffff' }}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-amber-500 font-sans"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white outline-none focus:border-amber-500 font-sans"
               />
             </div>
 
             <div>
               <label className="font-montserrat block text-[10px] font-extrabold uppercase text-slate-400 mb-1">
-                Portal Password
+                Department Status
               </label>
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Pass@2026Secure"
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
                 style={{ backgroundColor: '#090d16', color: '#ffffff' }}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white placeholder-slate-500 outline-none focus:border-amber-500 font-sans"
-              />
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white outline-none focus:border-amber-500 font-bold cursor-pointer"
+              >
+                <option value="ACTIVE">🟢 Active & Operational</option>
+                <option value="INACTIVE">🔴 Inactive / Archived</option>
+              </select>
             </div>
           </div>
 
@@ -220,7 +217,6 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
               type="text"
               value={checkInCutoffTime}
               onChange={(e) => setCheckInCutoffTime(e.target.value)}
-              placeholder="09:15 AM"
               style={{ backgroundColor: '#090d16', color: '#ffffff' }}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-700 !text-white outline-none focus:border-amber-500 font-apfel font-medium"
             />
@@ -246,7 +242,6 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
                   className={`h-7 w-7 rounded-full ${c.class} flex items-center justify-center transition-transform ${
                     departmentColor === c.class ? 'scale-125 ring-2 ring-white' : 'opacity-70 hover:opacity-100'
                   }`}
-                  title={c.name}
                 >
                   {departmentColor === c.class && <Check className="h-3.5 w-3.5 text-white" />}
                 </button>
@@ -268,8 +263,8 @@ export function CreateDepartmentModal({ isOpen, onClose, onDepartmentCreated }: 
               disabled={isSubmitting}
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#78350f] text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-2"
             >
-              <Building2 className="h-4 w-4" />
-              <span>{isSubmitting ? 'Saving...' : 'Save & Register Department'}</span>
+              <UserCheck className="h-4 w-4" />
+              <span>{isSubmitting ? 'Updating...' : 'Save Department Changes'}</span>
             </button>
           </div>
         </form>

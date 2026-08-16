@@ -17,6 +17,7 @@ import { LogoutService } from '@/lib/logout-service';
 import { LogoutRepository } from '@/lib/logout-repository';
 import { WorkSession } from '@/lib/logout-models';
 import { DailyWorkReportModal } from '@/components/ceo/tms/logout/DailyWorkReportModal';
+import { ViewReportModal } from '@/components/ceo/tms/logout/ViewReportModal';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -658,52 +659,155 @@ function EmployeeDashboardContent() {
     setTimeout(() => setTaskActionToast(''), 3500);
   };
 
-  // Dynamic Attendance & Logout Data based on selected Range
+  // 100% Real Supabase-backed Work Sessions for the authenticated Employee
+  const [employeeSessions, setEmployeeSessions] = useState<WorkSession[]>([]);
+  const [selectedSessionForModal, setSelectedSessionForModal] = useState<WorkSession | null>(null);
+
+  useEffect(() => {
+    const loadRealSessions = async () => {
+      const empId = currentProfile?.employeeId || currentProfile?.email || 'EMP-102';
+      const list = await LogoutService.getAll({ employeeId: empId });
+      setEmployeeSessions(list);
+    };
+
+    loadRealSessions();
+    const unsub = LogoutService.onLogoutUpdated(() => {
+      loadRealSessions();
+    });
+    return () => unsub();
+  }, [currentProfile]);
+
+  // Real Calculated KPIs
+  const realKpis = useMemo(() => {
+    const total = employeeSessions.length;
+    const completed = employeeSessions.filter((s) => s.status === 'COMPLETED' || s.status === 'LOGGED_OUT');
+    const activeSession = employeeSessions.find((s) => s.status === 'ACTIVE');
+
+    const currentMonthStr = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const monthSessions = employeeSessions.filter((s) => s.date.includes(currentMonthStr));
+    const uniqueDays = new Set(monthSessions.map((s) => s.date)).size;
+
+    let lateCount = 0;
+    employeeSessions.forEach((s) => {
+      if (s.loginTime) {
+        const match = s.loginTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3] ? match[3].toUpperCase() : 'AM';
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+          if (h > 9 || (h === 9 && m > 15)) {
+            lateCount++;
+          }
+        }
+      }
+    });
+
+    const onTimeCount = Math.max(0, total - lateCount);
+    const onTimeRatioPercent = total > 0 ? Math.round((onTimeCount / total) * 100) : 100;
+
+    let avgHoursStr = '0h 0m';
+    if (completed.length > 0) {
+      let totalMins = 0;
+      completed.forEach((s) => {
+        const match = (s.duration || '').match(/(\d+)h\s*(\d*)m?/);
+        if (match) {
+          totalMins += parseInt(match[1], 10) * 60 + (match[2] ? parseInt(match[2], 10) : 0);
+        }
+      });
+      const avgMins = Math.round(totalMins / completed.length);
+      const avgH = Math.floor(avgMins / 60);
+      const avgM = avgMins % 60;
+      avgHoursStr = `${avgH}h ${avgM}m`;
+    }
+
+    return {
+      monthlyPresentStr: `${uniqueDays} ${uniqueDays === 1 ? 'Day' : 'Days'}`,
+      attendanceRateStr: `${total > 0 ? Math.round((completed.length / total) * 100) : 100}% Attendance Rate`,
+      onTimeRatioStr: `${onTimeRatioPercent}%`,
+      lateLoginsStr: `${lateCount} Late Logins`,
+      averageShiftStr: avgHoursStr,
+      currentShiftStr: activeSession ? workingDuration : '--',
+      activeSession,
+      total,
+      uniqueDays,
+      lateCount,
+    };
+  }, [employeeSessions, workingDuration]);
+
+  // Real Chart Data
   const attendanceChartData = useMemo(() => {
+    if (!employeeSessions || employeeSessions.length === 0) {
+      return [];
+    }
+
+    let filtered = [...employeeSessions];
+    const now = new Date().getTime();
+
     if (attendanceTimeRange === '1W') {
-      return [
-        { date: 'Mon 04', fullDate: 'Monday, Aug 04', loginTime: '09:02 AM', logoutTime: '06:14 PM', loginMinutes: 2, logoutMinutes: 14, hours: '8h 12m', status: 'On-Time', departureStatus: '+14m Normal' },
-        { date: 'Tue 05', fullDate: 'Tuesday, Aug 05', loginTime: '08:58 AM', logoutTime: '06:18 PM', loginMinutes: -2, logoutMinutes: 18, hours: '8h 20m', status: 'Early (08:58)', departureStatus: '+18m Overtime' },
-        { date: 'Wed 06', fullDate: 'Wednesday, Aug 06', loginTime: '09:12 AM', logoutTime: '06:12 PM', loginMinutes: 12, logoutMinutes: 12, hours: '8h 00m', status: 'On-Time', departureStatus: '+12m Normal' },
-        { date: 'Thu 07', fullDate: 'Thursday, Aug 07', loginTime: '08:58 AM', logoutTime: '06:05 PM', loginMinutes: -2, logoutMinutes: 5, hours: '8h 07m', status: 'Early (08:58)', departureStatus: '+05m Normal' },
-        { date: 'Fri 08', fullDate: 'Friday, Aug 08', loginTime: '09:10 AM', logoutTime: '06:20 PM', loginMinutes: 10, logoutMinutes: 20, hours: '8h 10m', status: 'On-Time', departureStatus: '+20m Overtime' },
-        { date: 'Sat 09', fullDate: 'Saturday, Aug 09', loginTime: '09:05 AM', logoutTime: '06:15 PM', loginMinutes: 5, logoutMinutes: 15, hours: '8h 10m', status: 'On-Time', departureStatus: '+15m Normal' },
-        { date: 'Today 10', fullDate: 'Today (Aug 10)', loginTime: '09:15 AM', logoutTime: '06:00 PM (Est)', loginMinutes: 15, logoutMinutes: 0, hours: workingDuration, status: 'On-Time (Active)', departureStatus: 'Shift In Progress' },
-      ];
+      const weekAgo = now - 7 * 86400 * 1000;
+      filtered = filtered.filter((s) => (s.loginTimestamp || 0) >= weekAgo);
+    } else if (attendanceTimeRange === '1M') {
+      const monthAgo = now - 30 * 86400 * 1000;
+      filtered = filtered.filter((s) => (s.loginTimestamp || 0) >= monthAgo);
+    } else if (attendanceTimeRange === '6M') {
+      const sixMonthsAgo = now - 180 * 86400 * 1000;
+      filtered = filtered.filter((s) => (s.loginTimestamp || 0) >= sixMonthsAgo);
+    } else if (attendanceTimeRange === 'CUSTOM') {
+      if (customStartDate) {
+        const sMs = new Date(customStartDate).getTime();
+        filtered = filtered.filter((s) => (s.loginTimestamp || 0) >= sMs);
+      }
+      if (customEndDate) {
+        const eMs = new Date(customEndDate).getTime() + 86400 * 1000;
+        filtered = filtered.filter((s) => (s.loginTimestamp || 0) <= eMs);
+      }
     }
-    if (attendanceTimeRange === '6M') {
-      return [
-        { date: 'Mar 26', fullDate: 'March 2026', loginTime: '09:03 AM (Avg)', logoutTime: '06:12 PM (Avg)', loginMinutes: 3, logoutMinutes: 12, hours: '8h 09m', status: '100% On-Time', departureStatus: 'Standard' },
-        { date: 'Apr 26', fullDate: 'April 2026', loginTime: '09:06 AM (Avg)', logoutTime: '06:15 PM (Avg)', loginMinutes: 6, logoutMinutes: 15, hours: '8h 09m', status: '100% On-Time', departureStatus: 'Standard' },
-        { date: 'May 26', fullDate: 'May 2026', loginTime: '09:01 AM (Avg)', logoutTime: '06:16 PM (Avg)', loginMinutes: 1, logoutMinutes: 16, hours: '8h 15m', status: '100% On-Time', departureStatus: 'Standard' },
-        { date: 'Jun 26', fullDate: 'June 2026', loginTime: '09:08 AM (Avg)', logoutTime: '06:18 PM (Avg)', loginMinutes: 8, logoutMinutes: 18, hours: '8h 10m', status: '100% On-Time', departureStatus: 'Standard' },
-        { date: 'Jul 26', fullDate: 'July 2026', loginTime: '09:04 AM (Avg)', logoutTime: '06:14 PM (Avg)', loginMinutes: 4, logoutMinutes: 14, hours: '8h 10m', status: '100% On-Time', departureStatus: 'Standard' },
-        { date: 'Aug 26', fullDate: 'August 2026', loginTime: '09:05 AM (Avg)', logoutTime: '06:15 PM (Avg)', loginMinutes: 5, logoutMinutes: 15, hours: '8h 12m', status: '100% On-Time (Active)', departureStatus: 'Standard' },
-      ];
-    }
-    if (attendanceTimeRange === 'CUSTOM') {
-      return [
-        { date: `${customStartDate.slice(5)}`, fullDate: `Start Date: ${customStartDate}`, loginTime: '09:04 AM', logoutTime: '06:12 PM', loginMinutes: 4, logoutMinutes: 12, hours: '8h 08m', status: 'On-Time', departureStatus: '+12m Normal' },
-        { date: 'Int 1', fullDate: 'Interval Checkpoint 1', loginTime: '08:57 AM', logoutTime: '06:15 PM', loginMinutes: -3, logoutMinutes: 15, hours: '8h 18m', status: 'Early', departureStatus: '+15m Normal' },
-        { date: 'Int 2', fullDate: 'Interval Checkpoint 2', loginTime: '09:10 AM', logoutTime: '06:22 PM', loginMinutes: 10, logoutMinutes: 22, hours: '8h 12m', status: 'On-Time', departureStatus: '+22m Overtime' },
-        { date: 'Int 3', fullDate: 'Interval Checkpoint 3', loginTime: '09:02 AM', logoutTime: '06:08 PM', loginMinutes: 2, logoutMinutes: 8, hours: '8h 06m', status: 'On-Time', departureStatus: '+08m Normal' },
-        { date: `${customEndDate.slice(5)}`, fullDate: `End Date: ${customEndDate}`, loginTime: '09:15 AM', logoutTime: '06:00 PM', loginMinutes: 15, logoutMinutes: 0, hours: workingDuration, status: 'Active Shift', departureStatus: 'Active' },
-      ];
-    }
-    // Default: '1M'
-    return [
-      { date: 'Aug 01', fullDate: 'Aug 01, 2026', loginTime: '09:05 AM', logoutTime: '06:15 PM', loginMinutes: 5, logoutMinutes: 15, hours: '8h 10m', status: 'On-Time', departureStatus: '+15m Normal' },
-      { date: 'Aug 02', fullDate: 'Aug 02, 2026', loginTime: '08:55 AM', logoutTime: '06:10 PM', loginMinutes: -5, logoutMinutes: 10, hours: '8h 15m', status: 'Early (08:55)', departureStatus: '+10m Normal' },
-      { date: 'Aug 03', fullDate: 'Aug 03, 2026', loginTime: '09:08 AM', logoutTime: '06:13 PM', loginMinutes: 8, logoutMinutes: 13, hours: '8h 05m', status: 'On-Time', departureStatus: '+13m Normal' },
-      { date: 'Aug 04', fullDate: 'Aug 04, 2026', loginTime: '09:02 AM', logoutTime: '06:14 PM', loginMinutes: 2, logoutMinutes: 14, hours: '8h 12m', status: 'On-Time', departureStatus: '+14m Normal' },
-      { date: 'Aug 05', fullDate: 'Aug 05, 2026', loginTime: '08:58 AM', logoutTime: '06:18 PM', loginMinutes: -2, logoutMinutes: 18, hours: '8h 20m', status: 'Early (08:58)', departureStatus: '+18m Overtime' },
-      { date: 'Aug 06', fullDate: 'Aug 06, 2026', loginTime: '09:12 AM', logoutTime: '06:12 PM', loginMinutes: 12, logoutMinutes: 12, hours: '8h 00m', status: 'On-Time', departureStatus: '+12m Normal' },
-      { date: 'Aug 07', fullDate: 'Aug 07, 2026', loginTime: '08:58 AM', logoutTime: '06:05 PM', loginMinutes: -2, logoutMinutes: 5, hours: '8h 07m', status: 'Early (08:58)', departureStatus: '+05m Normal' },
-      { date: 'Aug 08', fullDate: 'Aug 08, 2026', loginTime: '09:10 AM', logoutTime: '06:20 PM', loginMinutes: 10, logoutMinutes: 20, hours: '8h 10m', status: 'On-Time', departureStatus: '+20m Overtime' },
-      { date: 'Aug 09', fullDate: 'Aug 09, 2026', loginTime: '09:05 AM', logoutTime: '06:15 PM', loginMinutes: 5, logoutMinutes: 15, hours: '8h 10m', status: 'On-Time', departureStatus: '+15m Normal' },
-      { date: 'Today 10', fullDate: 'Today (Aug 10)', loginTime: '09:15 AM', logoutTime: '06:00 PM (Est)', loginMinutes: 15, logoutMinutes: 0, hours: 'Active Shift', status: 'On-Time (Active)', departureStatus: 'Shift In Progress' },
-    ];
-  }, [attendanceTimeRange, customStartDate, customEndDate, workingDuration]);
+
+    const sorted = [...filtered].sort((a, b) => (a.loginTimestamp || 0) - (b.loginTimestamp || 0));
+
+    return sorted.map((s) => {
+      let loginMins = 0;
+      if (s.loginTime) {
+        const match = s.loginTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3] ? match[3].toUpperCase() : 'AM';
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+          loginMins = (h - 9) * 60 + m;
+        }
+      }
+
+      let logoutMins = 0;
+      if (s.logoutTime && s.logoutTime !== '--' && !s.logoutTime.includes('Active')) {
+        const match = s.logoutTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3] ? match[3].toUpperCase() : 'PM';
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+          logoutMins = (h - 18) * 60 + m;
+        }
+      }
+
+      return {
+        date: s.date.slice(0, 6),
+        fullDate: s.date,
+        loginTime: s.loginTime,
+        logoutTime: s.status === 'ACTIVE' ? 'Active Shift' : s.logoutTime || '--',
+        loginMinutes: loginMins,
+        logoutMinutes: logoutMins,
+        hours: s.status === 'ACTIVE' ? workingDuration : s.duration,
+        status: s.status === 'ACTIVE' ? 'ACTIVE' : loginMins <= 15 ? 'ON TIME' : 'LATE',
+        departureStatus: s.status === 'ACTIVE' ? 'Shift In Progress' : logoutMins >= 0 ? `+${logoutMins}m Overtime` : `${logoutMins}m Early`,
+        sessionObj: s,
+      };
+    });
+  }, [employeeSessions, attendanceTimeRange, customStartDate, customEndDate, workingDuration]);
 
   // Modals State
   const [isEmployeeCreateTaskModalOpen, setIsEmployeeCreateTaskModalOpen] = useState(false);
@@ -1925,9 +2029,9 @@ function EmployeeDashboardContent() {
                 <span className="text-[10px] font-bold text-[#94A3B8] uppercase">Monthly Present</span>
                 <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><Calendar className="w-3.5 h-3.5" /></span>
               </div>
-              <p className="text-2xl font-black text-[#0F172A] mt-1.5">22 / 22 Days</p>
+              <p className="text-2xl font-black text-[#0F172A] mt-1.5">{realKpis.monthlyPresentStr}</p>
               <div className="flex items-center justify-between mt-0.5">
-                <span className="text-[11px] text-emerald-600 font-bold">100% Attendance Rate</span>
+                <span className="text-[11px] text-emerald-600 font-bold">{realKpis.attendanceRateStr}</span>
                 <span className="text-[10px] text-slate-400 font-bold">{activeAttendanceMetricCard === 'PRESENT' ? '▲ Less' : '▼ More'}</span>
               </div>
             </div>
@@ -1944,9 +2048,9 @@ function EmployeeDashboardContent() {
                 <span className="text-[10px] font-bold text-[#94A3B8] uppercase">On-Time Ratio</span>
                 <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><TrendingUp className="w-3.5 h-3.5" /></span>
               </div>
-              <p className="text-2xl font-black text-emerald-600 mt-1.5">100%</p>
+              <p className="text-2xl font-black text-emerald-600 mt-1.5">{realKpis.onTimeRatioStr}</p>
               <div className="flex items-center justify-between mt-0.5">
-                <span className="text-[11px] text-slate-500 font-medium">0 Late Logins</span>
+                <span className="text-[11px] text-slate-500 font-medium">{realKpis.lateLoginsStr}</span>
                 <span className="text-[10px] text-slate-400 font-bold">{activeAttendanceMetricCard === 'ON_TIME' ? '▲ Less' : '▼ More'}</span>
               </div>
             </div>
@@ -1963,7 +2067,7 @@ function EmployeeDashboardContent() {
                 <span className="text-[10px] font-bold text-[#94A3B8] uppercase">Average Shift</span>
                 <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><Clock className="w-3.5 h-3.5" /></span>
               </div>
-              <p className="text-2xl font-black text-[#0F172A] mt-1.5">8h 12m</p>
+              <p className="text-2xl font-black text-[#0F172A] mt-1.5">{realKpis.averageShiftStr}</p>
               <div className="flex items-center justify-between mt-0.5">
                 <span className="text-[11px] text-slate-500 font-medium">Standard 8.0 hr Baseline</span>
                 <span className="text-[10px] text-slate-400 font-bold">{activeAttendanceMetricCard === 'AVG_SHIFT' ? '▲ Less' : '▼ More'}</span>
@@ -1982,7 +2086,7 @@ function EmployeeDashboardContent() {
                 <span className="text-[10px] font-bold text-[#94A3B8] uppercase">Current Shift</span>
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
               </div>
-              <p className="text-2xl font-black text-blue-600 mt-1.5">{workingDuration}</p>
+              <p className="text-2xl font-black text-blue-600 mt-1.5">{realKpis.currentShiftStr}</p>
               <div className="flex items-center justify-between mt-0.5">
                 <span className="text-[11px] text-emerald-600 font-bold">Active Biometric Punch</span>
                 <span className="text-[10px] text-slate-400 font-bold">{activeAttendanceMetricCard === 'CURRENT_SHIFT' ? '▲ Less' : '▼ More'}</span>
@@ -2541,64 +2645,87 @@ function EmployeeDashboardContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { date: 'Today (Aug 10)', fullDate: 'Today (Aug 10)', loginTime: '09:15 AM', logoutTime: 'Active Shift', hours: workingDuration, shift: 'Regular (09:00 - 18:00)', status: 'ON TIME', isLive: true },
-                  { date: 'Yesterday (Aug 09)', fullDate: 'Saturday, Aug 09', loginTime: '09:05 AM', logoutTime: '06:15 PM', hours: '8h 10m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                  { date: 'Friday (Aug 08)', fullDate: 'Friday, Aug 08', loginTime: '09:10 AM', logoutTime: '06:20 PM', hours: '8h 10m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                  { date: 'Thursday (Aug 07)', fullDate: 'Thursday, Aug 07', loginTime: '08:58 AM', logoutTime: '06:05 PM', hours: '8h 07m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                  { date: 'Wednesday (Aug 06)', fullDate: 'Wednesday, Aug 06', loginTime: '09:12 AM', logoutTime: '06:12 PM', hours: '8h 00m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                  { date: 'Tuesday (Aug 05)', fullDate: 'Tuesday, Aug 05', loginTime: '08:58 AM', logoutTime: '06:18 PM', hours: '8h 20m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                  { date: 'Monday (Aug 04)', fullDate: 'Monday, Aug 04', loginTime: '09:02 AM', logoutTime: '06:14 PM', hours: '8h 12m', shift: 'Regular', status: 'COMPLETED', isLive: false },
-                ].map((row, rIdx) => {
-                  const isSelected = selectedAttendanceDay && (selectedAttendanceDay.date === row.date || selectedAttendanceDay.fullDate === row.fullDate);
-                  return (
-                    <tr
-                      key={rIdx}
-                      onClick={() => setSelectedAttendanceDay(row)}
-                      className={`transition cursor-pointer ${
-                        isSelected
-                          ? 'bg-blue-50/80 font-semibold text-blue-900 border-l-4 border-l-blue-600'
-                          : 'hover:bg-slate-50/80 text-slate-700'
-                      }`}
-                    >
-                      <td className="py-3.5 px-4 font-bold text-[#0F172A]">{row.date}</td>
-                      <td className="py-3.5 px-4 font-mono text-slate-600">{row.loginTime}</td>
-                      <td className="py-3.5 px-4">
-                        {row.isLive ? (
-                          <span className="text-emerald-600 font-bold flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            {row.logoutTime}
+                {attendanceChartData.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                      <div className="space-y-2">
+                        <Clock className="w-8 h-8 text-slate-300 mx-auto" />
+                        <p className="font-bold text-slate-700 text-sm">No attendance records available yet.</p>
+                        <p className="text-xs text-slate-400">Your shift sessions will be recorded automatically when you log in.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  attendanceChartData.map((row, rIdx) => {
+                    const isSelected = selectedAttendanceDay && (selectedAttendanceDay.date === row.date || selectedAttendanceDay.fullDate === row.fullDate);
+                    const isLive = row.status === 'ACTIVE';
+                    return (
+                      <tr
+                        key={rIdx}
+                        onClick={() => setSelectedAttendanceDay(row)}
+                        className={`transition cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-50/80 font-semibold text-blue-900 border-l-4 border-l-blue-600'
+                            : 'hover:bg-slate-50/80 text-slate-700'
+                        }`}
+                      >
+                        <td className="py-3.5 px-4 font-bold text-[#0F172A]">{row.fullDate}</td>
+                        <td className="py-3.5 px-4 font-mono text-slate-600">{row.loginTime}</td>
+                        <td className="py-3.5 px-4">
+                          {isLive ? (
+                            <span className="text-emerald-600 font-bold flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                              Active Shift
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-600">{row.logoutTime}</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-blue-600">{row.hours}</td>
+                        <td className="py-3.5 px-4 text-slate-500">General Shift (09:15 AM Cutoff)</td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            isLive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : row.status === 'LATE'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}>
+                            {row.status}
                           </span>
-                        ) : (
-                          <span className="font-mono text-slate-600">{row.logoutTime}</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-blue-600">{row.hours}</td>
-                      <td className="py-3.5 px-4 text-slate-500">{row.shift}</td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAttendanceDay(row);
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 font-bold text-[11px] transition cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3 text-blue-600" />
-                          <span>Inspect</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (row.sessionObj) {
+                                setSelectedSessionForModal(row.sessionObj);
+                              } else {
+                                setSelectedAttendanceDay(row);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 font-bold text-[11px] transition cursor-pointer inline-flex items-center gap-1"
+                          >
+                            <Eye className="w-3 h-3 text-blue-600" />
+                            <span>Inspect</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* View Complete Submitted Report Modal */}
+          {selectedSessionForModal && (
+            <ViewReportModal
+              session={selectedSessionForModal}
+              onClose={() => setSelectedSessionForModal(null)}
+            />
+          )}
         </div>
       )}
 
@@ -2633,125 +2760,8 @@ function EmployeeDashboardContent() {
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 8: INTERNAL HELPDESK */}
+      {/* VIEW 8: NOTIFICATIONS */}
       {/* ========================================================================= */}
-      {activeTab === 'helpdesk' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Submission Form (7 cols) */}
-          <div className="lg:col-span-7 bg-white p-6 sm:p-7 rounded-2xl border border-[#E2E8F0] shadow-xs space-y-4">
-            <div>
-              <h2 className="text-lg font-extrabold text-[#0F172A]">Create Internal Helpdesk Request</h2>
-              <p className="text-xs text-[#475569]">Submit issues to IT Support, Facilities, or HR Operations</p>
-            </div>
-
-            {ticketSuccess && (
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Ticket submitted successfully! Assigned reference #TKT-{Math.floor(1000 + Math.random() * 9000)}.</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateTicket} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-[#0F172A] block mb-1">Subject / Summary</label>
-                <input
-                  type="text"
-                  value={ticketSubject}
-                  onChange={(e) => setTicketSubject(e.target.value)}
-                  placeholder="e.g. Request secondary display or VPN access"
-                  required
-                  className="w-full p-2.5 bg-white border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB] text-xs text-[#0F172A]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-[#0F172A] block mb-1">Category</label>
-                  <select
-                    value={ticketCategory}
-                    onChange={(e) => setTicketCategory(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB] text-xs text-[#0F172A]"
-                  >
-                    <option>IT & Access Permissions</option>
-                    <option>Hardware & Equipment</option>
-                    <option>HR & Payroll Queries</option>
-                    <option>Admin & Facilities</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-[#0F172A] block mb-1">Priority</label>
-                  <select
-                    value={ticketPriority}
-                    onChange={(e) => setTicketPriority(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB] text-xs text-[#0F172A]"
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="NORMAL">Normal</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-[#0F172A] block mb-1">Detailed Description</label>
-                <textarea
-                  rows={4}
-                  value={ticketMsg}
-                  onChange={(e) => setTicketMsg(e.target.value)}
-                  placeholder="Describe your issue or request in detail..."
-                  className="w-full p-2.5 bg-white border border-[#E2E8F0] rounded-xl outline-none focus:border-[#2563EB] text-xs text-[#0F172A] resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-              >
-                <Send className="w-3.5 h-3.5 text-white" />
-                <span>Submit Ticket</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Ticket History (5 cols) */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-extrabold text-[#0F172A]">Your Recent Tickets</h3>
-              <span className="text-xs font-bold text-[#2563EB] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                {submittedTickets.length} Total
-              </span>
-            </div>
-            
-            <div className="space-y-3">
-              {submittedTickets.map((tkt) => (
-                <div 
-                  key={tkt.id} 
-                  onClick={() => setSelectedTicketDetail(tkt)}
-                  className="p-4 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-200 transition border border-slate-200 rounded-xl space-y-1.5 cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#2563EB] text-xs group-hover:underline">{tkt.id}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      tkt.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                      tkt.status === 'IN_REVIEW' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                      'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {tkt.status}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-[#0F172A] group-hover:text-[#2563EB] transition">{tkt.subject}</h4>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-                    <span>{tkt.category}</span>
-                    <span>{tkt.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* VIEW 9: EMPLOYEE REPORTS & PERFORMANCE */}

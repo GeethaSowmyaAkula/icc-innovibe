@@ -10,6 +10,7 @@ import {
   AnnouncementStatistics,
 } from './announcement-models';
 import { NotificationRepository } from './notification-repository';
+import { supabase } from './supabase';
 
 const STORAGE_KEY = 'ICC_TMS_ANNOUNCEMENTS_PERSISTENCE_V3';
 
@@ -316,6 +317,23 @@ export class AnnouncementRepository {
 
     list.unshift(newRecord);
     this.saveToStorage(list);
+
+    try {
+      Promise.resolve(
+        supabase.from('announcements').insert({
+          title: payload.title,
+          message: payload.message,
+          from_badge: payload.fromBadge || 'Admin',
+          posted_by: payload.postedBy || payload.senderName || 'Sri Hari Kolusu',
+          target_audience: payload.targetAudience,
+          priority: payload.priority,
+          status: payload.isPinned ? 'PINNED' : 'ACTIVE',
+          is_pinned: !!payload.isPinned,
+          notify_immediately: !!payload.notifyImmediately,
+          attachments: payload.attachments || [],
+        })
+      ).catch(() => {});
+    } catch (e) {}
 
     if (newRecord.notifyImmediately) {
       NotificationRepository.dispatchNotificationsForAnnouncement(newRecord);

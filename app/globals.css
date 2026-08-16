@@ -105,18 +105,44 @@ div.bg-white.rounded-xl:hover {
 }
 
 /* Modern Input & Interactive Focus */
-input, select, textarea {
+:where(input, select, textarea):not([class*="bg-"]):not([class*="!bg-"]) {
   border-radius: 12px;
   border: 1px solid #e8edf4;
   background-color: #f8fafc;
+  color: #0f172a;
   transition: all 0.2s ease-out;
 }
 
-input:focus, select:focus, textarea:focus {
+:where(input:focus, select:focus, textarea:focus):not([class*="bg-"]):not([class*="!bg-"]) {
   background-color: #ffffff;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   outline: none;
+}
+
+/* Autofill text contrast fix for Chrome/Safari */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Custom Calendar Color Scheme for dark date pickers */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /* Custom Clean Light Scrollbars */

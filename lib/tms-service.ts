@@ -18,6 +18,7 @@ import {
 } from './tms-models';
 import { NotificationRepository } from './notification-repository';
 import { EmployeeRepository } from './employee-repository';
+import { supabase } from './supabase';
 
 const mockEmployees: Employee[] = [
   {
@@ -531,6 +532,21 @@ export class TmsTaskService {
 
     tasks.unshift(newTask);
     saveStoredTasks(tasks);
+
+    // Supabase Backend Sync
+    try {
+      Promise.resolve(
+        supabase.from('tasks').insert({
+          task_number: newTask.id,
+          title: newTask.title,
+          description: newTask.description,
+          category: newTask.category,
+          priority: newTask.priority,
+          status: 'OPEN',
+          progress_percent: 0,
+        })
+      ).catch(() => {});
+    } catch (e) {}
 
     // Dispatch real-time notifications to all assigned employees
     selectedEmps.forEach((emp) => {

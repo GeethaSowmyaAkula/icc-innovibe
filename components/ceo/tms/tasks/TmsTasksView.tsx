@@ -58,21 +58,28 @@ export function TmsTasksView() {
 
   // Load Data via Service Layer
   const loadTasksData = async () => {
-    setIsLoading(true);
-    const filterParams: TaskFilterParams = {
-      query: searchQuery,
-      priority: selectedPriority,
-      status: selectedStatus,
-      category: selectedCategory,
-      segment: activeSegment,
-    };
+    try {
+      setIsLoading(true);
+      const filterParams: TaskFilterParams = {
+        query: searchQuery,
+        priority: selectedPriority,
+        status: selectedStatus,
+        category: selectedCategory,
+        segment: activeSegment,
+      };
 
-    const taskList = await TmsTaskService.getTasks(filterParams);
-    const kpiSummary = await TmsTaskService.getTaskKpis();
+      const [taskList, kpiSummary] = await Promise.all([
+        TmsTaskService.getTasks(filterParams).catch(() => []),
+        TmsTaskService.getTaskKpis().catch(() => null),
+      ]);
 
-    setTasks(taskList);
-    setKpis(kpiSummary);
-    setIsLoading(false);
+      setTasks(taskList);
+      if (kpiSummary) setKpis(kpiSummary);
+    } catch (e) {
+      console.error('Error loading task workspace:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

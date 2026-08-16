@@ -36,19 +36,30 @@ export function Navbar() {
     };
   }, [activeRole]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const getEffectiveRole = (): RoleType => {
-    if (pathname.startsWith('/dashboard/hr')) return 'HR';
-    if (pathname.startsWith('/dashboard/cto')) return 'CTO';
-    if (pathname.startsWith('/dashboard/coo')) return 'COO';
-    if (pathname.startsWith('/dashboard/service-manager')) return 'SERVICE_MANAGER';
-    if (pathname.startsWith('/dashboard/technician')) return 'TECHNICIAN';
-    if (pathname.startsWith('/dashboard/ceo')) return 'CEO';
+    if (pathname?.startsWith('/dashboard/employee')) return 'EMPLOYEE';
+    if (pathname?.startsWith('/dashboard/hr')) return 'HR';
+    if (pathname?.startsWith('/dashboard/cto')) return 'CTO';
+    if (pathname?.startsWith('/dashboard/coo')) return 'COO';
+    if (pathname?.startsWith('/dashboard/service-manager')) return 'SERVICE_MANAGER';
+    if (pathname?.startsWith('/dashboard/technician')) return 'TECHNICIAN';
+    if (pathname?.startsWith('/dashboard/ceo')) return 'CEO';
     return activeRole;
   };
 
   const effectiveRole = getEffectiveRole();
 
   const handleLogout = () => {
+    if (activeRole === 'EMPLOYEE' || typeof window !== 'undefined' && window.location.pathname.includes('/dashboard/employee')) {
+      // Mandate End-of-Day Work Session Report before logout
+      window.dispatchEvent(new CustomEvent('innovibe:open_logout_modal'));
+      return;
+    }
     logout();
     router.push('/auth/login');
   };
@@ -111,7 +122,6 @@ export function Navbar() {
         { id: 'leave', label: 'Leave Management', desc: 'Apply for time off', url: '/dashboard/employee?view=leave', keywords: ['leave', 'holiday', 'time off', 'vacation'] },
         { id: 'attendance', label: 'Attendance & Punctuality', desc: 'View clock-ins and shifts', url: '/dashboard/employee?view=attendance', keywords: ['attend', 'time', 'clock', 'punch', 'shift'] },
         { id: 'tasks', label: 'Assigned Tasks', desc: 'View your pending work', url: '/dashboard/employee?view=tasks', keywords: ['task', 'work', 'job', 'todo', 'assign'] },
-        { id: 'helpdesk', label: 'Internal Helpdesk', desc: 'Submit IT or HR tickets', url: '/dashboard/employee?view=helpdesk', keywords: ['ticket', 'help', 'support', 'issue', 'it'] },
         { id: 'announcements', label: 'Company Notices', desc: 'Read executive broadcasts', url: '/dashboard/employee?view=announcements', keywords: ['notice', 'announce', 'broadcast', 'news'] },
         { id: 'pay', label: 'Payroll & Compensation', desc: 'View salary slips', url: '/dashboard/employee?view=pay', keywords: ['pay', 'salary', 'slip', 'wage'] },
         { id: 'reports', label: 'Performance & Reports', desc: 'View your KPIs', url: '/dashboard/employee?view=reports', keywords: ['report', 'performance', 'kpi'] },

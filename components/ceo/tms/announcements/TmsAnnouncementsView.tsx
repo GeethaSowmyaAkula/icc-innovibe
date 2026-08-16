@@ -79,21 +79,27 @@ export function TmsAnnouncementsView() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
-    setIsLoading(true);
-    const annList = await AnnouncementService.getAll();
-    const deptList = await DepartmentService.getAll();
-    const empList = await EmployeeService.getAll();
-    const statData = await AnnouncementService.getStatistics();
+    try {
+      setIsLoading(true);
+      const [annList, deptList, empList, statData] = await Promise.all([
+        AnnouncementService.getAll().catch(() => []),
+        DepartmentService.getAll().catch(() => []),
+        EmployeeService.getAll().catch(() => []),
+        AnnouncementService.getStatistics().catch(() => null),
+      ]);
 
-    setAnnouncements(annList);
-    setDepartments(deptList);
-    setEmployees(empList);
-    setStats(statData);
+      setAnnouncements(annList);
+      setDepartments(deptList);
+      setEmployees(empList);
+      if (statData) setStats(statData);
 
-    if (deptList.length > 0 && !selectedDeptId) setSelectedDeptId(deptList[0].id);
-    if (empList.length > 0 && !selectedEmpId) setSelectedEmpId(empList[0].id);
-
-    setIsLoading(false);
+      if (deptList.length > 0 && !selectedDeptId) setSelectedDeptId(deptList[0].id);
+      if (empList.length > 0 && !selectedEmpId) setSelectedEmpId(empList[0].id);
+    } catch (e) {
+      console.error('Error loading announcements:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
